@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script>window.VELADA_GAME='panel';</script><script src="firebase-config.js"></script><script src="velada-model.js"></script><script src="mazos-iniciales.js"></script><script src="velada-access.js"></script><script src="velada-store.js"></script><script src="velada-bonuses.js"></script><script src="velada-runtime.js"></script><link rel="stylesheet" href="velada-integration.css">
+
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -12,7 +14,7 @@
      (que está en todos los sistemas) cumple el mismo rol. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;display=swap" rel="stylesheet">
 <!-- ── PWA / Agregar a pantalla de inicio ── -->
 <meta name="theme-color" content="#c8f060">
 <meta name="mobile-web-app-capable" content="yes">
@@ -22,7 +24,7 @@
 <meta name="application-name" content="La Velada">
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAFRklEQVR4nO3dO3YTQRBG4ZIOuQMWwHKIWC0Ry2EBDrQCCGB8pPE8uqef9df9cqzW9HWpLQvPzSbx9vb1z+g1oMzj8X4bvYZhCyBgfSMC7/qARBxXr7ibPwgRY61l3M2+MCHjTIuwq39BQkaummHfa30hM2LGNTW7qfKdQciopXRaF09oYkZNpT0VBU3MaKGkq0vjnZDRS+4RJHtCEzN6yu0tK2hixgg53SUHTcwYKbW/qu9DA6MlBc10xgxSOjwNmpgxk7MeD4MmZszoqEvO0JCyGzTTGTPb63MzaGKGB1udcuSAlE9BM53hybpXJjSkvATNdIZHz90yoSGFoCHlI2iOG/Bs6ZcJDSkEDSk3M44b0MGEhhSChhSChpQ752coYUJDCkFDCkFDCkFDCkFDCkFDCkFDCkFDCkFDCkFDypfRC1Dz6/eP7H/z/dvPBiuJ6cZnOa67Em8qIr+GoDO1jHgPcacj6AQjIt5D3McI+sBMIa8R9jaC3jBzyGuE/Yqgn3gKeY2w/+F96P88x2zmf/21hJ/QiiFEntahJ7RizGa6zytF2KDVN139+e0Jd+SIuNGRjiChJnTEmM1iPe8wQUfa1C1Rnn+IoKNs5pkI10E+6AibmEP9esgHjVikg1afRlcpXxfZoJU3rQbV6yMZtOpm1aZ4nSSDRlxyQStOnZbUrpdU0Gqb04vSdePPGDSS8vkJpZBmIfPhpBniKPkQkPf1z4IJXahWBM9fZ4a4vZI4Q48KoNVEGzUpFb6RmNAX9AhueQyFyHpyP6F7b3jv6dn78bx/A7kPuqdRRwGFH9Z6IehEo6Ma/fheuA6618vjLDH1WofnY4froHuYJebFbOuZDUFDituge7wszjoNe6zL67HDbdCtzRrzYvb1jULQkELQkELQG7y8nHtZZ08ug/b6A4s3Hq+zy6CBPQS94u1l3Nt6WyNoSCFoSCFoSCFoSCFoSCFoSCFoSCFoSCHoFW+/7vW23tYIGlJcBs2ve/vweJ1dBt2al5dxL+vsiaAhhaAhhaB3zP5yPvv6RnEbdOT/yh/5TziccRs0sIWgT8w2pWdbz2xcBx3tjxdG++OUV7gOuqfRUY9+fC8IOsOoqIg5nfug1W/ZoH7Ljdq4adAFS2QtN5+pfI37CW2mdxs0tdvU9cSELvQcn/c7ySqQuTWy2VxReLvXt8J0NmNCNzNTrJFInKEXKlOmN6XrJhW0mdbm9KB2veSCRmySQatNnVYUr5Nk0Gaam1WT6vWRDdpMd9NKKV8X6aARj3zQytPoCvXrIR+0mf4mpopwHUIEbRZjM49Eef5hgjaLs6lrkZ631IeTckT4rEWkkBehJvQz9c1Wf357wgZtprvpqs8rRdgjx5rCESRyyIvQE/qZ9xi8r78WJvQGT9OakF8R9IGZwybkbQSdYKawCfkYQWcaETcRpyPoAi3jJuJrCLqyK5ETbz0EDSm8Dw0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pBA0p98fj/TZ6EUAtTGhIIWhIIWhIuZuZcY6Ggsfj/caEhhSChpSPoDl2wLOlXyY0pBA0pLwEzbEDHj13y4SGlE9BM6XhybpXJjSkbAbNlIYHW53uTmiixsz2+uTIASmHQTOlMaOjLk8nNFFjJmc9Jh05iBozSOmQMzSkJAfNlMZIqf1lTWiixgg53WUfOYgaPeX2VhQnt7NAK1cHZ9EPhUxrtFDSVfG7HESNmkp7qhojRxBcVWswVn0fmmmNK2p20yxApjXOtBiAzScqYWOt5St51yMCccfV6zg67MxL3PpG/Ez1FwIGwqtzI91EAAAAAElFTkSuQmCC">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22180%22%20height%3D%22180%22%20viewBox%3D%220%200%20180%20180%22%3E%3Crect%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2240%22%20fill%3D%22%230f0f13%22/%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-size%3D%22110%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%3E%F0%9F%8E%AE%3C/text%3E%3C/svg%3E">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎂</text></svg>">
+<link rel="icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%F0%9F%8E%82&lt;/text&gt;&lt;/svg&gt;">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -3989,9 +3991,9 @@ body.solo-impostor #tv-btn{ opacity:.42 }
 .pr-del{ background:none; border:none; color:var(--danger); font-size:9px;
   cursor:pointer; font-family:inherit; padding:1px }
 </style>
-<style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style><script src="buzzer-rounds.js"></script>
-<script src="velada-rounds.js"></script>
-</head>
+<style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style>
+
+<script src="vendor/qrcode.js"></script></head>
 <body>
 <script>
 /* Ventana de cierre (?cierre=1): la pantalla con el botón ▶ Comenzar se monta ANTES
@@ -4046,100 +4048,7 @@ body.solo-impostor #tv-btn{ opacity:.42 }
      Se sincroniza por Firebase RTDB (velada/config/varEnabled) y,
      como respaldo, por localStorage entre pestañas del mismo navegador.
      ══════════════════════════════════════════════════════════════════ -->
-<script>
-window.VarSwitch = (function () {
-  const LS_KEY    = 'velada_var_enabled';
-  const RTDB_PATH = 'velada/config/varEnabled';
-  const CFG = {
-    apiKey: "AIzaSyB37WkRQqBWVYkZ84AE2u17pAOs_9ZCgCg",
-    authDomain: "guessmovie-905e2.firebaseapp.com",
-    databaseURL: "https://guessmovie-905e2-default-rtdb.firebaseio.com",
-    projectId: "guessmovie-905e2",
-    appId: "1:313601369235:web:f8b28a2ec187a934fa1966"
-  };
-
-  let enabled = true;          // por defecto el VAR viene activado
-  let _ref    = null;
-  const subs  = [];
-
-  function readInitial() {
-    try {
-      const q = new URLSearchParams(location.search).get('var');
-      if (q === '0' || q === '1') {
-        localStorage.setItem(LS_KEY, q);
-        return q === '1';
-      }
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw === null) return true;
-      return raw === '1';
-    } catch (e) { return true; }
-  }
-
-  function emit() {
-    subs.forEach(fn => { try { fn(enabled); } catch (e) {} });
-  }
-
-  function set(v, opts) {
-    v = !!v;
-    const push    = !!(opts && opts.push);
-    const changed = (v !== enabled);
-    enabled = v;
-    try { localStorage.setItem(LS_KEY, v ? '1' : '0'); } catch (e) {}
-    if (push && _ref) { try { _ref.set(v); } catch (e) {} }
-    if (changed) emit();
-  }
-
-  enabled = readInitial();
-
-  // Otras pestañas del mismo navegador
-  window.addEventListener('storage', function (e) {
-    if (e.key === LS_KEY) set(e.newValue === '1');
-  });
-
-  function attachRef(ref) {
-    _ref = ref;
-    ref.on('value', function (snap) {
-      const v = snap.val();
-      if (v === null || v === undefined) return;
-      set(v === true || v === 1 || v === '1');
-    });
-  }
-
-  // Conexión propia a Firebase (solo si la página no la maneja por su cuenta)
-  function loadScript(src) {
-    return new Promise(function (res, rej) {
-      const s = document.createElement('script');
-      s.src = src; s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-    });
-  }
-  if (!window.VAR_SWITCH_MANUAL) {
-    (async function () {
-      try {
-        if (typeof firebase === 'undefined' || !firebase.database) {
-          await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-          await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js');
-        }
-        let app;
-        try { app = firebase.app('varcfg'); } catch (e) { app = firebase.initializeApp(CFG, 'varcfg'); }
-        attachRef(app.database().ref(RTDB_PATH));
-      } catch (e) {
-        console.warn('VarSwitch: sin sincronización remota, se usa localStorage', e);
-      }
-    })();
-  }
-
-  return {
-    get enabled() { return enabled; },
-    set: set,
-    attachRef: attachRef,
-    onChange: function (fn) {
-      subs.push(fn);
-      try { fn(enabled); } catch (e) {}
-    }
-  };
-})();
-</script>
+<script>window.VarSwitch={enabled:false,onChange:fn=>fn(false),set:()=>{}};</script>
 
 <a class="hub-link" href="index.html?hub=1">← Volver</a>
 
@@ -4154,8 +4063,8 @@ window.VarSwitch = (function () {
   <div class="splash-inner">
     <div class="splash-eyebrow">🎮 Noche de juegos</div>
     <h1 class="splash-title">
-      <span class="st-line st-1">La&nbsp;Velada</span>
-      <span class="st-line st-2">del&nbsp;Año</span>
+      <span class="st-line st-1">La Velada</span>
+      <span class="st-line st-2">del Año</span>
     </h1>
     <div class="splash-badge">Edición 2026</div>
     <div class="splash-lineup" aria-hidden="true">
@@ -4419,7 +4328,7 @@ function _applyRulesParsed(parsed) {
 function loadRulesConfig() {
   // 1. Arrancar con localStorage o default (sincrónico, para que la app cargue rápido)
   try {
-    const s = localStorage.getItem('ndj_rules');
+    const s = localStorage.getItem('velada2026_ui_rules');
     if (s) {
       _applyRulesParsed(JSON.parse(s));
     } else {
@@ -4438,7 +4347,7 @@ function loadRulesConfig() {
             const parsed = JSON.parse(data);
             _applyRulesParsed(parsed);
             // Actualizar localStorage con lo que vino de Firebase
-            localStorage.setItem('ndj_rules', data);
+            localStorage.setItem('velada2026_ui_rules', data);
             console.log('Reglas cargadas desde Firebase ✓');
           } catch(e) { console.warn('Error al parsear reglas de Firebase:', e); }
         }
@@ -4452,7 +4361,7 @@ function loadRulesConfig() {
 
 function saveRulesConfig() {
   const json = JSON.stringify(RULES_CONFIG);
-  localStorage.setItem('ndj_rules', json);
+  localStorage.setItem('velada2026_ui_rules', json);
   // Guardar en Firebase para que sobreviva actualizaciones del HTML
   function tryFbSave() {
     if (window._fbReady && window._fbWrite) {
@@ -4466,7 +4375,7 @@ function saveRulesConfig() {
   syncRulestoRuntime();
 }
 
-function syncRulestoRuntime() {
+function syncRulestoRuntime() {return;
   // Sync game names (se trunca/extiende para reflejar estaciones agregadas o eliminadas)
   GAMES_F1.length = 0; RULES_CONFIG.f1.forEach(g => GAMES_F1.push(g.name));
   GAMES_F2.length = 0; RULES_CONFIG.f2.forEach(g => GAMES_F2.push(g.name));
@@ -4595,7 +4504,7 @@ function addTiebreakItem() {
 
 function resetRulesConfig() {
   if (!confirm('¿Restaurar todas las reglas a los valores originales? (Los puntajes y cambios se perderán)')) return;
-  localStorage.removeItem('ndj_rules');
+  localStorage.removeItem('velada2026_ui_rules');
   RULES_CONFIG = JSON.parse(JSON.stringify(RULES_DEFAULT));
   syncRulestoRuntime();
   _rulesEditMode = false;
@@ -5233,40 +5142,18 @@ function renderVarToggle(on) {
 try { VarSwitch.onChange(renderVarToggle); } catch (e) {}
 
 // ============================================================
-const PLAYERS = [
-  'Risu','Totti','Thiago','Mica',
-  'Valentín','Laza','Lara','Martín',
-  'Cori','Flor','Tomás'
-];
+const PLAYERS = [];
 
 // Los equipos usan los MISMOS apodos que la Fase 1, así las tablas de Fase 1,
 // Fase 2 y la presentación de la apertura dicen todas lo mismo.
-const TEAMS = [
-  'Martín / Valentín',
-  'Laza / Tomás',
-  'Thiago / Lara',
-  'Totti / Risu',
-  'Cori / Flor / Mica'
-];
+const TEAMS = [];
 
-const GAMES_F1 = ['Curling','100 Argentinos Dicen','UNO','Palabras a Tiempo','Carrera de Mentes','Spot It'];
+const GAMES_F1 = [];
 const GAMES_F2 = ['Mario Party','Time\'s Up','Beer Pong','Guess Movie/Song','El Erudito','Jenga'];
 
 // Nombres completos para los CRÉDITOS finales (los apodos se usan en el resto de la app).
 // ← Completá/corregí cada apodo con el nombre real. Si un apodo no está acá, se usa el apodo.
-const FULL_NAMES = {
-  'Risu':     'Risu',
-  'Totti':    'Totti',
-  'Thiago':   'Thiago C.',
-  'Mica':     'Micaela B.',
-  'Valentín': 'Valentín A.',
-  'Laza':     'Lázaro G.',
-  'Lara':     'Lara M.',
-  'Martín':   'Martín H.',
-  'Cori':     'Coral O.',
-  'Flor':     'Florencia L.',
-  'Tomás':    'Tomás P.',
-};
+const FULL_NAMES = {};
 
 // Devuelve el índice del equipo de Fase 2 al que pertenece un jugador (por su
 // apodo de Fase 1), usando FULL_NAMES para pasar de apodo a nombre completo.
@@ -5623,7 +5510,7 @@ function regenerateF2Fixture() {
 // estaciones, se restaura el mismo roster y el MISMO fixture ya generado
 // (no se vuelve a sortear de nuevo en cada recarga, porque eso desincronizaría
 // los resultados ya cargados).
-function restoreRosterAndFixtures() {
+function restoreRosterAndFixtures() {return;
   // Siempre restauramos el snapshot si existe (se guarda en cada edición de
   // roster/estaciones, esté o no arrancado el torneo). Antes esto solo se
   // restauraba si ya había resultados cargados, lo que hacía que agregar o
@@ -5663,7 +5550,7 @@ function restoreRosterAndFixtures() {
     created = true;
   }
   if (created) {
-    try { localStorage.setItem('ndj_state', JSON.stringify(state)); } catch(e) {
+    try { localStorage.setItem('velada2026_ui_state', JSON.stringify(state)); } catch(e) {
       console.warn('No se pudo fijar el fixture localmente',e);
     }
   }
@@ -6191,7 +6078,7 @@ const COMODIN_WHEN_LABEL = {
 
 function loadComodinesConfig() {
   try {
-    const s = localStorage.getItem('ndj_comodines');
+    const s = localStorage.getItem('velada2026_ui_comodines');
     if (s) {
       const parsed = JSON.parse(s);
       if (Array.isArray(parsed) && parsed.length) COMODINES = parsed;
@@ -6205,7 +6092,7 @@ function loadComodinesConfig() {
             const parsed = JSON.parse(data);
             if (Array.isArray(parsed) && parsed.length) {
               COMODINES = parsed;
-              localStorage.setItem('ndj_comodines', data);
+              localStorage.setItem('velada2026_ui_comodines', data);
               renderReglas();
             }
           } catch(e) { console.warn('Error al parsear comodines de Firebase:', e); }
@@ -6219,7 +6106,7 @@ function loadComodinesConfig() {
 }
 function saveComodinesConfig() {
   const json = JSON.stringify(COMODINES);
-  localStorage.setItem('ndj_comodines', json);
+  localStorage.setItem('velada2026_ui_comodines', json);
   function tryFbSave() {
     if (window._fbReady && window._fbWrite) window._fbWrite('comodines', json);
     else setTimeout(tryFbSave, 500);
@@ -6236,7 +6123,7 @@ function deleteComodinCatalog(key) {
 function resetComodinesConfig() {
   if (!confirm('¿Restaurar el listado original de comodines? Se perderán los que hayas agregado o borrado.')) return;
   COMODINES = JSON.parse(JSON.stringify(COMODINES_DEFAULT));
-  localStorage.removeItem('ndj_comodines');
+  localStorage.removeItem('velada2026_ui_comodines');
   if (window._fbReady && window._fbWrite) window._fbWrite('comodines', JSON.stringify(COMODINES_DEFAULT));
   renderReglas();
   showToast('✓', 'Comodines restaurados', false);
@@ -6259,9 +6146,9 @@ function addComodinCatalog() {
 }
 
 // Load from localStorage
-function loadState() {
+function loadState() {return;
   try {
-    const s = localStorage.getItem('ndj_state');
+    const s = localStorage.getItem('velada2026_ui_state');
     if (s) {
       const loaded = JSON.parse(s);
       state = Object.assign({}, state, loaded);
@@ -6273,10 +6160,10 @@ function loadState() {
   } catch(e) {}
 }
 // Canal de sincronización instantánea entre ventanas del mismo origen (misma PC)
-window._bc = (() => { try { return new BroadcastChannel('ndj_sync'); } catch(e) { return null; } })();
+window._bc = (() => { try { return new BroadcastChannel('velada2026_ui_sync'); } catch(e) { return null; } })();
 // Snapshot accesible desde la ventana TV vía window.opener (sobrevive recargas
 // de esta ventana, a diferencia de window._tvWin). Se inicializa con lo guardado.
-window._ndjState = localStorage.getItem('ndj_state') || '{}';
+window._ndjState = localStorage.getItem('velada2026_ui_state') || '{}';
 
 function saveState() {
   // El roster viaja SIEMPRE con el estado. Antes solo se publicaba al editarlo
@@ -6310,8 +6197,8 @@ function saveState() {
   // TV ni a Firebase y el resultado recién cargado se perdía. Ahora el fallo
   // local no frena la sincronización, que es lo que realmente importa.
   try {
-    localStorage.setItem('ndj_state', json);
-    localStorage.setItem('ndj_state_ts', String(Date.now()));
+    localStorage.setItem('velada2026_ui_state', json);
+    localStorage.setItem('velada2026_ui_state_ts', String(Date.now()));
   } catch (e) {
     console.warn('No se pudo guardar localmente (¿almacenamiento lleno?):', e);
     if (!window._avisoCuota) {
@@ -6322,10 +6209,10 @@ function saveState() {
   window._ndjState = json; // la TV lee esto por polling desde opener
   // Misma PC: mandar directo a la ventana TV si está abierta
   if (window._tvWin && !window._tvWin.closed) {
-    try { window._tvWin.postMessage({ type: 'ndj_state', data: json }, '*'); } catch(e) {}
+    try { window._tvWin.postMessage({ type: 'velada2026_ui_state', data: json }, '*'); } catch(e) {}
   }
   // Backup BroadcastChannel
-  if (window._bc) window._bc.postMessage({ key: 'ndj_state', data: json });
+  if (window._bc) window._bc.postMessage({ key: 'velada2026_ui_state', data: json });
   // Celular → TV / PC → celular: Firebase
   if (window._fbReady) {
     window._fbWrite('state', json);
@@ -6344,7 +6231,7 @@ function saveState() {
 // en esta PC, cada vez que se guarda el estado. Solo escribe si algo
 // relevante cambió, igual que pushQldTeams() de más arriba.
 window._fixtureFirma = null;
-function syncFixtureToFirebase() {
+function syncFixtureToFirebase() {return;
   try {
     if (!window._rtdb) return; // todavía no conectó
     const payload = {
@@ -6382,12 +6269,12 @@ setInterval(() => {
     if (sig !== JSON.stringify(state.liveTotals || null)) {
       state.liveTotals = lt;
       const json = JSON.stringify(state);
-      try { localStorage.setItem('ndj_state', json); } catch (e) {}
+      try { localStorage.setItem('velada2026_ui_state', json); } catch (e) {}
       window._ndjState = json;
       if (window._tvWin && !window._tvWin.closed) {
-        try { window._tvWin.postMessage({ type: 'ndj_state', data: json }, '*'); } catch (e) {}
+        try { window._tvWin.postMessage({ type: 'velada2026_ui_state', data: json }, '*'); } catch (e) {}
       }
-      if (window._bc) window._bc.postMessage({ key: 'ndj_state', data: json });
+      if (window._bc) window._bc.postMessage({ key: 'velada2026_ui_state', data: json });
     }
     if (window._fbReady && Date.now() - _ltBoot > 12000 && window._ltCloudSig !== sig) {
       window._ltCloudSig = sig;
@@ -6409,7 +6296,7 @@ function markLocalTs(key, ts) {
 // ============================================================
 // FIREBASE — sincronización en tiempo real
 // ============================================================
-(function initFirebase() {
+(function initFirebase() { return;return;
   const script = document.createElement('script');
   script.type = 'module';
   // OJO: este módulo va dentro de un template string → sin backticks ni signo pesos-llave.
@@ -6698,12 +6585,12 @@ function activateTab(tab) {
 // Top 3 siempre visible en una esquina, sin importar en qué pestaña estés.
 // Cambia solo según la fase que estés mirando (o la que esté en juego).
 let _miniOn = true;
-try { _miniOn = localStorage.getItem('ndj_mini_off') !== '1'; } catch (e) {}
+try { _miniOn = localStorage.getItem('velada2026_ui_mini_off') !== '1'; } catch (e) {}
 
 
 function toggleMiniBoard() {
   _miniOn = !_miniOn;
-  try { localStorage.setItem('ndj_mini_off', _miniOn ? '0' : '1'); } catch (e) {}
+  try { localStorage.setItem('velada2026_ui_mini_off', _miniOn ? '0' : '1'); } catch (e) {}
   renderMiniBoard();
 }
 
@@ -7581,14 +7468,14 @@ function renderNextMatch(phase) {
 let _whoFilter = { f1: '', f2: '' };
 (function loadWhoFilter() {
   try {
-    _whoFilter.f1 = localStorage.getItem('ndj_who_f1') || '';
-    _whoFilter.f2 = localStorage.getItem('ndj_who_f2') || '';
+    _whoFilter.f1 = localStorage.getItem('velada2026_ui_who_f1') || '';
+    _whoFilter.f2 = localStorage.getItem('velada2026_ui_who_f2') || '';
   } catch(e) {}
 })();
 
 function setWhoFilter(phase, value) {
   _whoFilter[phase] = value;
-  try { localStorage.setItem('ndj_who_' + phase, value); } catch(e) {}
+  try { localStorage.setItem('velada2026_ui_who_' + phase, value); } catch(e) {}
   if (phase === 'f1') renderFase1(); else renderFase2();
 }
 
@@ -8637,9 +8524,9 @@ function showRoundIntro(phase, round) {
 // broadcastRuleta/broadcastMote.
 function broadcastRoundIntro(payload) {
   if (window._tvWin && !window._tvWin.closed) {
-    try { window._tvWin.postMessage({ type: 'ndj_roundintro', data: payload }, '*'); } catch(e) {}
+    try { window._tvWin.postMessage({ type: 'velada2026_ui_roundintro', data: payload }, '*'); } catch(e) {}
   }
-  if (window._bc) window._bc.postMessage({ key: 'ndj_roundintro', data: payload });
+  if (window._bc) window._bc.postMessage({ key: 'velada2026_ui_roundintro', data: payload });
 }
 
 function showNextRoundIntro(phase) {
@@ -8943,18 +8830,18 @@ function closeRuleta() {
 // camino de Firebase que usan state/wall para sincronizar entre dispositivos.
 function broadcastRuleta(payload) {
   if (window._tvWin && !window._tvWin.closed) {
-    try { window._tvWin.postMessage({ type: 'ndj_ruleta', data: payload }, '*'); } catch(e) {}
+    try { window._tvWin.postMessage({ type: 'velada2026_ui_ruleta', data: payload }, '*'); } catch(e) {}
   }
-  if (window._bc) window._bc.postMessage({ key: 'ndj_ruleta', data: payload });
+  if (window._bc) window._bc.postMessage({ key: 'velada2026_ui_ruleta', data: payload });
 }
 // misma idea que broadcastRuleta, pero para el revelado de motes de la
 // noche: la TV muestra el mismo sobre difuminando/oscureciendo el resto
 // de la pantalla para que los participantes se concentren en el mote.
 function broadcastMote(payload) {
   if (window._tvWin && !window._tvWin.closed) {
-    try { window._tvWin.postMessage({ type: 'ndj_mote', data: payload }, '*'); } catch(e) {}
+    try { window._tvWin.postMessage({ type: 'velada2026_ui_mote', data: payload }, '*'); } catch(e) {}
   }
-  if (window._bc) window._bc.postMessage({ key: 'ndj_mote', data: payload });
+  if (window._bc) window._bc.postMessage({ key: 'velada2026_ui_mote', data: payload });
 }
 function spinRuleta() {
   if (_ruletaBusy) return;
@@ -9087,7 +8974,7 @@ function applyComodin(player, cm, extra) {
 let _wall = [];
 const WALL_MAX = 40;
 function loadWall() {
-  try { _wall = JSON.parse(localStorage.getItem('ndj_wall') || '[]') || []; } catch(e) { _wall = []; }
+  try { _wall = JSON.parse(localStorage.getItem('velada2026_ui_wall') || '[]') || []; } catch(e) { _wall = []; }
 }
 // Firestore rechaza documentos de más de ~1MB. El muro guarda fotos como
 // data-URL (pesadas), así que si se dejara crecer libre, en algún momento
@@ -9108,16 +8995,16 @@ function wallPayloadWithinBudget(arr) {
 }
 function saveWall() {
   const json = JSON.stringify(_wall);
-  try { localStorage.setItem('ndj_wall', json); } catch(e) {
+  try { localStorage.setItem('velada2026_ui_wall', json); } catch(e) {
     // Si se llenó el localStorage, tiramos las más viejas y reintentamos
     _wall = _wall.slice(-20);
-    try { localStorage.setItem('ndj_wall', JSON.stringify(_wall)); } catch(e2) {}
+    try { localStorage.setItem('velada2026_ui_wall', JSON.stringify(_wall)); } catch(e2) {}
   }
   window._ndjWall = JSON.stringify(_wall);
   if (window._tvWin && !window._tvWin.closed) {
-    try { window._tvWin.postMessage({ type: 'ndj_wall', data: window._ndjWall }, '*'); } catch(e) {}
+    try { window._tvWin.postMessage({ type: 'velada2026_ui_wall', data: window._ndjWall }, '*'); } catch(e) {}
   }
-  if (window._bc) window._bc.postMessage({ key: 'ndj_wall', data: window._ndjWall });
+  if (window._bc) window._bc.postMessage({ key: 'velada2026_ui_wall', data: window._ndjWall });
   if (window._fbReady && window._fbWrite) {
     window._fbWrite('wall', wallPayloadWithinBudget(_wall));
   }
@@ -9283,7 +9170,7 @@ document.getElementById('modal-bg').addEventListener('click', function(e) {
 
 // Claves con fotos/imágenes en base64: pesan mucho y no hacen falta para
 // recuperar puntajes rápido a mitad del evento.
-const BACKUP_HEAVY_KEYS = ['ndj_wall', 'ndj_photos', 'ndj_prensa_fotos', 'ndj_miis', 'ndj_producer_photo', 'ndj_foto_noche'];
+const BACKUP_HEAVY_KEYS = ['velada2026_ui_wall', 'velada2026_ui_photos', 'velada2026_ui_prensa_fotos', 'velada2026_ui_miis', 'velada2026_ui_producer_photo', 'velada2026_ui_foto_noche'];
 
 // Junta todo lo que esta app (y las páginas de juegos hermanas que comparten
 // origen/localStorage) tienen guardado. includeHeavy=false salta las fotos.
@@ -9411,7 +9298,7 @@ function resetDigitalGameScores() {
     localStorage.setItem('pat_rounds','[]');
     localStorage.removeItem('pat_round_base');
     localStorage.setItem('gms_score',JSON.stringify({a:0,b:0}));
-    localStorage.setItem('ndj_game_score_reset',token);
+    localStorage.setItem('velada2026_ui_game_score_reset',token);
   } catch(e) { console.warn('No se pudieron reiniciar los marcadores locales',e); }
   window._autoResultados={};
   if (!window._rtdb) {
@@ -11384,7 +11271,7 @@ function resetImpGameFull() {
 // ---- FOTOS DE PERFIL ----
 let _playerPhotos = {};
 function loadPlayerPhotos() {
-  try { _playerPhotos = JSON.parse(localStorage.getItem('ndj_photos') || '{}'); } catch(e) { _playerPhotos = {}; }
+  try { _playerPhotos = JSON.parse(localStorage.getItem('velada2026_ui_photos') || '{}'); } catch(e) { _playerPhotos = {}; }
 }
 // Encadenamos las escrituras a Firebase en orden estricto: si se suben varias
 // fotos rápido, cada setDoc espera a que termine el anterior. Sin esto, dos
@@ -11404,8 +11291,8 @@ function savePlayerPhotos() {
     if (json.length > 1000000) {
       setPhotosSyncStatus('⚠️ Las fotos superan el límite de la nube (1 MB). Borrá o volvé a cargar alguna.', true);
     }
-    localStorage.setItem('ndj_photos', json);
-    markLocalTs('ndj_photos_ts', Date.now());
+    localStorage.setItem('velada2026_ui_photos', json);
+    markLocalTs('velada2026_ui_photos_ts', Date.now());
     // Antes esto era solo local — las fotos nunca llegaban de la PC al celular.
     if (window._fbReady && window._fbWrite) {
       setPhotosSyncStatus('Sincronizando fotos…', false);
@@ -11426,7 +11313,7 @@ function resyncPlayerPhotos() {
 function getPlayerPhoto(name) { return _playerPhotos[String(name || '').trim()] || _playerPhotos[name] || null; }
 
 // ── FOTO DEL ORGANIZADOR ("Una producción de…" en los créditos) ──
-const KEY_PRODUCER_PHOTO = 'ndj_producer_photo';
+const KEY_PRODUCER_PHOTO = 'velada2026_ui_producer_photo';
 function getProducerPhoto() {
   try { return localStorage.getItem(KEY_PRODUCER_PHOTO) || null; } catch(e) { return null; }
 }
@@ -11538,10 +11425,10 @@ const COLOR_PRESETS = [
 ];
 let _entityColors = {};
 function loadEntityColors() {
-  try { _entityColors = JSON.parse(localStorage.getItem('ndj_colors') || '{}'); } catch(e) { _entityColors = {}; }
+  try { _entityColors = JSON.parse(localStorage.getItem('velada2026_ui_colors') || '{}'); } catch(e) { _entityColors = {}; }
 }
 function saveEntityColors() {
-  try { localStorage.setItem('ndj_colors', JSON.stringify(_entityColors)); } catch(e) {}
+  try { localStorage.setItem('velada2026_ui_colors', JSON.stringify(_entityColors)); } catch(e) {}
 }
 function getEntityColor(name) { return _entityColors[name] || null; }
 function setEntityColor(name, color) { _entityColors[name] = color; saveEntityColors(); }
@@ -11552,13 +11439,13 @@ loadEntityColors();
 // Cada jugador elige desde su celular: color, pose y accesorio.
 let _miis = {};
 function loadMiis() {
-  try { _miis = JSON.parse(localStorage.getItem('ndj_miis') || '{}'); } catch(e) { _miis = {}; }
+  try { _miis = JSON.parse(localStorage.getItem('velada2026_ui_miis') || '{}'); } catch(e) { _miis = {}; }
 }
 function saveMiis() {
-  try { localStorage.setItem('ndj_miis', JSON.stringify(_miis)); } catch(e) {}
-  if (window._bc) window._bc.postMessage({ key: 'ndj_miis', data: JSON.stringify(_miis) });
+  try { localStorage.setItem('velada2026_ui_miis', JSON.stringify(_miis)); } catch(e) {}
+  if (window._bc) window._bc.postMessage({ key: 'velada2026_ui_miis', data: JSON.stringify(_miis) });
   if (window._tvWin && !window._tvWin.closed) {
-    try { window._tvWin.postMessage({ type: 'ndj_miis', data: JSON.stringify(_miis) }, '*'); } catch(e) {}
+    try { window._tvWin.postMessage({ type: 'velada2026_ui_miis', data: JSON.stringify(_miis) }, '*'); } catch(e) {}
   }
 }
 function getMii(name) { return _miis[name] || null; }
@@ -12473,14 +12360,14 @@ let _finalConfigPanelOpen = false;
 
 function loadFinalConfig() {
   try {
-    const s = localStorage.getItem('ndj_final_config');
+    const s = localStorage.getItem('velada2026_ui_final_config');
     if (s) FINAL_CONFIG = Object.assign({}, FINAL_CONFIG_DEFAULT, JSON.parse(s));
     else FINAL_CONFIG = Object.assign({}, FINAL_CONFIG_DEFAULT);
   } catch(e) { FINAL_CONFIG = Object.assign({}, FINAL_CONFIG_DEFAULT); }
 }
 
 function saveFinalConfig() {
-  localStorage.setItem('ndj_final_config', JSON.stringify(FINAL_CONFIG));
+  localStorage.setItem('velada2026_ui_final_config', JSON.stringify(FINAL_CONFIG));
   publishFinalPublic();
 }
 
@@ -12605,11 +12492,11 @@ function crPosterHtml(src, tono) {
 // póster cargado, queda como estaba: solo el ícono y el nombre.
 let GAME_POSTERS = {};
 function loadGamePosters() {
-  try { GAME_POSTERS = JSON.parse(localStorage.getItem('ndj_game_posters') || '{}') || {}; }
+  try { GAME_POSTERS = JSON.parse(localStorage.getItem('velada2026_ui_game_posters') || '{}') || {}; }
   catch (e) { GAME_POSTERS = {}; }
 }
 function saveGamePosters() {
-  try { localStorage.setItem('ndj_game_posters', JSON.stringify(GAME_POSTERS)); return true; }
+  try { localStorage.setItem('velada2026_ui_game_posters', JSON.stringify(GAME_POSTERS)); return true; }
   catch (e) { showToast('⚠️', 'No entró: ya no hay lugar para más pósters', false); return false; }
 }
 // Todos los juegos de la noche, en el mismo orden que salen en los créditos.
@@ -12719,7 +12606,7 @@ let _tercerEditMode = false;
 
 function loadTercerConfig() {
   try {
-    const s = localStorage.getItem('ndj_tercer_config');
+    const s = localStorage.getItem('velada2026_ui_tercer_config');
     if (s) TERCER_CONFIG = Object.assign({}, TERCER_CONFIG_DEFAULT, JSON.parse(s));
     else TERCER_CONFIG = Object.assign({}, TERCER_CONFIG_DEFAULT);
   } catch(e) { TERCER_CONFIG = Object.assign({}, TERCER_CONFIG_DEFAULT); }
@@ -12727,7 +12614,7 @@ function loadTercerConfig() {
 }
 function saveTercerConfig() {
   try {
-    localStorage.setItem('ndj_tercer_config', JSON.stringify(TERCER_CONFIG));
+    localStorage.setItem('velada2026_ui_tercer_config', JSON.stringify(TERCER_CONFIG));
     publishFinalPublic();
     return true;
   } catch (e) {
@@ -12972,13 +12859,13 @@ let SEGUNDO_CONFIG = null;
 
 function loadSegundoConfig() {
   try {
-    const s = localStorage.getItem('ndj_segundo_config');
+    const s = localStorage.getItem('velada2026_ui_segundo_config');
     if (s) SEGUNDO_CONFIG = Object.assign({}, SEGUNDO_CONFIG_DEFAULT, JSON.parse(s));
     else SEGUNDO_CONFIG = Object.assign({}, SEGUNDO_CONFIG_DEFAULT);
   } catch(e) { SEGUNDO_CONFIG = Object.assign({}, SEGUNDO_CONFIG_DEFAULT); }
 }
 function saveSegundoConfig() {
-  localStorage.setItem('ndj_segundo_config', JSON.stringify(SEGUNDO_CONFIG));
+  localStorage.setItem('velada2026_ui_segundo_config', JSON.stringify(SEGUNDO_CONFIG));
   publishFinalPublic();
 }
 
@@ -12990,13 +12877,13 @@ let CUARTO_CONFIG = null;
 
 function loadCuartoConfig() {
   try {
-    const s = localStorage.getItem('ndj_cuarto_config');
+    const s = localStorage.getItem('velada2026_ui_cuarto_config');
     if (s) CUARTO_CONFIG = Object.assign({}, CUARTO_CONFIG_DEFAULT, JSON.parse(s));
     else CUARTO_CONFIG = Object.assign({}, CUARTO_CONFIG_DEFAULT);
   } catch(e) { CUARTO_CONFIG = Object.assign({}, CUARTO_CONFIG_DEFAULT); }
 }
 function saveCuartoConfig() {
-  localStorage.setItem('ndj_cuarto_config', JSON.stringify(CUARTO_CONFIG));
+  localStorage.setItem('velada2026_ui_cuarto_config', JSON.stringify(CUARTO_CONFIG));
   publishFinalPublic();
 }
 
@@ -13045,8 +12932,8 @@ function podioRemotePhotoExists(url) {
 // Completa los 4 slots de "Fotos del podio" con la foto del equipo
 // correspondiente, sin pisar una foto que ya se haya subido a mano.
 async function autoAssignPodioFotos() {
-  const KEY_PODIO = 'ndj_podio_fotos';
-  const KEY_AUTO = 'ndj_podio_fotos_auto';
+  const KEY_PODIO = 'velada2026_ui_podio_fotos';
+  const KEY_AUTO = 'velada2026_ui_podio_fotos_auto';
   let data;
   try { data = JSON.parse(localStorage.getItem(KEY_PODIO) || '{}') || {}; } catch(e) { data = {}; }
   let auto;
@@ -13104,13 +12991,13 @@ async function saveCampeones() {
 let ELENCO_CONFIG = null;   // { byNick: { 'Risu':'Risu nuevo', ... } }
 function loadElencoConfig() {
   try {
-    const s = localStorage.getItem('ndj_elenco_config');
+    const s = localStorage.getItem('velada2026_ui_elenco_config');
     ELENCO_CONFIG = s ? JSON.parse(s) : { byNick: {} };
     if (!ELENCO_CONFIG.byNick) ELENCO_CONFIG.byNick = {};
   } catch(e) { ELENCO_CONFIG = { byNick: {} }; }
 }
 function saveElencoConfig() {
-  try { localStorage.setItem('ndj_elenco_config', JSON.stringify(ELENCO_CONFIG)); } catch(e){}
+  try { localStorage.setItem('velada2026_ui_elenco_config', JSON.stringify(ELENCO_CONFIG)); } catch(e){}
 }
 // Devuelve el nombre a mostrar para el elenco: el editado si existe, si no el de fase 1
 function elencoName(nick) {
@@ -13151,7 +13038,7 @@ function resetElencoEdits() {
 // El horario siempre se estira. Esto calcula cuántas rondas entran en lo que
 // queda y recorta el fixture desde el final, sin tocar nunca lo ya jugado.
 // Guarda una copia para poder deshacerlo.
-const PANIC_BACKUP = 'ndj_panic_backup';
+const PANIC_BACKUP = 'velada2026_ui_panic_backup';
 
 function panicInfo(fase) {
   const fx    = fase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
@@ -13589,7 +13476,7 @@ function armarDiario() {
 // ── FOTOS PARA EL PERIÓDICO ──────────────────────────────────────────
 // Aparte de las de perfil: se guardan en alta y en formato retrato, porque el
 // diario las muestra grandes. Si falta alguna, cae en la foto de perfil.
-const PRENSA_KEY = 'ndj_prensa_fotos';
+const PRENSA_KEY = 'velada2026_ui_prensa_fotos';
 let _prensaFotos = {};
 try { _prensaFotos = JSON.parse(localStorage.getItem(PRENSA_KEY) || '{}'); } catch (e) { _prensaFotos = {}; }
 
@@ -13597,7 +13484,7 @@ function savePrensaFotos() {
   const json = JSON.stringify(_prensaFotos);
   try { localStorage.setItem(PRENSA_KEY, json); }
   catch (e) { showToast('⚠️', 'No hay espacio local para más fotos', true); }
-  markLocalTs('ndj_prensa_ts', Date.now());
+  markLocalTs('velada2026_ui_prensa_ts', Date.now());
   // Viajan con el resto para que la TV y el diario las tengan
   if (json.length > 1000000) {
     showToast('⚠️', 'Las fotos del diario superan el límite de la nube: volvé a cargar las más pesadas', true);
@@ -14868,8 +14755,8 @@ function rollCredits() {
   // Foto de la noche: la polaroid grupal cargada en la pestaña Final
   let photoHtml = '';
   try {
-    const fnSrc = localStorage.getItem('ndj_foto_noche');
-    const fnCap = localStorage.getItem('ndj_foto_noche_cap') || 'la noche';
+    const fnSrc = localStorage.getItem('velada2026_ui_foto_noche');
+    const fnCap = localStorage.getItem('velada2026_ui_foto_noche_cap') || 'la noche';
     if (fnSrc) {
       photoHtml = `<div class="cr-block"><div class="cr-divider"></div><div class="cr-role role-final">Foto de la noche</div>
         <div class="cr-photo"><div class="cr-photo-frame"><img src="${fnSrc}" alt=""><div class="cr-photo-cap">${esc(fnCap)}</div></div></div></div>`;
@@ -14896,7 +14783,7 @@ function rollCredits() {
   // (PODIO_FOTO_SLOTS), para que un cambio de etiquetas ahí se refleje solo.
   let podioFotosHtml = '';
   try {
-    const podioData = JSON.parse(localStorage.getItem('ndj_podio_fotos') || '{}') || {};
+    const podioData = JSON.parse(localStorage.getItem('velada2026_ui_podio_fotos') || '{}') || {};
     const grupos = {};
     const orden = [];
     (typeof PODIO_FOTO_SLOTS !== 'undefined' ? PODIO_FOTO_SLOTS : []).forEach(slot => {
@@ -17778,12 +17665,12 @@ function openTVMode() {
   const seed = {
     players: PLAYERS, teams: TEAMS,
     f1Fixture: F1_FIXTURE, f1Byes: F1_BYES, f2Fixture: F2_FIXTURE,
-    rules: RULES_CONFIG || (function () { try { return JSON.parse(localStorage.getItem('ndj_rules') || 'null'); } catch (e) { return null; } })(),
+    rules: RULES_CONFIG || (function () { try { return JSON.parse(localStorage.getItem('velada2026_ui_rules') || 'null'); } catch (e) { return null; } })(),
     colors: _entityColors || {}, miis: _miis || {},
     fullNames: FULL_NAMES
   };
   const json = JSON.stringify(seed);
-  try { localStorage.setItem('ndj_tv_seed', json); } catch (e) {}
+  try { localStorage.setItem('velada2026_ui_tv_seed', json); } catch (e) {}
   const bytes = new TextEncoder().encode(json);
   let bin = '';
   bytes.forEach(b => { bin += String.fromCharCode(b); });
@@ -17794,7 +17681,7 @@ function openTVMode() {
   if (!win) { alert('Permitir popups para abrir el Modo TV'); return; }
   window._tvWin = win; // guardamos referencia para mandarle datos directamente
   // Apenas carga, le mandamos el estado actual por las dudas
-  setTimeout(() => { try { win.postMessage({ type: 'ndj_state', data: window._ndjState }, '*'); } catch (e) {} }, 1500);
+  setTimeout(() => { try { win.postMessage({ type: 'velada2026_ui_state', data: window._ndjState }, '*'); } catch (e) {} }, 1500);
 }
 
 // ============================================================
@@ -17959,7 +17846,7 @@ window._ndjWall = JSON.stringify(_wall);
           });
         });
         if (changed) {
-          try { localStorage.setItem('ndj_state', JSON.stringify(state)); } catch(e) {}
+          try { localStorage.setItem('velada2026_ui_state', JSON.stringify(state)); } catch(e) {}
           window._ndjState = JSON.stringify(state);
           const tab = document.querySelector('.nav-tab.active');
           if (tab && tab.dataset.tab === 'fase1') renderFase1();
@@ -17981,7 +17868,7 @@ window._ndjWall = JSON.stringify(_wall);
           });
         });
         if (changed) {
-          try { localStorage.setItem('ndj_state', JSON.stringify(state)); } catch(e) {}
+          try { localStorage.setItem('velada2026_ui_state', JSON.stringify(state)); } catch(e) {}
           window._ndjState = JSON.stringify(state);
           const tab = document.querySelector('.nav-tab.active');
           if (tab && tab.dataset.tab === 'fase2') renderFase2();
@@ -18039,7 +17926,7 @@ initCierreGate();
 // Esto arregla eso: al abrir, y cada 8s mientras la pestaña siga abierta, se
 // compara el timestamp de Firebase contra el de la última escritura local y,
 // si lo de Firebase es más nuevo, se adopta acá y se vuelve a pintar todo.
-function applyPulledState(newStateJson) {
+function applyPulledState(newStateJson) {return;
   try {
     const loaded = JSON.parse(newStateJson);
     state = Object.assign({}, state, loaded);
@@ -18074,13 +17961,13 @@ function reapplyStateAndRerender() {
 
     window._fbReadMeta('state').then(remote => {
       if (!remote || !remote.data) return;
-      if (remote.ts <= localTs('ndj_state_ts')) return; // lo local ya es igual o más nuevo
-      if (remote.data === localStorage.getItem('ndj_state')) {
-        markLocalTs('ndj_state_ts', remote.ts);
+      if (remote.ts <= localTs('velada2026_ui_state_ts')) return; // lo local ya es igual o más nuevo
+      if (remote.data === localStorage.getItem('velada2026_ui_state')) {
+        markLocalTs('velada2026_ui_state_ts', remote.ts);
         return;
       }
-      localStorage.setItem('ndj_state', remote.data);
-      markLocalTs('ndj_state_ts', remote.ts);
+      localStorage.setItem('velada2026_ui_state', remote.data);
+      markLocalTs('velada2026_ui_state_ts', remote.ts);
       if (applyPulledState(remote.data)) reapplyStateAndRerender();
     }).catch(() => {});
 
@@ -18090,7 +17977,7 @@ function reapplyStateAndRerender() {
     // tamaño) al recargar desaparecían las fotos recién cargadas.
     window._fbReadMeta('prensa').then(remote => {
       if (!remote || !remote.data) return;
-      const tsLocal = localTs('ndj_prensa_ts');
+      const tsLocal = localTs('velada2026_ui_prensa_ts');
       if (remote.ts <= tsLocal) return;
       let data = remote.data;
       try {
@@ -18102,7 +17989,7 @@ function reapplyStateAndRerender() {
           data = JSON.stringify(o);
           setTimeout(savePrensaFotos, 1500);
         }
-        markLocalTs('ndj_prensa_ts', remote.ts);
+        markLocalTs('velada2026_ui_prensa_ts', remote.ts);
         if (o && typeof o === 'object') {
           _prensaFotos = o;
           try { localStorage.setItem(PRENSA_KEY, data); } catch (e) {}
@@ -18113,13 +18000,13 @@ function reapplyStateAndRerender() {
 
     window._fbReadMeta('photos').then(remote => {
       if (!remote || !remote.data) return;
-      if (remote.ts <= localTs('ndj_photos_ts')) return;
-      if (remote.data === localStorage.getItem('ndj_photos')) {
-        markLocalTs('ndj_photos_ts', remote.ts);
+      if (remote.ts <= localTs('velada2026_ui_photos_ts')) return;
+      if (remote.data === localStorage.getItem('velada2026_ui_photos')) {
+        markLocalTs('velada2026_ui_photos_ts', remote.ts);
         return;
       }
-      localStorage.setItem('ndj_photos', remote.data);
-      markLocalTs('ndj_photos_ts', remote.ts);
+      localStorage.setItem('velada2026_ui_photos', remote.data);
+      markLocalTs('velada2026_ui_photos_ts', remote.ts);
       loadPlayerPhotos();
       const tabEl = document.querySelector('.nav-tab.active');
       const tabName = tabEl ? tabEl.dataset.tab : '';
@@ -18499,191 +18386,5 @@ document.addEventListener('keydown', function(e) {
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-</body>
-</html><script>
-// FOTO DE LA NOCHE
-(function() {
-  const KEY_FOTO = 'ndj_foto_noche';
-  const KEY_CAP  = 'ndj_foto_noche_cap';
-
-  function fnRestore() {
-    const img      = document.getElementById('fn-img');
-    const hint     = document.getElementById('fn-hint');
-    const capDisp  = document.getElementById('fn-cap-display');
-    const capInput = document.getElementById('fn-cap-input');
-    if (!img) return;
-    const saved = localStorage.getItem(KEY_FOTO);
-    const cap   = localStorage.getItem(KEY_CAP) || 'la noche';
-    if (saved) {
-      img.src = saved;
-      img.style.display = 'block';
-      if (hint) hint.style.display = 'none';
-      const d2 = document.getElementById('fn-btn-del'); if (d2) d2.style.display = 'flex';
-    }
-    if (capDisp)  capDisp.textContent = cap;
-    if (capInput) capInput.value = (cap === 'la noche') ? '' : cap;
-  }
-
-  window.fnLoad = function(input) {
-    const file = input.files[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const data = e.target.result;
-      const img  = document.getElementById('fn-img');
-      const hint = document.getElementById('fn-hint');
-      if (img)  { img.src = data; img.style.display = 'block'; }
-      if (hint) hint.style.display = 'none';
-      const d = document.getElementById('fn-btn-del'); if (d) d.style.display = 'flex';
-      try { localStorage.setItem(KEY_FOTO, data); } catch(err) { console.warn('fn: storage full', err); }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  window.fnCaption = function(val) {
-    const capDisp = document.getElementById('fn-cap-display');
-    const text = val.trim() || 'la noche';
-    if (capDisp) capDisp.textContent = text;
-    localStorage.setItem(KEY_CAP, text);
-  };
-
-  window.fnDelete = function() {
-    const img = document.getElementById('fn-img');
-    const hint = document.getElementById('fn-hint');
-    const capDisp = document.getElementById('fn-cap-display');
-    const capInput = document.getElementById('fn-cap-input');
-    const delBtn = document.getElementById('fn-btn-del');
-    const fileInp = document.getElementById('fn-file');
-    if (img)      { img.src = ''; img.style.display = 'none'; }
-    if (hint)     hint.style.display = 'flex';
-    if (capDisp)  capDisp.textContent = 'la noche';
-    if (capInput) capInput.value = '';
-    if (delBtn)   delBtn.style.display = 'none';
-    if (fileInp)  fileInp.value = '';
-    localStorage.removeItem(KEY_FOTO);
-    localStorage.removeItem(KEY_CAP);
-  };
-
-  // Hook renderFinal para restaurar al cambiar de tab
-  const _orig = window.renderFinal;
-  if (typeof _orig === 'function') {
-    window.renderFinal = function() {
-      _orig.apply(this, arguments);
-      setTimeout(fnRestore, 0);
-    };
-  }
-})();
-</script>
-<script>
-// FOTOS DEL PODIO (1er/2do puesto de la final y del juego x el 3er puesto)
-// Viven junto a Foto de la noche y Muro de fotos, en el grupo "📸 Fotos".
-(function() {
-  const KEY_PODIO = 'ndj_podio_fotos';
-
-  function loadPodioFotos() {
-    try { return JSON.parse(localStorage.getItem(KEY_PODIO) || '{}') || {}; } catch(e) { return {}; }
-  }
-  function savePodioFotos(data) {
-    try { localStorage.setItem(KEY_PODIO, JSON.stringify(data)); } catch(e) { console.warn('podio fotos: storage full', e); }
-  }
-  function markPodioManual(slotKey) {
-    try {
-      const auto = JSON.parse(localStorage.getItem('ndj_podio_fotos_auto') || '{}') || {};
-      delete auto[slotKey];
-      localStorage.setItem('ndj_podio_fotos_auto', JSON.stringify(auto));
-    } catch (e) {}
-  }
-  function podioFotosRestore() {
-    const data = loadPodioFotos();
-    const winners = {
-      finalPrimero: FINAL_CONFIG && FINAL_CONFIG.ganador,
-      finalSegundo: SEGUNDO_CONFIG && SEGUNDO_CONFIG.ganador,
-      tercerPrimero: TERCER_CONFIG && TERCER_CONFIG.ganador,
-      tercerSegundo: CUARTO_CONFIG && CUARTO_CONFIG.ganador
-    };
-    (typeof PODIO_FOTO_SLOTS !== 'undefined' ? PODIO_FOTO_SLOTS : []).forEach(function(slot) {
-      const img  = document.getElementById('podio-img-' + slot.key);
-      const hint = document.getElementById('podio-hint-' + slot.key);
-      const del  = document.getElementById('podio-del-' + slot.key);
-      const status = document.getElementById('podio-status-' + slot.key);
-      if (!img) return;
-      const saved = data[slot.key];
-      if (saved) {
-        img.src = saved; img.style.display = 'block';
-        if (hint) hint.style.display = 'none';
-        if (del)  del.style.display = 'block';
-        if (status) status.textContent = '';
-      } else {
-        img.src = ''; img.style.display = 'none';
-        if (hint) hint.style.display = 'block';
-        if (del)  del.style.display = 'none';
-        const url = teamPhotoUrl(winners[slot.key]);
-        if (status) status.textContent = url ? 'Pendiente en GitHub: ' + url.split('/').pop() :
-          (winners[slot.key] ? 'Este nombre no figura en la lista de equipos' : 'Elegí el equipo de este puesto');
-      }
-      img.onerror = function() {
-        img.style.display = 'none';
-        if (hint) hint.style.display = 'block';
-        if (status) status.textContent = 'No se pudo cargar la foto. Revisá el JPG en GitHub.';
-      };
-    });
-  }
-
-  window.podioFotoLoad = function(slotKey, input) {
-    const file = input.files[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    // Reusa la misma compresión que usa el Muro de fotos, para no inflar
-    // localStorage con 4 fotos más a full resolución.
-    if (typeof compressPhoto === 'function') {
-      compressPhoto(file, function(dataUrl) {
-        if (!dataUrl) return;
-        const data = loadPodioFotos();
-        data[slotKey] = dataUrl;
-        markPodioManual(slotKey);
-        savePodioFotos(data);
-        podioFotosRestore();
-      });
-    } else {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = loadPodioFotos();
-        data[slotKey] = e.target.result;
-        markPodioManual(slotKey);
-        savePodioFotos(data);
-        podioFotosRestore();
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  window.podioFotoDelete = function(slotKey) {
-    const data = loadPodioFotos();
-    delete data[slotKey];
-    markPodioManual(slotKey);
-    savePodioFotos(data);
-    podioFotosRestore();
-    const fileInp = document.getElementById('podio-file-' + slotKey);
-    if (fileInp) fileInp.value = '';
-  };
-
-  // Hook renderFinal para restaurar las fotos del podio al (re)dibujar la pestaña
-  const _orig = window.renderFinal;
-  if (typeof _orig === 'function') {
-    let refreshing = false;
-    window.renderFinal = function() {
-      _orig.apply(this, arguments);
-      setTimeout(async function() {
-        podioFotosRestore();
-        if (refreshing) return;
-        refreshing = true;
-        try {
-          await autoAssignPodioFotos();
-          podioFotosRestore();
-        } finally { refreshing = false; }
-      }, 0);
-    };
-  }
-})();
-</script>
-<script src="ensayo-guiado.js"></script>
-<script src="duplas-fotos.js"></script>
+<script src="velada-decks.js"></script><script src="velada-original-panel.js"></script></body>
+</html>

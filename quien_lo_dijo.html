@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script>window.VELADA_GAME='qld';</script><script src="firebase-config.js"></script><script src="velada-model.js"></script><script src="mazos-iniciales.js"></script><script src="velada-access.js"></script><script src="velada-store.js"></script><script src="velada-bonuses.js"></script><script src="velada-runtime.js"></script><link rel="stylesheet" href="velada-integration.css">
+
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -13,15 +15,13 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="¿Quién lo dijo?">
 <meta name="application-name" content="QLD">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎤</text></svg>">
+<link rel="icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%F0%9F%8E%A4&lt;/text&gt;&lt;/svg&gt;">
 
 <script>
 window._fbScriptsLoaded=0;window._fbScriptsDone=false;
 function _onFbLoad(){window._fbScriptsLoaded++;if(window._fbScriptsLoaded>=2){window._fbScriptsDone=true;if(window._fbReadyCb)window._fbReadyCb();}}
 function _onFbError(){window._fbScriptsDone=true;console.warn('[FB] script load failed — offline mode');if(window._fbReadyCb)window._fbReadyCb();}
 </script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" onload="_onFbLoad()" onerror="_onFbError()"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" onload="_onFbLoad()" onerror="_onFbError()"></script>
 <script>
 // ── YouTube IFrame API (para sincronizar play/pause entre conductor y participantes) ──
 window._ytApiReady = false;
@@ -673,23 +673,21 @@ body { animation: appEnter .32s ease-out both; }
   <div class="sp-inner">
     <div class="sp-eye">La Velada del Año</div>
     <div class="sp-emblem">
-      <svg class="sp-emblem-svg" viewBox="0 0 140 118" aria-hidden="true">
+      <svg class="sp-emblem-svg" viewbox="0 0 140 118" aria-hidden="true">
         <defs>
-          <linearGradient id="qldGradBack" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#c060e8"/>
-            <stop offset="100%" stop-color="#f5c842"/>
-          </linearGradient>
-          <linearGradient id="qldGradFront" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#e8a0ff"/>
-            <stop offset="100%" stop-color="#f5c842"/>
-          </linearGradient>
+          <lineargradient id="qldGradBack" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#c060e8"></stop>
+            <stop offset="100%" stop-color="#f5c842"></stop>
+          </lineargradient>
+          <lineargradient id="qldGradFront" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#e8a0ff"></stop>
+            <stop offset="100%" stop-color="#f5c842"></stop>
+          </lineargradient>
         </defs>
         <!-- globo trasero: quien pregunta -->
-        <path d="M14 14 h72 a11 11 0 0 1 11 11 v28 a11 11 0 0 1 -11 11 h-42 l-15 14 v-14 h-15 a11 11 0 0 1 -11 -11 v-28 a11 11 0 0 1 11 -11 z"
-              fill="rgba(20,20,28,.55)" stroke="url(#qldGradBack)" stroke-width="2.5" opacity=".6"/>
+        <path d="M14 14 h72 a11 11 0 0 1 11 11 v28 a11 11 0 0 1 -11 11 h-42 l-15 14 v-14 h-15 a11 11 0 0 1 -11 -11 v-28 a11 11 0 0 1 11 -11 z" fill="rgba(20,20,28,.55)" stroke="url(#qldGradBack)" stroke-width="2.5" opacity=".6"></path>
         <!-- globo delantero: la cita en cuestión -->
-        <path d="M46 34 h68 a11 11 0 0 1 11 11 v26 a11 11 0 0 1 -11 11 h-36 l-13 13 v-13 h-19 a11 11 0 0 1 -11 -11 v-26 a11 11 0 0 1 11 -11 z"
-              fill="rgba(16,16,22,.92)" stroke="url(#qldGradFront)" stroke-width="2.8"/>
+        <path d="M46 34 h68 a11 11 0 0 1 11 11 v26 a11 11 0 0 1 -11 11 h-36 l-13 13 v-13 h-19 a11 11 0 0 1 -11 -11 v-26 a11 11 0 0 1 11 -11 z" fill="rgba(16,16,22,.92)" stroke="url(#qldGradFront)" stroke-width="2.8"></path>
         <text x="82" y="70" font-size="36" font-weight="900" fill="url(#qldGradFront)" text-anchor="middle" font-family="inherit">?</text>
       </svg>
     </div>
@@ -766,8 +764,8 @@ body { animation: appEnter .32s ease-out both; }
     </div>
 
     <div class="action-grid-3" id="reveal-row">
-      <button class="act-btn gold"   id="hint1-btn" onclick="toggleHint(1)">💡 Pista 1</button>
-      <button class="act-btn gold"   id="hint2-btn" onclick="toggleHint(2)">💡 Pista 2</button>
+      <button class="act-btn gold" id="hint1-btn" onclick="toggleHint(1)">💡 Pista 1</button>
+      <button class="act-btn gold" id="hint2-btn" onclick="toggleHint(2)">💡 Pista 2</button>
       <button class="act-btn purple" id="reveal-btn" onclick="toggleReveal()">👁 Revelar respuestas</button>
     </div>
     <div class="action-grid">
@@ -825,7 +823,7 @@ body { animation: appEnter .32s ease-out both; }
     </div>
     <div class="ed-tabs">
       <button class="ed-tab on" id="tab-list" onclick="edSwitch('list')">📋 Cartas</button>
-      <button class="ed-tab"    id="tab-new"  onclick="edSwitch('new')">➕ Nueva</button>
+      <button class="ed-tab" id="tab-new" onclick="edSwitch('new')">➕ Nueva</button>
     </div>
     <div class="ed-body" id="ed-body-list">
       <input class="form-in" id="ed-search" placeholder="🔍 Buscar por título, frase o quién…" oninput="edSetSearch(this.value)" style="margin-bottom:.6rem">
@@ -930,7 +928,7 @@ body { animation: appEnter .32s ease-out both; }
                 <input class="form-in" id="f-opt0" placeholder="—" readonly style="opacity:.85">
                 <div class="opt-edit-imgrow">
                   <button type="button" class="opt-mini-btn" onclick="edOptPickFile(0)">🖼 Subir</button>
-                  <input class="form-in" id="f-opt0-url" placeholder="…o URL de imagen / GIF" oninput="edOptUrlInput(0)" onpaste="setTimeout(()=>edOptUrlInput(0),0)" onchange="edOptUrlInput(0)" onblur="edOptUrlInput(0)">
+                  <input class="form-in" id="f-opt0-url" placeholder="…o URL de imagen / GIF" oninput="edOptUrlInput(0)" onpaste="setTimeout(()=&gt;edOptUrlInput(0),0)" onchange="edOptUrlInput(0)" onblur="edOptUrlInput(0)">
                   <button type="button" class="opt-mini-btn" onclick="edOptClearImg(0)">✕</button>
                 </div>
               </div>
@@ -942,7 +940,7 @@ body { animation: appEnter .32s ease-out both; }
               <input class="form-in" id="f-opt1" placeholder="Opción 1">
               <div class="opt-edit-imgrow">
                 <button type="button" class="opt-mini-btn" onclick="edOptPickFile(1)">🖼 Subir</button>
-                <input class="form-in" id="f-opt1-url" placeholder="…o URL de imagen / GIF" oninput="edOptUrlInput(1)" onpaste="setTimeout(()=>edOptUrlInput(1),0)" onchange="edOptUrlInput(1)" onblur="edOptUrlInput(1)">
+                <input class="form-in" id="f-opt1-url" placeholder="…o URL de imagen / GIF" oninput="edOptUrlInput(1)" onpaste="setTimeout(()=&gt;edOptUrlInput(1),0)" onchange="edOptUrlInput(1)" onblur="edOptUrlInput(1)">
                 <button type="button" class="opt-mini-btn" onclick="edOptClearImg(1)">✕</button>
               </div>
             </div>
@@ -953,7 +951,7 @@ body { animation: appEnter .32s ease-out both; }
               <input class="form-in" id="f-opt2" placeholder="Opción 2">
               <div class="opt-edit-imgrow">
                 <button type="button" class="opt-mini-btn" onclick="edOptPickFile(2)">🖼 Subir</button>
-                <input class="form-in" id="f-opt2-url" placeholder="…o URL de imagen / GIF" oninput="edOptUrlInput(2)" onpaste="setTimeout(()=>edOptUrlInput(2),0)" onchange="edOptUrlInput(2)" onblur="edOptUrlInput(2)">
+                <input class="form-in" id="f-opt2-url" placeholder="…o URL de imagen / GIF" oninput="edOptUrlInput(2)" onpaste="setTimeout(()=&gt;edOptUrlInput(2),0)" onchange="edOptUrlInput(2)" onblur="edOptUrlInput(2)">
                 <button type="button" class="opt-mini-btn" onclick="edOptClearImg(2)">✕</button>
               </div>
             </div>
@@ -964,7 +962,7 @@ body { animation: appEnter .32s ease-out both; }
               <input class="form-in" id="f-opt3" placeholder="Opción 3">
               <div class="opt-edit-imgrow">
                 <button type="button" class="opt-mini-btn" onclick="edOptPickFile(3)">🖼 Subir</button>
-                <input class="form-in" id="f-opt3-url" placeholder="…o URL de imagen / GIF" oninput="edOptUrlInput(3)" onpaste="setTimeout(()=>edOptUrlInput(3),0)" onchange="edOptUrlInput(3)" onblur="edOptUrlInput(3)">
+                <input class="form-in" id="f-opt3-url" placeholder="…o URL de imagen / GIF" oninput="edOptUrlInput(3)" onpaste="setTimeout(()=&gt;edOptUrlInput(3),0)" onchange="edOptUrlInput(3)" onblur="edOptUrlInput(3)">
                 <button type="button" class="opt-mini-btn" onclick="edOptClearImg(3)">✕</button>
               </div>
             </div>
@@ -975,7 +973,7 @@ body { animation: appEnter .32s ease-out both; }
               <input class="form-in" id="f-opt4" placeholder="Opción 4">
               <div class="opt-edit-imgrow">
                 <button type="button" class="opt-mini-btn" onclick="edOptPickFile(4)">🖼 Subir</button>
-                <input class="form-in" id="f-opt4-url" placeholder="…o URL de imagen / GIF" oninput="edOptUrlInput(4)" onpaste="setTimeout(()=>edOptUrlInput(4),0)" onchange="edOptUrlInput(4)" onblur="edOptUrlInput(4)">
+                <input class="form-in" id="f-opt4-url" placeholder="…o URL de imagen / GIF" oninput="edOptUrlInput(4)" onpaste="setTimeout(()=&gt;edOptUrlInput(4),0)" onchange="edOptUrlInput(4)" onblur="edOptUrlInput(4)">
                 <button type="button" class="opt-mini-btn" onclick="edOptClearImg(4)">✕</button>
               </div>
             </div>
@@ -1027,13 +1025,7 @@ const SK = {
 };
 const WIN_TARGET = 10; // puntos para ganar la ronda especial
 // Roster por defecto (offline / antes de que velada.html publique los equipos reales vía Firebase)
-const DEFAULT_TEAMS = [
-  { index: 0, label: 'Martín H. / Valentín A.', members: ['Martin','Valentín'] },
-  { index: 1, label: 'Lázaro G. / Tomás P.',    members: ['Laza','Tomás'] },
-  { index: 2, label: 'Thiago C. / Lara M.',     members: ['Thiago','Lara'] },
-  { index: 3, label: 'Totti / Risu',            members: ['Totti','Risu'] },
-  { index: 4, label: 'Coral O. / Florencia L.', members: ['Cori','Flor'] }
-];
+const DEFAULT_TEAMS = [];
 
 const CATEGORIES = [
   { id:'famosos',   name:'Famosos AR', icon:'🎭', color:'gold' },
@@ -1060,7 +1052,7 @@ let fbDb=null, fbStateRef=null, fbDeckRef=null, fbBuzzerRef=null, fbTeamsRef=nul
 
 // ── REACCIONES RÁPIDAS DE LOS JUGADORES ─────────────────────────────
 let _lastReactionTs = 0;
-function listenReactions(){
+function listenReactions(){ return;
   if(!fbBuzzerRef) return;
   fbBuzzerRef.child('reaccion').on('value', snap=>{
     const r = snap.val();
@@ -1085,7 +1077,7 @@ function showFloatingReaction(emoji){
   }
 }
 
-function initFirebase(){
+function initFirebase(){ return;return;
   if(fbInited) return;
   if(!window._fbScriptsDone){ window._fbReadyCb = initFirebase; return; }
   if(typeof firebase === 'undefined'){ setFbStatus('err','Sin conexión'); return; }
@@ -3271,124 +3263,7 @@ loadState();
 <!-- ── FOTOS DE PERFIL: conexión directa a Firestore (mismo proyecto y documento
      'ndj/photos' que arma velada.html). En vivo, sin depender de reabrir
      velada.html — igual que participante.html. ── -->
-<script type="module">
-// Mismo SDK que el resto de la página (compat 10.12): antes este bloque
-// cargaba además el SDK modular, o sea dos Firebase en el mismo celular.
-const photosFbConfig = {
-  apiKey: "AIzaSyB-1B426OH2ZYKHT1n8VVzmv0h_10186Zo",
-  authDomain: "cumple-598e7.firebaseapp.com",
-  projectId: "cumple-598e7",
-  storageBucket: "cumple-598e7.firebasestorage.app",
-  messagingSenderId: "92890914103",
-  appId: "1:92890914103:web:ab78f983eee410e6eb8eb2"
-};
-window.qldPhotos = window.qldPhotos || {};
-(async function fotosDePerfil() {
-  const V = 'https://www.gstatic.com/firebasejs/10.12.0/';
-  const esperar = ms => new Promise(r => setTimeout(r, ms));
-  async function asegurar(listo, src) {
-    if (listo()) return;
-    // Si la página ya lo está cargando (mismo src), no se inyecta otra vez
-    if (!document.querySelector('script[src="' + src + '"]')) {
-      const s = document.createElement('script'); s.src = src; document.head.appendChild(s);
-    }
-    for (let i = 0; i < 300; i++) { if (listo()) return; await esperar(100); }
-    throw new Error('No cargó ' + src);
-  }
-  try {
-    await asegurar(() => window.firebase && firebase.initializeApp, V + 'firebase-app-compat.js');
-    await asegurar(() => window.firebase && firebase.firestore, V + 'firebase-firestore-compat.js');
-    let app;
-    try { app = firebase.app('photos'); } catch (e) { app = firebase.initializeApp(photosFbConfig, 'photos'); }
-    app.firestore().collection('ndj').doc('photos').onSnapshot((snap) => {
-      if (!snap.exists) return;
-      try {
-        const o = JSON.parse(snap.data().data);
-        if (o && typeof o === 'object') {
-          window.qldPhotos = o;
-          if (typeof window.onQldPhotosUpdate === 'function') window.onQldPhotosUpdate();
-        }
-      } catch (e) { console.warn('Error al parsear fotos:', e); }
-    }, (err) => console.warn('Firebase onSnapshot error (photos):', err));
-  } catch (e) { console.warn('Fotos de perfil sin conexión:', e); }
-})();
 
-// ── REACCIONES DE LOS INVITADOS ──────────────────────────────────────
-// Los emojis que mandan desde el celular suben flotando por la pantalla.
-// Cada toque lanza varias copias con retardo, para que se note aunque
-// alguien lo apriete una sola vez.
-(function(){
-  var _reactSeen = {};
-  var _reactReady = false;
-
-  function floatReact(emoji, quien){
-    var cont = document.getElementById('react-layer');
-    if(!cont){
-      cont = document.createElement('div');
-      cont.id = 'react-layer';
-      cont.className = 'react-layer';
-      document.body.appendChild(cont);
-    }
-    // 5 o 6 copias escalonadas por cada toque
-    var copias = 5 + Math.floor(Math.random()*2);
-    for(var i=0;i<copias;i++){
-      (function(k){
-        setTimeout(function(){
-          var el = document.createElement('div');
-          el.className = 'react-float';
-          el.textContent = emoji;
-          // cada copia sale de un punto distinto y con tamaño distinto
-          el.style.left = (6 + Math.random()*26) + '%';
-          el.style.fontSize = (26 + Math.random()*22) + 'px';
-          el.style.setProperty('--drift', ((Math.random()-0.5)*140).toFixed(0) + 'px');
-          el.style.setProperty('--dur', (2.6 + Math.random()*1.5).toFixed(2) + 's');
-          // Sin etiqueta de autor: en los juegos por equipo mostraba
-          // "Equipo 1" y ensuciaba; el emoji solo se lee mejor.
-          cont.appendChild(el);
-          setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, 4600);
-        }, k * (90 + Math.random()*130));
-      })(i);
-    }
-  }
-
-  // initFirebase() puede haber corrido antes de que este módulo se definiera:
-  // en ese caso la llamada quedaba en la nada. Reintentamos al final.
-  window.__reactionsPendiente = true;
-
-  window.initReactions = function(){
-    if(typeof fbDb === 'undefined' || !fbDb) return;
-    // Solo en la pantalla de participantes (la que va al TV). En la del
-    // conductor los emojis tapan los controles y no aportan.
-    if(typeof MODE !== 'undefined' && MODE !== 'participant') return;
-    try{
-      var ref = fbDb.ref('velada/reactions').limitToLast(12);
-      ref.on('child_added', function(snap){
-        var v = snap.val(); if(!v || !v.e) return;
-        if(_reactSeen[snap.key]) return;
-        _reactSeen[snap.key] = 1;
-        // Al abrir la pantalla ignoramos lo viejo: solo mostramos lo nuevo
-        if(!_reactReady) return;
-        floatReact(v.e, v.by);
-      });
-      // Damos un instante para que entre el historial antes de empezar a mostrar
-      setTimeout(function(){ _reactReady = true; }, 1200);
-      // Limpieza: no dejamos crecer la lista toda la noche
-      setInterval(function(){
-        try{
-          fbDb.ref('velada/reactions').once('value', function(s){
-            var n = s.numChildren();
-            if(n > 60){
-              var borrar = n - 30, i = 0;
-              s.forEach(function(c){ if(i++ < borrar) c.ref.remove(); });
-            }
-          });
-        }catch(e){}
-      }, 45000);
-    }catch(e){}
-  };
-})();
-
-</script>
 <script>
 // ─── SPLASH: GRILLA DE FICHAS DE FONDO (fondo lleno, vocabulario propio del juego) ──
 (function initSplashTileGrid(){
@@ -3615,7 +3490,7 @@ window.qldPhotos = window.qldPhotos || {};
 
   function limpio(on){
     body.classList.toggle('vb-clean', on);
-    try{ localStorage.setItem('ndj_vb_clean', on ? '1' : '0'); }catch(e){}
+    try{ localStorage.setItem('velada2026_ui_vb_clean', on ? '1' : '0'); }catch(e){}
   }
   peek.addEventListener('click', function(){ limpio(false); });
 
@@ -3629,7 +3504,7 @@ window.qldPhotos = window.qldPhotos || {};
       limpio(true);
     });
   }
-  try{ if(localStorage.getItem('ndj_vb_clean') === '1') limpio(true); }catch(e){}
+  try{ if(localStorage.getItem('velada2026_ui_vb_clean') === '1') limpio(true); }catch(e){}
 })();
 
 // ── ESTADO DE CONEXIÓN CON TRES NIVELES ──────────────────────────────
@@ -3680,5 +3555,5 @@ window.veladaConn = function(estado){
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-</body>
+<script src="velada-decks.js"></script><script src="velada-native.js"></script></body>
 </html>
