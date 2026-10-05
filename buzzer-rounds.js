@@ -1,10 +1,11 @@
 /* Fixture shared by the conductor, hub and game pages. No network writes on load. */
 (function(root){
   'use strict';
-  const paths = { palabras:'velada/palabras', argentinos:'argentinos/buzzer', movies:'velada/buzzer', erudito:'velada/erudito' };
+  const paths = { palabras:'velada/palabras', argentinos:'argentinos/buzzer', movies:'velada/buzzer', erudito:'velada/erudito', carrera:'velada/carrera' };
   function gameId(name){
     const s=String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
     if(s.includes('palabras')) return 'palabras';
+    if(s.includes('carrera')) return 'carrera';
     if(s.includes('argentinos')) return 'argentinos';
     if(s.includes('erudito')) return 'erudito';
     if(s.includes('guess') || s.includes('movie')) return 'movies';
@@ -55,7 +56,7 @@
     return Object.assign({},current,{state:'won',winner:{team:side,name:player,ms,matchId}});
   }
   function initial(match){
-    if(match.game==='palabras') return {fixture:match,names:match.names};
+    if(match.game==='palabras' || match.game==='carrera') return {fixture:match,names:match.names};
     if(match.game==='erudito') return {fixture:match,phase:'answering',round:1,limit:7,teams:{
       a:{name:match.names.a,answer:null,ready:false,score:0,next:false},
       b:{name:match.names.b,answer:null,ready:false,score:0,next:false}

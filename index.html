@@ -83,6 +83,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .game-quien{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
 .game-tiempo{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 .game-tiempo .game-arrow{margin-left:auto;font-size:18px;opacity:.55;line-height:1}
+.game-carrera{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.game-carrera .game-arrow{margin-left:auto;font-size:18px;opacity:.55;line-height:1}
 .game-erudito{background:var(--red-dim);border-color:var(--red);color:var(--red)}
 .game-erudito .game-arrow{margin-left:auto;font-size:18px;opacity:.55;line-height:1}
 .game-impostor{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
@@ -456,6 +458,14 @@ body { animation: appEnter .32s ease-out both; }
       </div>
       <span class="game-arrow">›</span>
     </button>
+    <button class="game-btn game-carrera" onclick="selectGame('carrera')">
+      <span class="game-btn-icon">👑</span>
+      <div class="game-btn-info">
+        <span class="game-btn-name">Carrera de Mentes</span>
+        <span class="game-btn-sub">Hoja de coronas por categoría</span>
+      </div>
+      <span class="game-arrow">›</span>
+    </button>
     <button class="game-btn game-erudito" onclick="selectGame('erudito')">
       <span class="game-btn-icon">🧠</span>
       <div class="game-btn-info">
@@ -593,6 +603,7 @@ const FB_CFG = {
 const GAME_PATHS = {
   palabras:   'velada/palabras',
   erudito:    'velada/erudito',
+  carrera:    'velada/carrera',
   movies:     'velada/buzzer',
   argentinos: 'argentinos/buzzer',
   quien:      'velada/qld/buzzer'
@@ -601,6 +612,7 @@ const GAME_PATHS = {
 const GAME_META = {
   palabras:   { icon:'⏱️', name:'Palabras a Tiempo' },
   erudito:    { icon:'🧠', name:'El Erudito' },
+  carrera:    { icon:'👑', name:'Carrera de Mentes' },
   movies:     { icon:'🎬', name:'Guess Movies & Songs' },
   argentinos: { icon:'🎤', name:'100 Argentinos Dicen' },
   quien:      { icon:'🗣️', name:'¿Quién lo dijo?', individual:true }

@@ -3,7 +3,7 @@
   'use strict';
   const files = {
     argentinos: '100_Argentinos_Dicen.html', movies: 'guess_Movies_Songs.html',
-    palabras: 'palabras_a_tiempo.html', erudito: 'el_erudito.html'
+    palabras: 'palabras_a_tiempo.html', erudito: 'el_erudito.html', carrera: 'carrera_de_mentes.html'
   };
   const checks = { phones: false, tv: false };
   let selected = '', scan = null, busy = false;

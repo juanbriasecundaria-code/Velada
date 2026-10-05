@@ -4710,6 +4710,9 @@ function renderReglas() {
           <button onclick="window.open('el_erudito.html','_blank')" style="flex:1;min-width:140px;display:flex;align-items:center;gap:0.5rem;padding:0.65rem 0.9rem;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='var(--border2)'">
             🧠 <span>El Erudito</span> <span style="margin-left:auto;font-size:10px;color:var(--muted)">↗</span>
           </button>
+          <button onclick="window.open('carrera_de_mentes.html','_blank')" style="flex:1;min-width:140px;display:flex;align-items:center;gap:0.5rem;padding:0.65rem 0.9rem;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)'">
+            👑 <span>Carrera de Mentes</span> <span style="margin-left:auto;font-size:10px;color:var(--muted)">↗</span>
+          </button>
           <button onclick="window.open('guess_Movies_Songs.html','_blank')" style="flex:1;min-width:140px;display:flex;align-items:center;gap:0.5rem;padding:0.65rem 0.9rem;border-radius:var(--radius);border:1.5px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
             🎬 <span>Guess Movies Songs</span> <span style="margin-left:auto;font-size:10px;color:var(--muted)">↗</span>
           </button>
@@ -7898,6 +7901,11 @@ function computeBonus(row) {
       const info = r.bonusInfo || {};
       const sinPerder = info.sinPerderRonda && info.sinPerderRonda[winnerSide];
       return { bonus: !!sinPerder || diff >= 2, adjust: null };
+    }
+    case 'carrera': {
+      // Mismo criterio que sus reglas: bonus si el rival no obtuvo coronas.
+      const loser = winnerSide === 'a' ? marcador.b : marcador.a;
+      return { bonus: (loser || 0) === 0, adjust: null };
     }
     case 'argentinos':
       return { bonus: false, adjust: null };
