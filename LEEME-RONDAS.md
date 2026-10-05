@@ -102,3 +102,7 @@ Solo cambia `100_Argentinos_Dicen.html`.
 **Turnos de 40 s.** Desde «jugar/pasar» al tablero, el equipo en turno tiene 40 s por strike (configurable en Meta → Timer; el valor guardado anterior se reemplaza por 40). Si se acaba el tiempo sin respuesta: strike automático y otros 40 s. Cada acierto reinicia los 40 s. Al 3.er strike el tablero pasa al otro equipo con la misma lógica; un acierto suyo roba el pozo y 3 strikes cierran la ronda. Si en todo el tablero nadie acertó, se muestran los resultados sin puntos y se cambia la pregunta.
 
 **Límites actuales.** El modo grupos no se usa con un cruce del fixture activo (el fixture sigue siendo 1 vs 1). El resultado de grupos queda publicado en Firebase pero `velada.html` todavía no lo importa a la tabla. Pruebas hechas con una simulación en el navegador (grupos, cruces, timeouts, robo, ronda sin respuestas y puntos 3/1/0); falta probarlo con celulares y Firebase reales.
+
+## Fixture de Fase 2 sin límite de juegos
+
+La cantidad de juegos de Fase 2 ya no está fijada en 6. Cada juego agregado en **Reglas** entra en el fixture: con equipos sin resultados se regenera el fixture completo y cada equipo pasa por todas las estaciones; con resultados ya cargados se respetan las rondas jugadas y se agregan rondas nuevas al final solo para los juegos nuevos. 100 Argentinos y Guess Movie/Song siguen con ronda propia. Probado con simulación para 2 a 10 equipos y hasta 40 juegos; falta verificarlo en la página con Firebase real.

@@ -5322,6 +5322,32 @@ function computeF2Byes(fixture, numTeams) {
 // ORIGINAL_F2_FIXTURE con el que arranca la app), que ya cumple la condición
 // y además evita que "Guess Movie/Song" coincida en la misma ronda con "Mario
 // Party" (comparten TV/árbitro).
+// Estaciones que la Fase 2 reparte entre todos los equipos (cualquier cantidad).
+// 100 Argentinos y Guess tienen ronda propia con todos juntos, así que no entran
+// en el fixture de a pares.
+function f2StationIndices() {
+  const argIdx = GAMES_F2.indexOf('100 Argentinos Dicen');
+  const guessIdx = GAMES_F2.indexOf('Guess Movie/Song');
+  return GAMES_F2.map((_, i) => i).filter(i => i !== argIdx && i !== guessIdx);
+}
+
+// ¿El fixture ya tiene al menos una ronda para cada estación vigente?
+function f2CoversStations(fix) {
+  const used = new Set(fix.map(m => m[3]));
+  return f2StationIndices().every(i => used.has(i));
+}
+
+// ¿Todos los equipos (0..n-1) aparecen en el fixture y no hay índices fuera de rango?
+function f2TeamsOk(fix, n) {
+  if (!Array.isArray(fix) || n < 2 || !fix.length) return false;
+  const seen = new Set();
+  for (const m of fix) {
+    if (!(m[1] >= 0 && m[1] < n && m[2] >= 0 && m[2] < n)) return false;
+    seen.add(m[1]); seen.add(m[2]);
+  }
+  return seen.size === n;
+}
+
 function generateF2Fixture(n) {
   if (n === 6 && GAMES_F2.length === 6) {
     return { fixture: ORIGINAL_F2_FIXTURE.map(m => m.slice()), byes: {} };
@@ -5331,9 +5357,7 @@ function generateF2Fixture(n) {
   // Guess Movie/Song tampoco: juegan todos los equipos juntos con un solo
   // buzzer, en su propia ronda (ver guessRoundHtml en velada-rounds.js). Al no
   // ser una estación, ya no hace falta evitar que coincida con Mario Party.
-  const argIdx = GAMES_F2.indexOf('100 Argentinos Dicen');
-  const guessIdx = GAMES_F2.indexOf('Guess Movie/Song');
-  const stations = GAMES_F2.map((_, i) => i).filter(i => i !== argIdx && i !== guessIdx);
+  const stations = f2StationIndices();
   const r = generateCoverageFixture(n, stations.length, []);
   return { fixture: r.fixture.map(m => [m[0], m[1], m[2], stations[m[3]], ...m.slice(4)]), byes: r.byes };
 }
@@ -5350,16 +5374,41 @@ function f2FixtureIsValid(fix, nTeams, nGames) {
     if (!(a >= 0 && a < nTeams && b >= 0 && b < nTeams && a !== b && g >= 0 && g < nGames)) return false;
     seen.add(a); seen.add(b);
   }
-  return seen.size === nTeams;
+  return seen.size === nTeams && f2CoversStations(fix);
 }
 
 // Regenera el fixture grupal si falta o quedó desfasado (solo mientras no haya
 // resultados cargados, para no desincronizar nada). force=true lo rehace igual.
 function ensureF2Fixture(force) {
   if (TEAMS.length < 2) return false;
-  if (Object.keys(state.f2 || {}).length) return false;
   if (!force && f2FixtureIsValid(F2_FIXTURE, TEAMS.length, GAMES_F2.length)) return false;
+  // Con resultados cargados no se rehace lo ya jugado: solo se agregan rondas
+  // para las estaciones nuevas (juegos agregados después de empezar).
+  if (Object.keys(state.f2 || {}).length) {
+    if (force) return false;
+    return appendMissingF2Stations();
+  }
   regenerateF2Fixture();
+  state.f2FixtureSnapshot = { fixture: F2_FIXTURE.map(m => m.slice()), byes: Object.assign({}, F2_BYES) };
+  state.teamsSnapshot = TEAMS.slice();
+  try { saveState(); } catch (e) { console.warn('No se pudo guardar el fixture', e); }
+  return true;
+}
+
+// Agrega al final rondas para cada estación nueva, con todos los equipos, sin
+// tocar las rondas existentes ni sus resultados.
+function appendMissingF2Stations() {
+  const n = TEAMS.length;
+  if (!f2TeamsOk(F2_FIXTURE, n)) return false;
+  const used = new Set(F2_FIXTURE.map(m => m[3]));
+  const missing = f2StationIndices().filter(i => !used.has(i));
+  if (!missing.length) return false;
+  const base = F2_FIXTURE.reduce((mx, m) => Math.max(mx, m[0]), 0);
+  const r = generateCoverageFixture(n, missing.length, []);
+  F2_FIXTURE = F2_FIXTURE.concat(r.fixture.map(m => [base + m[0], m[1], m[2], missing[m[3]]]));
+  const shifted = {};
+  Object.keys(r.byes || {}).forEach(k => { shifted[base + Number(k)] = r.byes[k]; });
+  F2_BYES = Object.assign({}, F2_BYES, shifted);
   state.f2FixtureSnapshot = { fixture: F2_FIXTURE.map(m => m.slice()), byes: Object.assign({}, F2_BYES) };
   state.teamsSnapshot = TEAMS.slice();
   try { saveState(); } catch (e) { console.warn('No se pudo guardar el fixture', e); }
@@ -5438,8 +5487,7 @@ function resetRosterAndFixtures() {
   TEAMS.length = 0; ORIGINAL_TEAMS.forEach(n => TEAMS.push(n));
   F1_FIXTURE = ORIGINAL_F1_FIXTURE.map(m => m.slice());
   F1_BYES = computeF1Byes(F1_FIXTURE, PLAYERS.length);
-  F2_FIXTURE = ORIGINAL_F2_FIXTURE.map(m => m.slice());
-  F2_BYES = Object.assign({}, ORIGINAL_F2_BYES);
+  regenerateF2Fixture();
   state.playersSnapshot = null;
   state.teamsSnapshot = null;
   state.f1FixtureSnapshot = null;
