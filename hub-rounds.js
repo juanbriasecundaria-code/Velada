@@ -33,12 +33,20 @@
     msg.style.display=connected?'none':'';msg.textContent='Sin conexión. Esperando reconexión…';
     document.getElementById('connecting-dot').style.display='none';
     if(!match || !match.active || !connected) return;
+    let lastTeam=null;
     (match.players||[]).forEach(p=>{
-      const button=document.createElement('button');button.className='team-btn team-'+p.side;
+      if(match.group && p.side!==lastTeam){
+        // Ronda grupal: los nombres se agrupan bajo el título de cada equipo.
+        lastTeam=p.side;
+        const head=document.createElement('div');
+        head.style.cssText='grid-column:1/-1;margin-top:8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left';
+        head.textContent=p.teamLabel;wrap.append(head);
+      }
+      const button=document.createElement('button');button.className=match.group?'team-btn team-indiv':'team-btn team-'+p.side;
       button.style.cssText='display:flex;flex-direction:column;gap:5px;align-items:center';
       button.insertAdjacentHTML('beforeend',avatarHtml(p.name));
       const n=document.createElement('span');n.textContent=p.name;button.append(n);
-      if(match.phase==='f2'){
+      if(match.phase==='f2' && !match.group){
         const team=document.createElement('small');team.style.cssText='font-size:11px;opacity:.65';team.textContent=p.teamLabel;button.append(team);
       }
       button.onclick=()=>choose(p);wrap.append(button);
@@ -51,6 +59,20 @@
       const file=currentGame==='palabras'?'palabras_a_tiempo.html':'el_erudito.html';
       const query=new URLSearchParams({match:match.id,player:p.name});
       location.href=file+'?'+query.toString();return;
+    }
+    if(match.group){
+      // Ronda grupal: bzTeam es el nombre del equipo; el buzzer arma una cola.
+      bzTeam=p.side;
+      document.getElementById('bz-game-tag').textContent=GAME_META[currentGame].name+' · Ronda '+match.round;
+      document.getElementById('bz-team-name').textContent=p.name+' · '+p.teamLabel;
+      const gbtn=document.getElementById('bz-buzz-btn');
+      gbtn.className='bz-buzz-btn locked team-indiv';
+      document.getElementById('bz-status').textContent='Esperando al conductor…';
+      document.getElementById('bz-status').className='bz-status';
+      hideResult();_resultShownFor=null;hideBzCountdown();
+      stopNamesListener();stopIndivListener();
+      show('buzz-screen');startBuzzListener();
+      return;
     }
     nameA=match.names.a;nameB=match.names.b;
     oldTeam(p.side);

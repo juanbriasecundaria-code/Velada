@@ -5328,12 +5328,13 @@ function generateF2Fixture(n) {
   }
   // 100 Argentinos Dicen NO se juega de a pares: va en una ronda propia con
   // todos los equipos (ver argentinosRoundHtml en velada-rounds.js).
+  // Guess Movie/Song tampoco: juegan todos los equipos juntos con un solo
+  // buzzer, en su propia ronda (ver guessRoundHtml en velada-rounds.js). Al no
+  // ser una estación, ya no hace falta evitar que coincida con Mario Party.
   const argIdx = GAMES_F2.indexOf('100 Argentinos Dicen');
-  const stations = GAMES_F2.map((_, i) => i).filter(i => i !== argIdx);
-  const marioIdx = stations.indexOf(GAMES_F2.indexOf('Mario Party'));
-  const guessIdx = stations.indexOf(GAMES_F2.indexOf('Guess Movie/Song'));
-  const forbidden = (marioIdx !== -1 && guessIdx !== -1) ? [[marioIdx, guessIdx]] : [];
-  const r = generateCoverageFixture(n, stations.length, forbidden);
+  const guessIdx = GAMES_F2.indexOf('Guess Movie/Song');
+  const stations = GAMES_F2.map((_, i) => i).filter(i => i !== argIdx && i !== guessIdx);
+  const r = generateCoverageFixture(n, stations.length, []);
   return { fixture: r.fixture.map(m => [m[0], m[1], m[2], stations[m[3]], ...m.slice(4)]), byes: r.byes };
 }
 
@@ -6600,7 +6601,7 @@ function getF2StationStatus(teamIdx, beforeRound) {
   const playedNames = [];
   const missingNames = [];
   for (let g = 0; g < GAMES_F2.length; g++) {
-    if (GAMES_F2[g] === '100 Argentinos Dicen') continue; // ronda propia con todos
+    if (GAMES_F2[g] === '100 Argentinos Dicen' || GAMES_F2[g] === 'Guess Movie/Song') continue; // ronda propia con todos
     (played.has(g) ? playedNames : missingNames).push(GAMES_F2[g]);
   }
   return { playedNames, missingNames };
@@ -7303,7 +7304,7 @@ function renderFase2() {
 
   const theadRowF2 = document.getElementById('thead-row-fase2');
   if (theadRowF2) {
-    const totalRoundsF2 = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0) + (state.argentinosRound ? 1 : 0);
+    const totalRoundsF2 = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0) + (state.argentinosRound ? 1 : 0) + (state.guessRound ? 1 : 0);
     const roundThs = Array.from({length: totalRoundsF2}, (_, i) => `<th>R${i+1}</th>`).join('');
     theadRowF2.innerHTML = `<th style="width:36px">#</th><th>Equipo</th>${roundThs}<th title="¿Quién lo dijo? — puntos individuales sumados al equipo. Tocá para editar" style="color:var(--purple)">🗣️ QLD</th><th title="Apuestas acertadas — tocá para editar">🃏</th><th style="text-align:right">Total</th>`;
   }
@@ -7437,6 +7438,7 @@ function renderFixtureF2() {
       : 'Todavía no hay fixture: tocá "🎲 Generar fixture".'}</div>`;
   }
   if (typeof argentinosRoundHtml === 'function') html += argentinosRoundHtml();
+  if (typeof guessRoundHtml === 'function') html += guessRoundHtml();
   container.innerHTML = toggleHtml + html;
 }
 
@@ -9117,6 +9119,7 @@ function resetEverything() {
       state.qldOverride = {};
       state.adjust = { f1: [], f2: [] };
       if (state.argentinosRound) state.argentinosRound = { byTeam: {} };
+      if (state.guessRound) state.guessRound = { byTeam: {} };
       state.autoResultadosAplicados = {};
       state.lastTab = 'reglas';
       saveState();

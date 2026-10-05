@@ -26,11 +26,29 @@
     if(!players.length || new Set(players.map(p=>p.name)).size!==players.length) throw new Error('Hay nombres repetidos en el cruce. Corregí los equipos antes de activarlo.');
     return {id,phase,round,game,key:round+'-'+a+'-'+b,names,players,active:true};
   }
+  // Ronda grupal (Guess Movies & Songs): juegan todos los equipos juntos.
+  // En este modo `side` es el nombre del equipo (no 'a'/'b').
+  function buildGroup(round, ctx, id){
+    const labels=(ctx.teams||[]).filter(Boolean), players=[];
+    labels.forEach(label=>{
+      members(label,ctx.players,ctx.fullNames||{}).forEach(name=>players.push({name,side:label,teamLabel:label}));
+    });
+    if(labels.length<2 || !players.length || new Set(players.map(p=>p.name)).size!==players.length) throw new Error('Hay nombres repetidos o faltan equipos. Corregí los equipos antes de activar la ronda.');
+    return {id,phase:'f2',round,game:'movies',key:'guess-group',group:true,teams:labels,names:{},players,active:true};
+  }
   function allowed(match,name,side){
     return !!(match && match.active && Array.isArray(match.players) && match.players.some(p=>p.name===name && p.side===side));
   }
   function buzz(current,matchId,player,side,ms){
     if(!current || !current.fixture || current.fixture.id!==matchId || !allowed(current.fixture,player,side)) return;
+    if(current.fixture.group){
+      // Cola de buzzer: cada equipo entra una sola vez, en el orden en que apretó.
+      if(current.state!=='open') return;
+      const queue=Array.isArray(current.queue)?current.queue.slice():[];
+      if(queue.some(q=>q.team===side)) return;
+      queue.push({team:side,name:player,ms:(ms==null?null:ms)});
+      return Object.assign({},current,{queue});
+    }
     if(current.state!=='open' || current.winner || current.blocked===side) return;
     return Object.assign({},current,{state:'won',winner:{team:side,name:player,ms,matchId}});
   }
@@ -42,6 +60,9 @@
     },correct:{value:null,lockedBy:null},winner:null};
     return {fixture:match,names:match.names,state:'locked',winner:null,blocked:null};
   }
-  function caption(m){return m&&m.active ? 'Ronda '+m.round+' · '+m.names.a+' vs. '+m.names.b : 'Esperando que el conductor active una ronda';}
-  root.BuzzerRounds={paths,gameId,members,buildMatch,allowed,buzz,initial,caption};
+  function caption(m){
+    if(m&&m.active&&m.group) return 'Ronda '+m.round+' · Todos los equipos juntos';
+    return m&&m.active ? 'Ronda '+m.round+' · '+m.names.a+' vs. '+m.names.b : 'Esperando que el conductor active una ronda';
+  }
+  root.BuzzerRounds={paths,gameId,members,buildMatch,buildGroup,allowed,buzz,initial,caption};
 })(typeof window==='undefined'?globalThis:window);

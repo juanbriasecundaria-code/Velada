@@ -5,7 +5,9 @@ window.connectGuessRound=function(ref){
       clearTimeout(_buzzCountdownTimer);clearTimeout(_bonusAdvanceTimer);_bonusAdvanceTimer=null;stopMovieAuto();_buzzBlocked=null;activeBuzzer=null;phase='idle';revealed=false;
       stopTimer();hideRoundWinnerOverlays();
     }
-    if(!m||!m.active)return;
+    if(!m||!m.active){if(typeof gLeave==='function')gLeave();return;}
+    if(m.group){gEnter(m,changed);return;}
+    if(typeof gLeave==='function')gLeave();
     nameA=m.names.a;nameB=m.names.b;
     let saved;try{saved=localStorage.getItem('guess_fixture_match');}catch(e){}
     if(saved!==m.id){

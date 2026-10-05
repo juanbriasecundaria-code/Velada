@@ -100,3 +100,40 @@
     showToast('✅','100 Argentinos cargado al ranking',false);
   };
 })();
+
+/* Guess Movies & Songs: ronda propia, todos los equipos juntos, un solo buzzer con cola. */
+(function(){
+  const NAME='Guess Movie/Song';
+  window.guessRoundNumber=function(){
+    const base=F2_FIXTURE.length?Math.max.apply(null,F2_FIXTURE.map(m=>m[0])):0;
+    return base+1+(state.argentinosRound?1:0);
+  };
+  window.guessRoundHtml=function(){
+    const gi=GAMES_F2.indexOf(NAME);
+    if(gi===-1||!F2_FIXTURE.length) return '';
+    if(!state.guessRound){state.guessRound={byTeam:{}};saveState();}
+    const r=guessRoundNumber();
+    return '<div class="fixture-round"><div class="round-label">Ronda '+r+' <span class="bye-tag">🎬 Todos juegan juntos · un solo buzzer</span>'
+      +'<button class="fixture-edit-toggle" style="margin-left:10px" onclick="activateGuessRound('+r+',this)">▶ Activar ronda '+r+'</button></div></div>';
+  };
+  window.activateGuessRound=async function(round,button){
+    const db=window._rtdb;
+    if(!db||!db.ref().update){showToast('⚠️','Todavía no hay conexión. Probá de nuevo en unos segundos.',false);return;}
+    if(!confirm('¿Activar la ronda '+round+' (Guess Movies & Songs, todos los equipos juntos)?\n\nSe cierran los cruces de los demás juegos en los celulares y se habilita la selección de nombres de todos los equipos para el buzzer. Se reinicia el buzzer de Guess.'))return;
+    if(button) button.disabled=true;
+    try{
+      const token=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10), updates={};
+      const match=BuzzerRounds.buildGroup(round,{players:PLAYERS,teams:TEAMS,fullNames:FULL_NAMES},token);
+      Object.keys(BuzzerRounds.paths).forEach(game=>{
+        const p=BuzzerRounds.paths[game];
+        if(game==='movies'){updates[p]=BuzzerRounds.initial(match);return;}
+        updates[p+'/fixture']={active:false,id:token+'-closed',round:round,phase:'f2'};
+        if(game==='argentinos'){updates[p+'/state']='locked';updates[p+'/winner']=null;}
+      });
+      await db.ref().update(updates);
+      state.activeMatches=[];saveState();
+      showToast('🎬','Ronda '+round+' publicada. Los celulares ya pueden elegir su nombre y el buzzer queda listo.',false);
+    }catch(e){showToast('⚠️','No se pudo activar: '+e.message,false);}
+    finally{if(button)button.disabled=false;}
+  };
+})();

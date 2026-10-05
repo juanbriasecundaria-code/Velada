@@ -624,6 +624,32 @@ body.vb-clean .vb-peek { display: flex; }
   body.gms-tv .velada-bar-dot,
   body.gms-tv .hub-link{display:none}
 }
+
+/* ── MODO GRUPAL (ronda exclusiva: todos los equipos, un buzzer con cola) ── */
+.g-board,.part-gboard,.g-queue{display:none}
+body.guess-group .g-board{display:flex;flex-wrap:wrap;gap:.45rem;padding:.65rem 1rem;background:var(--surface);border-bottom:1px solid var(--border2);flex-shrink:0}
+body.guess-group .g-queue{display:flex;flex-wrap:wrap;gap:.35rem;padding:.35rem 1rem 0;min-height:0}
+body.guess-group .g-queue:empty{display:none}
+body.guess-group #conductor .score-bar,body.guess-group .part-sb{display:none}
+body.guess-group .act-buzz-a,body.guess-group .act-buzz-b{display:none}
+.g-team{flex:1 1 110px;display:flex;flex-direction:column;align-items:center;gap:.1rem;padding:.4rem .3rem;border-radius:10px;background:rgba(192,96,232,.12);border:1.5px solid rgba(192,96,232,.35);min-width:0}
+.g-team.turn{border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,240,96,.25)}
+.g-name{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;color:#c060e8}
+.g-score{font-size:1.7rem;font-weight:900;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.g-score.bump{animation:scoreBump .4s cubic-bezier(.2,.9,.3,1.4)}
+.g-adj{display:flex;gap:.3rem}
+.g-chip{font-size:11px;font-weight:800;padding:.25rem .55rem;border-radius:999px;border:1.5px solid rgba(192,96,232,.4);color:#c060e8;background:rgba(192,96,232,.1)}
+.g-chip.now{border-color:var(--accent);color:var(--accent);background:rgba(200,240,96,.12)}
+.g-chip.done{opacity:.45;text-decoration:line-through}
+body.guess-group .part-gboard{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;padding:calc(1.4rem + env(safe-area-inset-top)) max(1rem,env(safe-area-inset-right)) .65rem max(1rem,env(safe-area-inset-left));background:rgba(10,10,14,.8);border-bottom:1px solid var(--border2);flex-shrink:0;position:relative;z-index:10;backdrop-filter:blur(12px)}
+.part-gteam{flex:1 1 120px;max-width:220px;display:flex;flex-direction:column;align-items:center;padding:.4rem .5rem;border-radius:12px;background:rgba(192,96,232,.12);border:1.5px solid rgba(192,96,232,.35)}
+.part-gteam.turn{border-color:var(--accent);box-shadow:0 0 0 2px rgba(200,240,96,.25)}
+.part-gname{font-size:clamp(10px,1.4vw,18px);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#c060e8;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.part-gscore{font-size:clamp(1.6rem,4vw,3.4rem);font-weight:900;line-height:1;color:var(--text);font-variant-numeric:tabular-nums}
+.part-gqueue{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;margin:.25rem 0}
+.part-gqueue .g-chip{font-size:clamp(11px,1.6vw,22px);padding:.3rem .8rem}
+.pa-g{background:rgba(192,96,232,.14);border:1.5px solid rgba(192,96,232,.45);color:#c060e8}
+.pb-g{background:rgba(192,96,232,.14);border:1.5px solid rgba(192,96,232,.4);color:#c060e8}
 </style><script src="buzzer-rounds.js"></script><script src="auto-live.js"></script>
 <script src="round-host.js"></script>
 <script src="guess-rounds.js"></script>
@@ -701,6 +727,8 @@ body.vb-clean .vb-peek { display: flex; }
     <div class="sb-mid"><div class="sb-vs">VS</div><div class="bonus-pill" id="c-bonus"></div></div>
     <div class="sbt sbt-b"><div class="sbt-name sbt-name-b" id="c-nb">Equipo 2</div><div class="sbt-score" id="c-sb">0</div><div class="sbt-adj"><button class="sbt-adj-btn" onclick="adjScore('b',-1)">−</button><button class="sbt-adj-btn" onclick="adjScore('b',1)">+</button></div></div>
   </div>
+  <div class="g-board" id="g-board"></div>
+  <div class="g-queue" id="g-queue"></div>
   <div class="cond-top-actions">
     <button class="cta-btn cta-btn-shuffle" onclick="shuffleDeck()">🔀 Barajar</button>
     <button class="cta-btn cta-btn-split" onclick="openSplitPanel()">🃏 3 Mazos</button>
@@ -808,6 +836,7 @@ body.vb-clean .vb-peek { display: flex; }
     <div class="part-sb-mid"><div class="part-sb-vs">VS</div><div class="part-bonus" id="p-bonus"></div></div>
     <div class="part-sbt part-sbt-b"><div class="part-sbt-name part-sbt-name-b" id="p-nb">Equipo 2</div><div class="part-sbt-score" id="p-sb">0</div></div>
   </div>
+  <div class="part-gboard" id="p-gboard"></div>
   <div class="part-main" id="part-main">
     <div class="part-idle"><div class="part-idle-icon">🎬</div><div class="part-idle-text">Esperando al conductor…</div></div>
   </div>
@@ -842,7 +871,7 @@ body.vb-clean .vb-peek { display: flex; }
 <!-- Deck editor -->
 <div class="sheet-ov" id="deck-ov">
   <div class="sheet-panel" id="deck-panel">
-    <div class="sheet-title">✏️ Mazo de cartas</div>
+    <div class="add-form-head"><div class="sheet-title">✏️ Mazo de cartas</div><button class="add-form-close" onclick="closeDeckEditor()" aria-label="Cerrar mazo" title="Cerrar">✕</button></div>
     <div class="sheet-sub" id="deck-count-label">…</div>
     <div class="deck-actions-row">
       <button class="deck-action-btn dab-movie" onclick="showAddForm('movie')">+ 🎬 Película</button>
@@ -1099,7 +1128,7 @@ function initFirebase(){
     connectGuessRound(fbRef);
     if(MODE==='conductor') BuzzerAutoLive.start({db:fbDb,game:'movies',legacyPath:'velada/buzzer',
       getMatch:()=>window.currentFixtureMatch&&window.currentFixtureMatch(),
-      getScore:()=>({a:scoreA||0,b:scoreB||0})});
+      getScore:()=>GROUP?null:({a:scoreA||0,b:scoreB||0})});
     fbDeckRef = fbDb.ref('velada/deck');
     fbStateRef = fbDb.ref('velada/live');
     if(window.initReactions) initReactions();   // emojis de los invitados
@@ -1142,6 +1171,7 @@ let _buzzBlocked = null;
 const BUZZ_COUNTDOWN_MS = 3000;
 let _buzzCountdownTimer = null;
 function fbOpenBuzzer(blocked){
+  if(typeof GROUP!=='undefined' && GROUP) gResetQueue();
   _buzzBlocked = blocked || null;
   if(!fbRef) return;
   clearTimeout(_buzzCountdownTimer);
@@ -1157,6 +1187,7 @@ function fbOpenBuzzer(blocked){
 
 // Bloquear el buzzer — al ocultar la carta, cambiar de carta o iniciar
 function fbLock(){
+  if(typeof GROUP!=='undefined' && GROUP) gResetQueue();
   _buzzBlocked = null;
   clearTimeout(_buzzCountdownTimer);
   if(!fbRef) return;
@@ -1179,6 +1210,7 @@ function startCondListener(){
       showToast('↺ Buzzers restablecidos — Equipo 1 / Equipo 2, marcador en 0',3200);
       return;
     }
+    if(GROUP){ gOnSnapshot(d); return; }
     const w = d.winner, s = d.state||'locked';
     if(w){
       const t=w.team, n=w.name||(t==='a'?nameA:nameB);
@@ -1510,6 +1542,8 @@ const SK={DECK:'gms_deck',ORDER:'gms_order',IDX:'gms_idx',SCORE:'gms_score',NAME
 let deck=[],order=[],cardIdx=0,scoreA=0,scoreB=0,nameA='Equipo 1',nameB='Equipo 2',bonusShown=false,_bonusCardId=null,bonusRevealed=false,bonusAwardTeam=null,_bonusAdvanceTimer=null;
 let timerLeft=15,timerActive=false,timerInterval=null;
 let phase='idle',activeBuzzer=null,revealed=false;
+// Modo grupal (ronda exclusiva): todos los equipos juntos, un buzzer con cola.
+let GROUP=false,gTeams=[],gScores={},gQueue=[],gTurn=-1,gLastCorrect=null,gFixtureId=null;
 let MODE=null,nextId=200,_imgSrc='url',_fileData=null,_audioSrc='yt',_audioData=null;
 let _imgKind='poster',_revealMode='full',_frameFiles=[];
 let gridRevealed=[],_lastGridCardId=null,_cropSeeds={};
@@ -1572,6 +1606,7 @@ function sendState(){
     // El índice correcto SOLO viaja una vez revelado: antes, ni Firebase ni el estado local lo exponen.
     bonusCorrect:(bonusShown&&bonusRevealed&&(cur?.type==='movie'||cur?.type==='song'))?(cur.bonusCorrect??null):null,
     bonusAwardTeam:bonusRevealed?bonusAwardTeam:null,
+    group:GROUP?{teams:gTeams,scores:gScores,queue:gQueue.map(q=>({team:q.team,name:q.name})),turn:gTurn,correct:gLastCorrect}:null,
     cardKey:cur?.id??null,
     cardTitle:cur?.title||null,cardNum:order.length?cardIdx+1:0,totalCards:order.length};
   broadcast({...st,t:Date.now()});  // mismo dispositivo (rápido): incluye imágenes locales
@@ -1929,11 +1964,11 @@ function renderCondCard(){
     const optsHtml=c.bonusOptions.map((o,i)=>`<div class="cond-bonus-opt${i===c.bonusCorrect?' correct':''}">${String.fromCharCode(65+i)}. ${esc(o)}</div>`).join('');
     let actionsHtml;
     if(bonusRevealed){
-      const who=bonusAwardTeam?(bonusAwardTeam==='a'?nameA:nameB):'nadie';
+      const who=bonusAwardTeam?(GROUP?bonusAwardTeam:(bonusAwardTeam==='a'?nameA:nameB)):'nadie';
       actionsHtml=`<div class="cond-bonus-verdict">✅ ${bonusAwardTeam?('Punto para '+esc(who)):'Nadie sumó'} · pasando a la próxima…</div>`;
     } else {
       const toggleBtn=bonusShown?`<button class="cta-btn" style="border-color:rgba(232,96,96,.4);color:var(--red)" onclick="toggleBonusShown()">🙈 Ocultar a participantes</button>`:`<button class="cta-btn" style="border-color:rgba(200,240,96,.4);color:var(--accent)" onclick="toggleBonusShown()">📣 Mostrar a participantes</button>`;
-      actionsHtml=`<div class="cond-bonus-row"><span class="bonus-visibility">${toggleBtn}</span><button class="cta-btn bonus-team-btn" style="border-color:rgba(96,180,240,.4);color:var(--blue)" onclick="bonusAnswer('a')">✓ Acertó ${esc(nameA)}</button><button class="cta-btn bonus-team-btn" style="border-color:rgba(245,200,66,.4);color:var(--gold)" onclick="bonusAnswer('b')">✓ Acertó ${esc(nameB)}</button></div><div class="cond-bonus-row"><button class="cta-btn" style="border-color:var(--border2);color:var(--muted);flex:1" onclick="bonusAnswer(null)">✕ Nadie acertó</button></div>`;
+      actionsHtml=`<div class="cond-bonus-row"><span class="bonus-visibility">${toggleBtn}</span>${GROUP?gBonusBtns():`<button class="cta-btn bonus-team-btn" style="border-color:rgba(96,180,240,.4);color:var(--blue)" onclick="bonusAnswer('a')">✓ Acertó ${esc(nameA)}</button><button class="cta-btn bonus-team-btn" style="border-color:rgba(245,200,66,.4);color:var(--gold)" onclick="bonusAnswer('b')">✓ Acertó ${esc(nameB)}</button>`}</div><div class="cond-bonus-row"><button class="cta-btn" style="border-color:var(--border2);color:var(--muted);flex:1" onclick="bonusAnswer(null)">✕ Nadie acertó</button></div>`;
     }
     bonusHtml=`<div class="cond-bonus"><div class="cond-bonus-label">🎯 Pregunta bonus (extra si aciertan)</div><div class="cond-bonus-q">${esc(c.bonusQ)}</div><div class="cond-bonus-opts">${optsHtml}</div>${actionsHtml}</div>`;
   }
@@ -2044,10 +2079,10 @@ document.addEventListener('keydown',function(e){
     case'r':case'R':kbRestartSong();break;
     case'ArrowRight':e.preventDefault();if(phase==='reveal')nextAfterReveal();else if(phase==='idle')passCard();break;
     case'ArrowLeft':e.preventDefault();navigate(-1);break;
-    case'1':if(phase==='idle')setBuzzer('a');break;
-    case'2':if(phase==='idle')setBuzzer('b');break;
-    case'Enter':case'c':case'C':if(phase==='playing_a'||phase==='playing_b')markCorrect();break;
-    case'x':case'X':if(phase==='playing_a'||phase==='playing_b')markWrong();break;
+    case'1':if(phase==='idle'&&!GROUP)setBuzzer('a');break;
+    case'2':if(phase==='idle'&&!GROUP)setBuzzer('b');break;
+    case'Enter':case'c':case'C':if(phase==='playing_a'||phase==='playing_b'||phase==='playing_g')markCorrect();break;
+    case'x':case'X':if(phase==='playing_a'||phase==='playing_b'||phase==='playing_g')markWrong();break;
     case'v':case'V':toggleReveal();break;
     case'l':case'L':if(revealed)revealNextLine();break;
     case'g':case'G':if(revealed)revealRandomTile();break;
@@ -2056,6 +2091,117 @@ document.addEventListener('keydown',function(e){
     case'0':resetTimer();break;
   }
 });
+
+// ─── MODO GRUPAL: cola de buzzer con todos los equipos ──────────────
+// En la ronda exclusiva juegan todos los equipos a la vez. Quien apreta primero
+// responde (15 s); si no acierta, pasa solo al 2°, luego al 3°, etc. Si nadie
+// acierta, el conductor cambia de carta/frame y vuelve a habilitar el buzzer.
+const GSK='guess_group_scores';
+function gSave(){try{localStorage.setItem(GSK,JSON.stringify({id:gFixtureId,scores:gScores}));}catch(e){}}
+function gResetQueue(){gQueue=[];gTurn=-1;gLastCorrect=null;}
+function gEnter(m,changed){
+  GROUP=true;gTeams=(m.teams||[]).slice();gFixtureId=m.id;
+  let saved=null;try{saved=JSON.parse(localStorage.getItem(GSK)||'null');}catch(e){}
+  gScores=(saved&&saved.id===m.id&&saved.scores)?saved.scores:{};
+  gTeams.forEach(t=>{if(typeof gScores[t]!=='number')gScores[t]=0;});
+  gSave();
+  if(changed)gResetQueue();
+  document.body.classList.add('guess-group');
+  gRenderBoard();syncPhaseUI();
+  if(MODE==='conductor')sendState();
+}
+function gLeave(){
+  if(!GROUP)return;
+  GROUP=false;gResetQueue();
+  document.body.classList.remove('guess-group');
+  syncPhaseUI();
+}
+function gRenderBoard(){
+  const b=document.getElementById('g-board'),q=document.getElementById('g-queue');
+  if(!b||!GROUP)return;
+  const cur=(phase==='playing_g')?gQueue[gTurn]:null;
+  b.innerHTML=gTeams.map((t,i)=>`<div class="g-team${cur&&cur.team===t?' turn':''}"><div class="g-name">${esc(t)}</div><div class="g-score" id="g-s${i}">${gScores[t]||0}</div><div class="g-adj"><button class="sbt-adj-btn" onclick="adjScore(gTeams[${i}],-1)">−</button><button class="sbt-adj-btn" onclick="adjScore(gTeams[${i}],1)">+</button></div></div>`).join('');
+  if(q)q.innerHTML=gQueue.map((x,i)=>`<span class="g-chip${i===gTurn&&phase==='playing_g'?' now':(i<gTurn||(i===gTurn&&phase==='idle'))?' done':''}">${i+1}° ${esc(x.name)} · ${esc(x.team)}</span>`).join('');
+}
+function gBonusBtns(){
+  return gTeams.map((t,i)=>`<button class="cta-btn bonus-team-btn" style="border-color:rgba(192,96,232,.4);color:#c060e8" onclick="bonusAnswerG(${i})">✓ Acertó ${esc(t)}</button>`).join('');
+}
+// Cambios parciales sobre el nodo del buzzer sin pisar la cola ni el fixture.
+function gPatch(fields){
+  if(!fbRef)return;
+  fbRef.transaction(cur=>{
+    if(!cur||!cur.fixture)return;
+    return Object.assign({},cur,fields);
+  },undefined,false);
+}
+function gPublishTurn(){gPatch({turn:gTurn});}
+function gOnSnapshot(d){
+  const st=d.state||'locked';
+  const q=(Array.isArray(d.queue)?d.queue:[]).filter(Boolean);
+  if(st==='countdown')setFbStatus('open','⏳ Cuenta regresiva…');
+  else if(st==='open')setFbStatus('open',q.length?('🟢 En cola: '+q.length+' equipo(s)'):'🟢 Esperando buzzer…');
+  else setFbStatus('ready','🔒 Bloqueado — mostrá la carta para habilitar');
+  const same=q.length===gQueue.length&&q.every((x,i)=>gQueue[i]&&gQueue[i].team===x.team);
+  if(same)return;
+  if(q.length<gQueue.length){
+    // La cola se reinició (nueva apertura del buzzer o bloqueo).
+    stopTimer();
+    if(phase==='playing_g'){phase='idle';activeBuzzer=null;}
+    gQueue=q;gTurn=-1;
+  }else{
+    gQueue=q;
+  }
+  gMaybeStartTurn();
+  syncPhaseUI();gRenderBoard();sendState();
+}
+// Si nadie está respondiendo y hay alguien esperando en la cola, le toca.
+function gMaybeStartTurn(){
+  if(phase!=='idle'||!revealed)return;
+  if(gTurn+1>=gQueue.length)return;
+  gTurn++;
+  const cur=gQueue[gTurn];
+  activeBuzzer=cur.team;phase='playing_g';
+  timerLeft=timerDefault;syncTimerUI();startTimer();
+  gPublishTurn();
+  syncPhaseUI();gRenderBoard();sendState();
+  showToast('🏆 '+cur.name+' ('+cur.team+') buzzó '+(gTurn+1)+'°',3000);
+  sfxBuzz();
+}
+// Incorrecto o se acabaron los 15 s: pasa al siguiente de la cola.
+function gAdvance(timeout){
+  if(phase!=='playing_g')return;
+  const failed=gQueue[gTurn];
+  stopTimer();phase='idle';activeBuzzer=null;
+  if(failed)gPatch({verdict:{team:failed.team,name:failed.name,ok:false,pts:0,ts:Date.now()},turn:gTurn+1});
+  if(gTurn+1<gQueue.length){
+    showToast((timeout?'⏱ Se acabó el tiempo':'✗ Incorrecto')+' — sigue '+gQueue[gTurn+1].name,2600);
+    gMaybeStartTurn();
+  }else{
+    const faltan=gTeams.length-gQueue.length;
+    syncPhaseUI();gRenderBoard();sendState();
+    showToast(faltan>0
+      ?((timeout?'⏱ Se acabó el tiempo':'✗ Incorrecto')+' — esperando que buzzee otro equipo (faltan '+faltan+')')
+      :'✗ Nadie acertó — pasá de carta o, en frames, mostrá el siguiente frame para reabrir el buzzer',4200);
+  }
+}
+function gCorrect(){
+  if(phase!=='playing_g')return;
+  const cur=gQueue[gTurn];if(!cur)return;
+  gScores[cur.team]=(gScores[cur.team]||0)+1;gSave();
+  gLastCorrect={team:cur.team,name:cur.name};
+  stopTimer();phase='reveal';activeBuzzer=null;
+  gPatch({state:'locked',queue:null,turn:null,verdict:{team:cur.team,name:cur.name,ok:true,pts:1,ts:Date.now()}});
+  gRenderBoard();syncPhaseUI();sendState();
+  gmsCelebrate(cur.name+' · '+cur.team,1);
+}
+function renderPartGroup(d){
+  const on=!!d.group;
+  document.body.classList.toggle('guess-group',on);
+  if(!on)return;
+  const g=d.group,cur=(d.phase==='playing_g')?g.queue[g.turn]:null,el=document.getElementById('p-gboard');
+  if(!el)return;
+  el.innerHTML=g.teams.map(t=>`<div class="part-gteam${cur&&cur.team===t?' turn':''}"><div class="part-gname">${esc(t)}</div><div class="part-gscore">${g.scores[t]||0}</div></div>`).join('');
+}
 
 // ─── CONDUCTOR: PHASE ────────────────────────────────────────────
 function setBuzzer(team){phase='playing_'+team;activeBuzzer=team;syncPhaseUI();sendState();fbLock();sfxBuzz();}
@@ -2127,6 +2273,7 @@ function gmsCelebrate(label, pts){
 }
 
 function markCorrect(){
+  if(GROUP){gCorrect();return;}
   if(!activeBuzzer)return;
   const who = activeBuzzer;
   const equipo = who==='a' ? nameA : nameB;
@@ -2149,6 +2296,7 @@ function gmsSendVerdict(team, ok, pts){
   }catch(e){}
 }
 function markWrong(){
+  if(GROUP){gAdvance();return;}
   const failed=activeBuzzer;
   stopTimer();phase='idle';activeBuzzer=null;syncPhaseUI();sendState();
   if(failed) gmsSendVerdict(failed, false, 0);
@@ -2177,21 +2325,22 @@ function syncPhaseUI(){
   if(phase==='idle'){idle.style.display='';}
   else if(phase==='playing_a'){card.classList.add('phase-a');banner.className='phase-banner show pb-a';banner.textContent='⏱ Respondiendo: '+nameA;playing.style.display='';}
   else if(phase==='playing_b'){card.classList.add('phase-b');banner.className='phase-banner show pb-b';banner.textContent='⏱ Respondiendo: '+nameB;playing.style.display='';}
-  else if(phase==='reveal'){card.classList.add('phase-reveal');banner.className='phase-banner show pb-reveal';banner.textContent='✅ ¡Correcto!';reveal.style.display='';}
+  else if(phase==='playing_g'){const cur=gQueue[gTurn];banner.className='phase-banner show pb-g';banner.textContent='⏱ Respondiendo: '+(cur?(cur.name+' · '+cur.team+' ('+(gTurn+1)+'°)'):'…');playing.style.display='';}
+  else if(phase==='reveal'){card.classList.add('phase-reveal');banner.className='phase-banner show pb-reveal';banner.textContent=(GROUP&&gLastCorrect)?('✅ ¡Correcto! '+gLastCorrect.name+' · '+gLastCorrect.team):'✅ ¡Correcto!';reveal.style.display='';}
   syncGridHintUI();
   syncEmojiHintUI();
 }
 
 // ─── CONDUCTOR: TIMER ────────────────────────────────────────────
 let timerDefault=15; // segundos configurables
-function startTimer(){if(timerActive)return;timerActive=true;document.getElementById('tbtn-start').style.display='none';document.getElementById('tbtn-stop').style.display='';document.getElementById('timer-display').classList.add('running');timerInterval=setInterval(()=>{timerLeft=Math.max(0,timerLeft-1);syncTimerUI();if(timerLeft<=5&&timerLeft>0)sfxTick();if(timerLeft<=0){stopTimer();sfxBuzz();if(navigator.vibrate)navigator.vibrate([80,40,80]);}sendState();},1000);sendState();}
+function startTimer(){if(timerActive)return;timerActive=true;document.getElementById('tbtn-start').style.display='none';document.getElementById('tbtn-stop').style.display='';document.getElementById('timer-display').classList.add('running');timerInterval=setInterval(()=>{timerLeft=Math.max(0,timerLeft-1);syncTimerUI();if(timerLeft<=5&&timerLeft>0)sfxTick();if(timerLeft<=0){stopTimer();sfxBuzz();if(navigator.vibrate)navigator.vibrate([80,40,80]);if(GROUP&&phase==='playing_g'){setTimeout(()=>gAdvance(true),0);return;}}sendState();},1000);sendState();}
 function stopTimer(){if(!timerActive&&!timerInterval)return;timerActive=false;if(timerInterval){clearInterval(timerInterval);timerInterval=null;}document.getElementById('tbtn-start').style.display='';document.getElementById('tbtn-stop').style.display='none';document.getElementById('timer-display').classList.remove('running','low');sendState();}
 function resetTimer(){stopTimer();timerLeft=timerDefault;syncTimerUI();sendState();}
 function adjTimer(d){timerDefault=Math.max(5,Math.min(120,timerDefault+d));stopTimer();timerLeft=timerDefault;syncTimerUI();sendState();showToast('⏱ Timer: '+timerDefault+'s');}
 function syncTimerUI(){const el=document.getElementById('timer-num');if(!el)return;el.textContent=timerLeft;el.classList.toggle('low',timerLeft<=5);const td=document.getElementById('timer-display');td.classList.toggle('low',timerLeft<=5&&timerActive);td.classList.toggle('running',timerActive&&timerLeft>5);}
 
 // ─── CONDUCTOR: SCORE ────────────────────────────────────────────
-function adjScore(t,d){if(t==='a')scoreA=Math.max(0,scoreA+d);else scoreB=Math.max(0,scoreB+d);saveScore();syncScoreUI();sendState();}
+function adjScore(t,d){if(GROUP){gScores[t]=Math.max(0,(gScores[t]||0)+d);gSave();gRenderBoard();sendState();return;}if(t==='a')scoreA=Math.max(0,scoreA+d);else scoreB=Math.max(0,scoreB+d);saveScore();syncScoreUI();sendState();}
 function toggleBonusShown(){
   bonusShown=!bonusShown;
   bonusRevealed=false;bonusAwardTeam=null;
@@ -2201,6 +2350,7 @@ function toggleBonusShown(){
 }
 // Se llama al elegir qué equipo acertó (o "Nadie") en la pregunta bonus.
 // Revela la correcta unos segundos y después pasa solo a la próxima carta, estilo Kahoot.
+function bonusAnswerG(i){bonusAnswer(gTeams[i]);}
 function bonusAnswer(team){
   if(bonusRevealed)return; // evita doble click durante la cuenta regresiva
   const c=currentCard();
@@ -2209,10 +2359,10 @@ function bonusAnswer(team){
   bonusRevealed=true;bonusAwardTeam=team||null;
   renderCondCard();
   sendState();
-  showToast(team?('🎯 +1 · '+(team==='a'?nameA:nameB)):'🎯 Nadie acertó');
+  showToast(team?('🎯 +1 · '+(GROUP?team:(team==='a'?nameA:nameB))):'🎯 Nadie acertó');
   _bonusAdvanceTimer=setTimeout(()=>{_bonusAdvanceTimer=null;passCard();},2200);
 }
-function syncScoreUI(){document.getElementById('c-sa').textContent=scoreA;document.getElementById('c-sb').textContent=scoreB;const diff=Math.abs(scoreA-scoreB),w=scoreA>scoreB?'a':scoreB>scoreA?'b':null;const bp=document.getElementById('c-bonus');if(diff>=5&&w){bp.textContent='🏆 Bonus: '+(w==='a'?nameA:nameB);bp.classList.add('show');}else bp.classList.remove('show');}
+function syncScoreUI(){if(GROUP){gRenderBoard();return;}document.getElementById('c-sa').textContent=scoreA;document.getElementById('c-sb').textContent=scoreB;const diff=Math.abs(scoreA-scoreB),w=scoreA>scoreB?'a':scoreB>scoreA?'b':null;const bp=document.getElementById('c-bonus');if(diff>=5&&w){bp.textContent='🏆 Bonus: '+(w==='a'?nameA:nameB);bp.classList.add('show');}else bp.classList.remove('show');}
 function syncNamesUI(){['a','b'].forEach(t=>{const n=t==='a'?nameA:nameB;['c-n','p-n'].forEach(p=>{const el=document.getElementById(p+t);if(el)el.textContent=n;});const bl=document.getElementById('buzz-label-'+t);if(bl)bl.textContent=n+' buzzó';});}
 function syncGridHintUI(){
   const c=currentCard();
@@ -2500,6 +2650,9 @@ function nextFrame(){
   syncFrameHintUI();
   sendState();
   showToast('🎞 Frame '+(frameIdx+1)+'/'+c.frames.length);
+  // Ronda grupal: si nadie está respondiendo, el frame nuevo reabre el buzzer
+  // para todos los equipos (3-2-1, cola reiniciada y 15 s para cada uno).
+  if(GROUP&&revealed&&phase==='idle')fbOpenBuzzer();
 }
 // Destapa el próximo emoji (botón 😀 o tecla F en cartas de emojis)
 function nextEmoji(){
@@ -2591,7 +2744,7 @@ function syncRevealUI(){
     label.textContent='Oculto · buzzer bloqueado';
   }
 }
-function resetGame(){if(!confirm('¿Reiniciar puntaje y cartas?'))return;scoreA=0;scoreB=0;cardIdx=0;phase='idle';activeBuzzer=null;revealed=false;stopTimer();timerLeft=timerDefault;order=deck.map((_,i)=>i);saveScore();saveOrder();syncScoreUI();syncTimerUI();syncRevealUI();renderCondCard();updateCount();syncPhaseUI();sendState();fbLock();showToast('↺ Juego reiniciado');}
+function resetGame(){if(!confirm('¿Reiniciar puntaje y cartas?'))return;scoreA=0;scoreB=0;if(GROUP){gTeams.forEach(t=>{gScores[t]=0;});gSave();gResetQueue();gLastCorrect=null;}cardIdx=0;phase='idle';activeBuzzer=null;revealed=false;stopTimer();timerLeft=timerDefault;order=deck.map((_,i)=>i);saveScore();saveOrder();syncScoreUI();syncTimerUI();syncRevealUI();renderCondCard();updateCount();syncPhaseUI();sendState();fbLock();showToast('↺ Juego reiniciado');}
 
 // ─── GUARDAR YA (forzar) ──────────────────────────────────────────
 // El mazo se guarda solo en Firebase con cada cambio. Este botón fuerza
@@ -2645,6 +2798,7 @@ function importDeckJson(input){
 }
 
 // ─── PARTICIPANT: RENDER ─────────────────────────────────────────
+let _pLastQsig='';
 let _pLastType=null,_pLastId=null,_pLastPhase=null,_pLastGrid=null,_pLastKey=null,_pLastLyricLine=null,_pLastProg=null,_pLastImg=null,_pLastEmojiStep=null;
 function updateMovieProgress(d){
   const img=document.querySelector('.part-poster');if(!img)return;
@@ -2688,7 +2842,7 @@ function renderPartBonusOverlay(d){
     ov.classList.add('revealed');
     const opts=document.getElementById('pbo-opts').children;
     for(const el of opts)el.classList.toggle('is-correct',Number(el.dataset.i)===d.bonusCorrect);
-    const who=d.bonusAwardTeam?(d.bonusAwardTeam==='a'?(d.nameA||'Equipo 1'):(d.nameB||'Equipo 2')):null;
+    const who=d.bonusAwardTeam?(d.group?d.bonusAwardTeam:(d.bonusAwardTeam==='a'?(d.nameA||'Equipo 1'):(d.nameB||'Equipo 2'))):null;
     document.getElementById('pbo-status').innerHTML=who?`<span class="win">✅ Punto para ${esc(who)}</span> · va la próxima…`:'😅 Nadie acertó · va la próxima…';
   } else {
     ov.classList.remove('revealed');
@@ -2719,6 +2873,7 @@ window.addEventListener('resize',fitParticipantMain);
 window.addEventListener('orientationchange',fitParticipantMain);
 
 function renderParticipant(d){
+  renderPartGroup(d);
   document.getElementById('p-na').textContent=d.nameA||'Equipo 1';
   document.getElementById('p-nb').textContent=d.nameB||'Equipo 2';
   const psa=document.getElementById('p-sa'),psb=document.getElementById('p-sb');
@@ -2735,7 +2890,9 @@ function renderParticipant(d){
     _pLastType=null;_pLastId=null;_pLastPhase=null;_pLastKey=null;_pLastLyricLine=null;_pLastProg=null;_pLastImg=null;_pLastEmojiStep=null;fitParticipantMain();return;
   }
   const cc=d.cardType!==_pLastType||(d.cardKey??null)!==_pLastKey;
-  const pc=d.phase!==_pLastPhase;
+  const _qsig=d.group?(JSON.stringify(d.group.queue)+'|'+d.group.turn+'|'+JSON.stringify(d.group.correct||null)):'';
+  const pc=d.phase!==_pLastPhase||_qsig!==_pLastQsig;
+  _pLastQsig=_qsig;
   if(cc||pc){buildPartCard(d);_pLastEmojiStep=d.emojiStep;_pLastType=d.cardType;_pLastId=d.cardType==='song'?d.youtubeId:d.imgUrl;_pLastKey=d.cardKey??null;_pLastPhase=d.phase;_pLastGrid=d.gridRevealed?[...d.gridRevealed]:null;_pLastLyricLine=d.lyricLine;_pLastProg=d.revealProgress;_pLastImg=d.imgUrl;}
   else if(d.cardType==='movie'&&d.phase!=='reveal'){
     if((d.emojis||'').trim()&&d.emojiStep!==_pLastEmojiStep){buildPartCard(d);_pLastEmojiStep=d.emojiStep;}
@@ -2953,7 +3110,12 @@ function buildPartCard(d){
     }
   }
   let ansBanner='';
-  if(d.phase==='playing_a'||d.phase==='playing_b'){const t=d.phase==='playing_a'?'a':'b';const n=t==='a'?(d.nameA||'Eq 1'):(d.nameB||'Eq 2');ansBanner=`<div class="part-answering show pa-${t}">🔔 Respondiendo: ${esc(n)}</div>`;}
+  if(d.group){
+    const g=d.group,cur=g.queue[g.turn];
+    if(d.phase==='playing_g'&&cur)ansBanner=`<div class="part-answering show pa-g">🔔 Respondiendo: ${esc(cur.name)} · ${esc(cur.team)} (${g.turn+1}°)</div>`;
+    else if(d.phase==='reveal'&&g.correct)ansBanner=`<div class="part-answering show pa-g">✅ ${esc(g.correct.name)} · ${esc(g.correct.team)}</div>`;
+    if(g.queue.length)ansBanner+=`<div class="part-gqueue">${g.queue.map((q,i)=>`<span class="g-chip${i===g.turn&&d.phase==='playing_g'?' now':(i<g.turn||(i===g.turn&&d.phase==='idle'))?' done':''}">${i+1}° ${esc(q.name)} · ${esc(q.team)}</span>`).join('')}</div>`;
+  }else if(d.phase==='playing_a'||d.phase==='playing_b'){const t=d.phase==='playing_a'?'a':'b';const n=t==='a'?(d.nameA||'Eq 1'):(d.nameB||'Eq 2');ansBanner=`<div class="part-answering show pa-${t}">🔔 Respondiendo: ${esc(n)}</div>`;}
   main.innerHTML=`<div class="part-meta">${tb}${num}</div>${ansBanner}${cHtml}<div class="part-timer"><div class="part-timer-num">${d.timerLeft||15}</div><div class="part-timer-label">segundos</div></div>`;
   if(d.cardType==='song'&&(d.songMode==='karaoke'||d.songMode==='progresiva')){setTimeout(scrollActiveLyric,60);if(d.songMode==='karaoke')setTimeout(()=>applyKaraokeFill(d),60);}
 }
