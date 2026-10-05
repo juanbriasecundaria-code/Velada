@@ -50,3 +50,53 @@
     if(fx[index]) return publish(phase,[fx[index]],button,false);
   };
 })();
+
+/* 100 Argentinos Dicen: ronda propia, todos juntos, sin otros juegos. */
+(function(){
+  const NAME='100 Argentinos Dicen', LABEL='100 Argentinos';
+  const cargado=()=>!!(state.argentinosRound&&state.argentinosRound.byTeam&&Object.keys(state.argentinosRound.byTeam).length);
+  window.argentinosRoundHtml=function(){
+    const gi=GAMES_F2.indexOf(NAME);
+    if(gi===-1||!F2_FIXTURE.length) return '';
+    if(!state.argentinosRound){state.argentinosRound={byTeam:{}};saveState();}
+    const r=Math.max.apply(null,F2_FIXTURE.map(m=>m[0]))+1, done=cargado();
+    const c=GAME_COLORS_F2[gi]||['var(--surface2)','var(--muted)'];
+    return '<div class="fixture-round"><div class="round-label">Ronda '+r+' <span class="bye-tag">🎤 Todos juegan juntos · sin otros juegos</span>'
+      +'<button class="fixture-edit-toggle" style="margin-left:10px" onclick="activateArgentinosRound('+r+',this)">▶ Activar ronda '+r+'</button></div>'
+      +'<div class="match-row '+(done?'done':'')+'" onclick="cargarArgentinosGrupal()"><span class="match-game-badge" style="background:'+c[0]+';color:'+c[1]+';font-weight:600">'+NAME+'</span>'
+      +'<span class="match-players" style="font-size:12px">Todos los equipos (se arman grupos de juego)</span>'
+      +'<span class="match-result '+(done?'set':'')+'">'+(done?'✓ Cargado':'Cargar')+'</span></div></div>';
+  };
+  window.activateArgentinosRound=async function(round,button){
+    const db=window._rtdb;
+    if(!db||!db.ref().update){showToast('⚠️','Todavía no hay conexión. Probá de nuevo en unos segundos.',false);return;}
+    if(!confirm('¿Activar la ronda '+round+' (100 Argentinos Dicen, todos juntos)?\n\nSe cierran los cruces de los demás juegos en los celulares y 100 Argentinos queda libre para armar los grupos de juego.'))return;
+    if(button)button.disabled=true;
+    try{
+      const token=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10), updates={};
+      Object.keys(BuzzerRounds.paths).forEach(game=>{
+        const p=BuzzerRounds.paths[game];
+        updates[p+'/fixture']={active:false,id:token+'-closed',round:round,phase:'f2'};
+        if(game==='movies'||game==='argentinos'){updates[p+'/state']='locked';updates[p+'/winner']=null;}
+      });
+      await db.ref().update(updates);
+      state.activeMatches=[];saveState();
+      showToast('🎤','Ronda '+round+' lista: abrí 100 Argentinos y armá los grupos de juego.',false);
+    }catch(e){showToast('⚠️','No se pudo activar: '+e.message,false);}
+    finally{if(button)button.disabled=false;}
+  };
+  window.cargarArgentinosGrupal=async function(){
+    let res=null;
+    try{if(window._rtdb){const s=await window._rtdb.ref('argentinos/grupos/resultado').once('value');res=s.val();}}catch(e){}
+    if(!res){try{res=JSON.parse(localStorage.getItem('cad_group_result')||'null');}catch(e){}}
+    if(!res||!res.byGroup){showToast('ℹ️','Todavía no hay resultado: en 100 Argentinos cerrá la ronda y confirmá el podio.',false);return;}
+    const rows=TEAMS.filter(t=>typeof res.byGroup[t]==='number').map(t=>({name:t,pts:res.byGroup[t]}));
+    if(!rows.length){showToast('⚠️','Los grupos del resultado no coinciden con los equipos de la velada.',false);return;}
+    if(!confirm('Cargar 100 Argentinos Dicen:\n\n'+rows.map(x=>x.name+': +'+x.pts).join('\n')+(cargado()?'\n\nReemplaza la carga anterior.':'')))return;
+    const byTeam={};rows.forEach(x=>{byTeam[x.name]=x.pts;});
+    state.argentinosRound={byTeam:byTeam,ts:Date.now()};
+    if(state.adjust&&state.adjust.f2)state.adjust.f2=state.adjust.f2.filter(x=>x.label!==LABEL);
+    saveState();renderFase2();updateNavProgress();
+    showToast('✅','100 Argentinos cargado al ranking',false);
+  };
+})();

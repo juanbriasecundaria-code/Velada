@@ -63,7 +63,9 @@
     const QLD_POINTS = ctx.qldTeamPoints || state.qldTeamPoints || {};
     const teamIndexForPlayer = ctx.teamIndexForPlayer || indiceEquipoDefault(ctx.fullNames, TEAMS);
 
-  const totalRounds = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0);
+  // Ronda extra de 100 Argentinos Dicen (todos juntos): una columna más al final.
+  const argRound = state.argentinosRound || null;
+  const totalRounds = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0) + (argRound ? 1 : 0);
   const pts = TEAMS.map(() => ({ rounds: Array(totalRounds).fill(null), total: 0, qld: 0 }));
 
   for (let r = 1; r <= totalRounds; r++) {
@@ -96,6 +98,12 @@
       pts[l].rounds[ri] = losePts;
     }
   });
+
+  if (argRound && argRound.byTeam) {
+    TEAMS.forEach((name, idx) => {
+      if (typeof argRound.byTeam[name] === 'number') pts[idx].rounds[totalRounds - 1] = argRound.byTeam[name];
+    });
+  }
 
   // Puntos de "¿Quién lo dijo?" — ya vienen resueltos por equipo (1°=3, 2°=2, 3°=1) desde Firebase,
   // una vez que el conductor finaliza la ronda especial. Se puede pisar a mano por equipo

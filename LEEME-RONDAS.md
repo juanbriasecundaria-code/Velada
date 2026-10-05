@@ -35,7 +35,7 @@ Pruebas anteriores declaradas: sintaxis JavaScript; armado de cruces individuale
 
 Se corrigió el adaptador Firebase del panel para que pueda leer los marcadores con `once('value')`: antes esa operación faltaba y el botón **Cargar resultados automáticamente** caía siempre en la carga manual. También se evita reutilizar resultados automáticos viejos si falla la lectura, se impide asignar el siguiente cruce si falla la lectura de resultados y se vuelve a intentar publicar el fixture cuando una escritura es rechazada.
 
-Pruebas ejecutadas con base simulada: asignación del primer cruce, marcador en vivo, captura al abrir el modal, bonus de Guess, avance al segundo cruce cuando el primero ya tiene resultado, empate, puntos generales, los dos destinatarios posibles de Dinero Rápido y carga manual tras un error de lectura. Pasaron las comprobaciones de sintaxis de los archivos `.js`.
+Pruebas ejecutadas con base simulada: asignación del primer cruce, marcador en vivo, captura al abrir el modal, bonus de Guess, avance al segundo cruce cuando el primero ya tiene resultado, empate, puntos generales, carga manual tras un error de lectura. Pasaron las comprobaciones de sintaxis de los archivos `.js`.
 
 **Pendiente para usar en el evento:** prueba real con el Firebase configurado, sus reglas y dos dispositivos; comprobar el resultado final en la tabla. Si Firebase se corta durante El Erudito, la pantalla no ofrece una partida local equivalente: habrá que llevar el marcador por separado y cargar el cruce manualmente desde `velada.html`. La prueba simulada no valida la latencia ni los permisos reales.
 

@@ -4224,7 +4224,7 @@ const RULES_DEFAULT = {
     { name: 'El Erudito', icon: '🧠', desc: 'Versión rápida del Erudito, solo con preguntas de aproximación numérica.', format: 'Hasta 7 aciertos o por tiempo', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: '3+ respuestas de ventaja', allow_draw: true, rules: ['Se hacen preguntas de aproximación al mismo tiempo para ambos equipos.','1 minuto para pensar y anotar la respuesta.','Se respeta un ±5% de desvío.','Gana el equipo que acumule 7 respuestas correctas primero, o el que tenga más al terminar las demás estaciones.','1 minuto para pensar la respuesta','Puntaje máximo: 4pts','Puntaje mínimo (empate): 1pts'] },
     { name: 'Jenga', icon: '🪵', desc: 'Juego clásico de equilibrio. El primero que derrumba la torre pierde.', format: 'Mejor de 3 rondas (salvo que termine muy rápido y si los participantes quieren pueden seguir hasta que las demás mesas terminen)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Ganar sin haber perdido ninguna ronda o con marcador final con diferencia de 2 rondas (Por ej.: 4 a 2)', allow_draw: true, rules: ['Puntaje máximo: 4pts'] },
     { name: 'Curling', icon: '🥌', desc: 'Cada jugador lanza 5 piedras por ronda buscando quedar lo más cerca posible del centro. Se pueden desplazar las piedras del rival.', format: 'Mejor de 3 rondas (salvo que termine muy rápido y si los participantes quieren pueden seguir hasta que las demás mesas terminen)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Ganar sin haber perdido ninguna ronda o con marcador final con diferencia de 2 rondas (Por ej.: 4 a 2)', allow_draw: true, rules: ['Círculo azul → 1 pt','Círculo blanco intermedio → 2 pts','Círculo rojo → 3 pts','Círculo blanco pequeño → 5 pts','Se puede empujar las piedras del rival para hacerle perder puntos.','Puntaje máximo: 4pts'] },
-    { name: '100 Argentinos Dicen', icon: '🪄', desc: 'Cada equipo compite ronda por ronda. El ganador del duelo inicial controla el tablero. Si completa las respuestas sin 3 strikes, gana el punto. Si falla 3 veces, el rival puede robar con una sola respuesta.', format: 'Mejor de 5 rondas', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'El que gane el dinero rápido se lleva 1 punto', allow_draw: true, rules: ['El duelo inicial define quién controla el tablero','El equipo que controla completa respuestas del tablero sin 3 strikes','3 strikes = pierde el control, el rival puede robar con 1 respuesta','El primer equipo en ganar la meta de rondas gana el match','Puntaje máximo: 4pts'] },
+    { name: '100 Argentinos Dicen', icon: '🪄', desc: 'Cada equipo compite ronda por ronda. El ganador del duelo inicial controla el tablero. Si completa las respuestas sin 3 strikes, gana el punto. Si falla 3 veces, el rival puede robar con una sola respuesta.', format: 'Mejor de 5 rondas', pts_win: 3, pts_bonus: 0, pts_draw: 1, pts_lose: 0, allow_draw: true, rules: ['Se juega en una ronda propia, todos los equipos juntos','Los grupos originales se juntan completos en equipos de juego','1.º 3 pts, 2.º 1 pt, el resto 0 (con 2 equipos: 3 y 0)','El equipo que controla completa respuestas del tablero sin 3 strikes','3 strikes = pierde el control, el rival puede robar con 1 respuesta'] },
     { name: 'Palabras a Tiempo', icon: '⏱️', desc: 'Juego clásico de palabras, con categorías elegidas por el organizador.', format: '10 minutos de juego o hasta que los participantes se cansen', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Ganar sin haber perdido ninguna ronda o con marcador final con diferencia de 2 rondas (Por ej.: 4 a 2)', allow_draw: true, rules: ['1 categoría por ronda.','Cada jugador puede usar una sola vez un comodín para cambiar la categoría antes de empezar.','Se puede pedir VAR (osea yo). Sí considero que el que pidió el VAR se equivocó, pierde la ronda y sí no, se sigue con otra carta','Puntaje máximo: 4pts'] },
     { name: 'Carrera de Mentes', icon: '👑', desc: 'Modo solo preguntas (sin tablero). Se juega al mejor de 3 coronas. Se tienen que responder 3 preguntas bien para obtener una corona.', format: '3 coronas', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Si el rival no obtiene coronas.', allow_draw: true, rules: ['Se hace un sorteo para definir quién empieza. El que gana el sorteo elige el libro.','El jugador que eligió el libro responde primero. Si acierta, el rival responde una pregunta del mismo libro. Si el rival falla, el que eligió se lleva la corona. Si el rival también acierta, se continúa en ese mismo libro alternando preguntas hasta que uno falle: quien falla pierde la corona.','Cada jugador puede usar una sola vez el comodín para cambiar una pregunta ya leída.','Una vez que se gana una corona (sin importar quién), el rival elige el siguiente libro.','El lector no está obligado a decir las opciones si no se las piden.','Puntaje máximo: 4pts'] },
   ]
@@ -5326,10 +5326,15 @@ function generateF2Fixture(n) {
   if (n === 6 && GAMES_F2.length === 6) {
     return { fixture: ORIGINAL_F2_FIXTURE.map(m => m.slice()), byes: {} };
   }
-  const marioIdx = GAMES_F2.indexOf('Mario Party');
-  const guessIdx = GAMES_F2.indexOf('Guess Movie/Song');
+  // 100 Argentinos Dicen NO se juega de a pares: va en una ronda propia con
+  // todos los equipos (ver argentinosRoundHtml en velada-rounds.js).
+  const argIdx = GAMES_F2.indexOf('100 Argentinos Dicen');
+  const stations = GAMES_F2.map((_, i) => i).filter(i => i !== argIdx);
+  const marioIdx = stations.indexOf(GAMES_F2.indexOf('Mario Party'));
+  const guessIdx = stations.indexOf(GAMES_F2.indexOf('Guess Movie/Song'));
   const forbidden = (marioIdx !== -1 && guessIdx !== -1) ? [[marioIdx, guessIdx]] : [];
-  return generateCoverageFixture(n, GAMES_F2.length, forbidden);
+  const r = generateCoverageFixture(n, stations.length, forbidden);
+  return { fixture: r.fixture.map(m => [m[0], m[1], m[2], stations[m[3]], ...m.slice(4)]), byes: r.byes };
 }
 
 
@@ -5830,7 +5835,6 @@ const BONUS_F2 = {
   'El Erudito': '3+ respuestas de ventaja',
   'Jenga': 'Ganar sin haber perdido ninguna ronda o con marcador final con diferencia de 2 rondas (Por ej.: 4 a 2)',
   'Curling': 'Ganar sin haber perdido ninguna ronda o con marcador final con diferencia de 2 rondas (Por ej.: 4 a 2)',
-  '100 Argentinos Dicen': 'El que gane el dinero rápido se lleva 1 punto',
   'Palabras a Tiempo': 'Ganar sin haber perdido ninguna ronda o con marcador final con diferencia de 2 rondas (Por ej.: 4 a 2)',
   'Carrera de Mentes': 'Si el rival no obtiene coronas.'
 };
@@ -6596,6 +6600,7 @@ function getF2StationStatus(teamIdx, beforeRound) {
   const playedNames = [];
   const missingNames = [];
   for (let g = 0; g < GAMES_F2.length; g++) {
+    if (GAMES_F2[g] === '100 Argentinos Dicen') continue; // ronda propia con todos
     (played.has(g) ? playedNames : missingNames).push(GAMES_F2[g]);
   }
   return { playedNames, missingNames };
@@ -7298,7 +7303,7 @@ function renderFase2() {
 
   const theadRowF2 = document.getElementById('thead-row-fase2');
   if (theadRowF2) {
-    const totalRoundsF2 = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0);
+    const totalRoundsF2 = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0) + (state.argentinosRound ? 1 : 0);
     const roundThs = Array.from({length: totalRoundsF2}, (_, i) => `<th>R${i+1}</th>`).join('');
     theadRowF2.innerHTML = `<th style="width:36px">#</th><th>Equipo</th>${roundThs}<th title="¿Quién lo dijo? — puntos individuales sumados al equipo. Tocá para editar" style="color:var(--purple)">🗣️ QLD</th><th title="Apuestas acertadas — tocá para editar">🃏</th><th style="text-align:right">Total</th>`;
   }
@@ -7431,6 +7436,7 @@ function renderFixtureF2() {
       ? 'Todavía no hay fixture: cargá al menos 2 equipos en la lista de equipos de arriba.'
       : 'Todavía no hay fixture: tocá "🎲 Generar fixture".'}</div>`;
   }
+  if (typeof argentinosRoundHtml === 'function') html += argentinosRoundHtml();
   container.innerHTML = toggleHtml + html;
 }
 
@@ -7754,9 +7760,6 @@ function resultadoWinnerIdx(row) {
 }
 
 // Reglas de puntaje (ver spec): bonus por juego, y el caso especial de
-// 100 Argentinos Dicen + Dinero Rápido, que en vez de bonus normal puede
-// generar un ajuste manual a nombre de quien perdió el duelo pero ganó
-// Dinero Rápido.
 function computeBonus(row) {
   const r = row.resultado;
   const marcador = r.marcador || {};
@@ -7773,17 +7776,8 @@ function computeBonus(row) {
       const sinPerder = info.sinPerderRonda && info.sinPerderRonda[winnerSide];
       return { bonus: !!sinPerder || diff >= 2, adjust: null };
     }
-    case 'argentinos': {
-      const drWinner = r.bonusInfo && r.bonusInfo.dineroRapidoWinner;
-      if (!drWinner) return { bonus: false, adjust: null }; // todavía no se jugó/informó Dinero Rápido
-      if (drWinner === winnerSide) return { bonus: true, adjust: null };
-      // El duelo normal lo ganó un lado, pero Dinero Rápido lo ganó el otro:
-      // sin bonus para el ganador del duelo, y +1 pt vía ajuste manual para
-      // el que ganó Dinero Rápido (a su propio nombre, no al del ganador).
-      const loserIdx = winnerSide === 'a' ? row.b : row.a;
-      const roster = row.phase === 'f1' ? PLAYERS : TEAMS;
-      return { bonus: false, adjust: { name: roster[loserIdx], pts: 1, label: 'Dinero Rápido' } };
-    }
+    case 'argentinos':
+      return { bonus: false, adjust: null };
     default:
       return { bonus: false, adjust: null };
   }
@@ -9122,6 +9116,7 @@ function resetEverything() {
       state.betWindowF2 = { open: false, round: 0 };
       state.qldOverride = {};
       state.adjust = { f1: [], f2: [] };
+      if (state.argentinosRound) state.argentinosRound = { byTeam: {} };
       state.autoResultadosAplicados = {};
       state.lastTab = 'reglas';
       saveState();

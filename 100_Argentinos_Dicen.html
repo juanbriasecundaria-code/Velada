@@ -457,7 +457,7 @@ body.is-participant .cad-bg-scrim { display: block; }
   .timer-opt-btn.on { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
   .timer-opt-btn:active { transform: scale(0.97); }
 
-  /* ── DINERO RÁPIDO entry ── */
+  /* ── RONDA FINAL entry ── */
   .fm-entry { width: 100%; max-width: 340px; padding: 0.9rem; border-radius: var(--radius); border: 1.5px solid var(--gold); background: var(--gold-dim); color: var(--gold); font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: transform 0.1s; font-family: inherit; }
   .fm-entry:active { transform: scale(0.97); }
 
@@ -470,7 +470,7 @@ body.is-participant .cad-bg-scrim { display: block; }
   .win-sub { font-size: 14px; color: var(--muted); }
   .win-actions { display: flex; flex-direction: column; gap: 0.6rem; width: 100%; max-width: 300px; margin-top: 0.8rem; }
 
-  /* ── DINERO RÁPIDO overlay ── */
+  /* ── RONDA FINAL overlay ── */
   .fm-overlay { position: fixed; inset: 0; z-index: 470; background: var(--bg); display: none; flex-direction: column; align-items: center; text-align: center; overflow-y: auto; gap: 0.7rem;
     padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); }
   .fm-overlay.open { display: flex; }
@@ -528,6 +528,10 @@ body.is-participant .cad-bg-scrim { display: block; }
   }
   body.is-participant #participant-root { display: flex; }
   body.is-participant #main-screen { display: none; }
+  .p-timer { position: fixed; top: 14px; right: 18px; z-index: 50; display: none; align-items: baseline; gap: 2px; padding: 8px 18px; border-radius: 16px; background: rgba(15,15,19,0.88); border: 2px solid var(--accent); color: var(--accent); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; box-shadow: 0 6px 24px rgba(0,0,0,0.5); }
+  .p-timer #p-timer-n { font-size: clamp(2.6rem, 7vw, 4.5rem); }
+  .p-timer .p-timer-u { font-size: clamp(1rem, 2.4vw, 1.5rem); opacity: 0.8; }
+  .p-timer.low { border-color: var(--red); color: var(--red); animation: fmPulse 0.5s ease-in-out infinite; }
   .p-wrap { width: 100%; max-width: 840px; display: flex; flex-direction: column; align-items: center; gap: 1.15rem; transform-origin: top center; will-change: transform; }
 
   /* Marcador + pozo */
@@ -670,7 +674,7 @@ body.is-participant .cad-bg-scrim { display: block; }
   .hosting-note { font-size:11px; color:var(--gold); background:var(--gold-dim); border-radius:8px; padding:0.5rem 0.7rem; line-height:1.4; }
   .gate-btn-sub { display:block; font-size:10px; font-weight:600; color:var(--muted); margin-top:0.2rem; }
 
-  /* ── DINERO RÁPIDO: tabla de resultados finales ── */
+  /* ── RONDA FINAL: tabla de resultados finales ── */
   .fm-result-table { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 0.45rem; }
   .fm-result-header { display: grid; grid-template-columns: 1fr auto; align-items: center; font-size: 10px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 0 0.3rem; }
   .fm-result-row { background: var(--surface); border: 1.5px solid var(--border2); border-radius: 10px; padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.3rem; }
@@ -872,7 +876,7 @@ body.vb-clean .vb-peek { display: flex; }
 </div>
 
 <!-- ── VISTA PARTICIPANTES ── -->
-<div id="participant-root"><div class="p-wrap" id="p-wrap"></div></div>
+<div id="participant-root"><div id="p-timer" class="p-timer" style="display:none"><span id="p-timer-n">40</span><span class="p-timer-u">s</span></div><div class="p-wrap" id="p-wrap"></div></div>
 
 <div class="answer-flash" id="answer-flash">
   <div class="af-card">
@@ -924,7 +928,7 @@ body.vb-clean .vb-peek { display: flex; }
   <div class="gm-strip" id="gm-strip"></div>
 
   <button class="reveal-btn" id="start-round-btn" onclick="startRound()">🎤 Nueva pregunta</button>
-  <button class="fm-entry" onclick="fmStart()">⚡ Dinero Rápido <span style="opacity:.7;font-weight:700">· ronda final</span></button>
+  
 
   <div class="footer-links">
     <button class="reset-link" onclick="openDeckEditor()">✏️ editar preguntas</button>
@@ -1154,10 +1158,10 @@ body.vb-clean .vb-peek { display: flex; }
   </div>
 </div>
 
-<!-- ── DINERO RÁPIDO ── -->
+<!-- ── RONDA FINAL ── -->
 <div class="fm-overlay" id="fm-overlay">
   <div class="fm-top">
-    <span class="fm-eyebrow">⚡ Dinero Rápido</span>
+    <span class="fm-eyebrow">⚡ Ronda final</span>
     <button class="round-x" onclick="fmClose()" aria-label="cerrar">✕</button>
   </div>
   <div id="fm-body"></div>
@@ -1397,7 +1401,7 @@ const DEFAULT_BANK = [
   { cat:'🎬 Pop', q: 'Algo que se filma en una película de acción', a: [['Una persecución en auto',28],['Una explosión',24],['Una pelea',18],['Un disparo',16],['Una huida',10],['Un héroe en moto',4]] },
 ]
 
-// ── BANCO EXCLUSIVO DINERO RÁPIDO ──
+// ── BANCO EXCLUSIVO RONDA FINAL ──
 // Preguntas distintas a las del juego principal, pensadas para respuesta rápida individual
 const FM_BANK = [
   { q: 'Nombrá una capital del mundo',        a: [['París',28],['Madrid',22],['Londres',18],['Roma',16],['Tokio',10],['Buenos Aires',6]] },
@@ -3212,7 +3216,7 @@ function newMatch() {
   if (navigator.vibrate) navigator.vibrate(30);
 }
 
-// ── DINERO RÁPIDO (Equipo 1 vs Equipo 2 — gana el de más puntos, +1) ──
+// ── RONDA FINAL (Equipo 1 vs Equipo 2) ──
 const FM_TIME = 25;    // segundos por jugador en la fase oral
 const FM_Q_COUNT = 7;  // preguntas por turno
 let fm = null;
@@ -3222,7 +3226,7 @@ let fmDuelScore = null;
 function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 function fmStart() {
-  if (FM_BANK.length === 0) { alert('No hay preguntas de Dinero Rápido.'); return; }
+  if (FM_BANK.length === 0) { alert('No hay preguntas de Ronda final.'); return; }
   fmLiveWinner = null;
   fmDuelScore = {a:score.a||0,b:score.b||0};
   fm = { stage: 'setup', order: null, ci: 0, results: { a: null, b: null } };
@@ -3369,7 +3373,7 @@ function fmRender() {
 
   if (fm.stage === 'setup') {
     body.innerHTML = `
-      <div class="fm-q" style="margin-top:1rem"><div class="fm-q-text">Ronda final · Dinero Rápido</div></div>
+      <div class="fm-q" style="margin-top:1rem"><div class="fm-q-text">Ronda final · Ronda final</div></div>
       <div class="phase-banner" style="max-width:480px">Juegan los dos equipos: ${FM_TIME}s para responder ${FM_Q_COUNT} preguntas en voz alta y después se verifican. <b>&nbsp;Gana el equipo con más puntos&nbsp;</b> y suma <b>&nbsp;+1&nbsp;</b> al marcador.</div>
       <div class="phase-banner" style="max-width:480px;border:none;background:none;color:var(--muted)">¿Qué equipo empieza?</div>
       <div class="choice-panel" style="max-width:480px">
@@ -3490,7 +3494,7 @@ function fmRender() {
     else { playBuzzer(); }
     const aWin = winner === 'a', bWin = winner === 'b';
     const msg = winner
-      ? `🏆 ${escapeHtml(nameOf(winner))} gana Dinero Rápido · +1 punto`
+      ? `🏆 ${escapeHtml(nameOf(winner))} gana la ronda final`
       : 'Empate — sin punto extra';
     const btn = winner
       ? `<button class="btn-primary" onclick="fmAwardAndClose('${winner}')">Sumar +1 a ${escapeHtml(nameOf(winner))} y cerrar</button>`
@@ -3571,8 +3575,7 @@ function initFirebase(){
     if(MODE==='conductor') BuzzerAutoLive.start({db:fbDb,game:'argentinos',legacyPath:'argentinos/buzzer',
       getMatch:()=>window.currentFixtureMatch&&window.currentFixtureMatch(),
       getScore:()=>({a:fmDuelScore ? fmDuelScore.a : score.a||0,b:fmDuelScore ? fmDuelScore.b : score.b||0,
-        bonusInfo:{dineroRapidoWinner:fmLiveWinner || (fm && fm.stage==='final' && fm.results.a && fm.results.b ?
-          (fm.results.a.total>fm.results.b.total?'a':fm.results.b.total>fm.results.a.total?'b':(fmDuelScore && fmDuelScore.b>fmDuelScore.a?'b':'a')) : null)}})});
+        bonusInfo:{}})});
     fbInited = true;
     if(window.initReactions) initReactions();   // emojis de los invitados
     fbDb.ref('.info/connected').on('value', snap => {
@@ -3743,9 +3746,11 @@ function snapshot() {
       rb: (fm.results && fm.results.b) ? fm.results.b.total : null,
     } : null,
     win: winState ? { team: winState.team } : null,
+    tm: (_roundTimerInterval && round) ? { left: Math.max(0, _roundTimerLeft), secs: roundTimerSecs, phase: round.phase } : null,
   };
 }
-function sigOf(s) { const c = Object.assign({}, s); delete c.t; return JSON.stringify(c); }
+// El contador (tm) cambia cada segundo: se excluye de la firma para no redibujar todo el tablero.
+function sigOf(s) { const c = Object.assign({}, s); delete c.t; delete c.tm; return JSON.stringify(c); }
 function writeSync() {
   if (MODE !== 'conductor') return;
   const json = JSON.stringify(snapshot());
@@ -3756,10 +3761,22 @@ let _hb = null;
 function startHeartbeat() { if (_hb) clearInterval(_hb); _hb = setInterval(writeSync, 150); writeSync(); }
 
 // Participante: escucha y renderiza
-let pLastSig = null, pLastSnap = null;
+let pLastSig = null, pLastSnap = null, _pTimerLast = null;
+function pUpdateTimer(snap) {
+  const box = document.getElementById('p-timer'), n = document.getElementById('p-timer-n');
+  if (!box || !n) return;
+  const tm = snap && snap.screen !== 'main' && snap.screen !== 'win' ? snap.tm : null;
+  if (!tm) { box.style.display = 'none'; _pTimerLast = null; return; }
+  box.style.display = 'flex';
+  n.textContent = tm.left;
+  box.classList.toggle('low', tm.left <= 5);
+  if (tm.left <= 5 && tm.left > 0 && _pTimerLast !== tm.left) sfxTick();
+  _pTimerLast = tm.left;
+}
 function onSync(json) {
   if (MODE !== 'participant') return;
   let snap; try { snap = JSON.parse(json); } catch (e) { return; }
+  pUpdateTimer(snap);
   const sig = sigOf(snap);
   if (sig === pLastSig) return;
   renderParticipant(snap, pLastSnap);
@@ -3884,8 +3901,8 @@ function renderParticipant(snap, prev) {
 
   if (snap.screen === 'fm') {
     const f = snap.fm;
-    if (!f) { setHtml(`<div class="p-wait-msg">Dinero Rápido…</div>`); return; }
-    if (f.stage === 'setup') { setHtml(`<div class="p-title" style="margin-top:1rem"><span class="pt-2">⚡ Dinero Rápido</span></div><div class="p-wait-msg">Preparando la ronda final…</div>`); return; }
+    if (!f) { setHtml(`<div class="p-wait-msg">Ronda final…</div>`); return; }
+    if (f.stage === 'setup') { setHtml(`<div class="p-title" style="margin-top:1rem"><span class="pt-2">⚡ Ronda final</span></div><div class="p-wait-msg">Preparando la ronda final…</div>`); return; }
     if (f.stage === 'between') { setHtml(`<div class="p-sub" style="margin-top:1.5rem">${escapeHtml(pName(snap, f.team))}</div><div class="p-big win">${f.p1}</div><div class="p-sub">va la segunda respuesta</div>`); return; }
     if (f.stage === 'halftime') {
       const first = f.order ? f.order[0] : f.team;
@@ -3898,7 +3915,7 @@ function renderParticipant(snap, prev) {
       const ta = f.ra || 0, tb = f.rb || 0;
       let w = null; if (ta > tb) w = 'a'; else if (tb > ta) w = 'b';
       setHtml(`
-        <div class="p-sub" style="margin-top:1rem">⚡ Dinero Rápido</div>
+        <div class="p-sub" style="margin-top:1rem">⚡ Ronda final</div>
         <div style="display:flex;gap:1.6rem;justify-content:center;align-items:flex-end;margin-top:0.5rem">
           <div><div class="p-sub">${escapeHtml(pName(snap,'a'))}</div><div class="p-big ${w === 'a' ? 'win' : ''}">${ta}</div></div>
           <div><div class="p-sub">${escapeHtml(pName(snap,'b'))}</div><div class="p-big ${w === 'b' ? 'win' : ''}">${tb}</div></div>
@@ -3928,7 +3945,7 @@ function renderParticipant(snap, prev) {
         <div class="p-status" style="margin-top:0.6rem;color:var(--gold)">🔍 Revisando respuesta…</div>`);
       return;
     }
-    setHtml(`<div class="p-wait-msg">Dinero Rápido…</div>`);
+    setHtml(`<div class="p-wait-msg">Ronda final…</div>`);
     return;
   }
 
