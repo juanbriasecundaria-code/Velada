@@ -41,6 +41,6 @@ window.publishArgentinosGroupFixture=function(){
   const next=Object.assign({},m,{players,names});
   fbRef.transaction(cur=>{
     if(!cur||cur.fixture?.id!==m.id)return;
-    return Object.assign({},cur,{fixture:next,names,state:'locked',winner:null});
+    return Object.assign({},cur,{fixture:next,names,state:'locked',winner:null,queue:[],turn:0});
   },undefined,false).catch(e=>showToast('No se pudo publicar participantes: '+e.message));
 };

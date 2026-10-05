@@ -205,7 +205,7 @@
   .buzz-row.multi .buzz-btn { flex: 1 1 30%; min-width: 96px; }
   .buzz-btn.done { opacity: 0.6; }
   .round-score.multi { flex-wrap: wrap; max-width: 560px; }
-  .round-score.multi .pot-box { order: -1; flex: 1 0 100%; flex-direction: row; gap: 0.7rem; }
+  .round-score.multi .pot-box { order: -1; flex: 1 0 100%; flex-direction: row; gap: 0.7rem; aspect-ratio:auto; border-radius:16px; min-height:72px; height:auto; width:auto; }
   .round-score.multi .rs-team { flex: 1 1 26%; }
   .rs-hold { font-size: 11px; font-weight: 800; color: var(--muted); min-height: 13px; }
 
@@ -831,9 +831,9 @@ body.vb-clean .vb-peek { display: flex; }
   .gm-fin .mv button:disabled { opacity:0.25; }
   .gm-tie { font-size:11px; color:var(--gold); font-weight:700; text-align:center; }
 </style>
-<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="buzzer-rounds.js?v=2"></script><script src="auto-live.js"></script>
-<script src="round-host.js?v=2"></script>
-<script src="argentinos-rounds.js?v=2"></script>
+<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="buzzer-rounds.js?v=20261005b"></script><script src="auto-live.js"></script>
+<script src="round-host.js?v=20261005b"></script>
+<script src="argentinos-rounds.js?v=20261005b"></script>
 </head>
 <body>
 <div class="velada-bar"></div>
@@ -1962,7 +1962,7 @@ function gmRenderFinal() {
   }).join('');
   document.getElementById('gm-final-tie').textContent = tie ? '⚖️ Hay empate en rondas ganadas: desempatá con las flechas ▲▼ antes de confirmar.' : '';
 }
-function gmConfirmFinal() {
+async function gmConfirmFinal() {
   const n = _gmOrder.length;
   const teams = _gmOrder.map((t, pos) => {
     const tm = gm.teams[t], groups = tm.origs.map(i => gm.origs[i].label);
@@ -1975,7 +1975,7 @@ function gmConfirmFinal() {
   gm.finished = true; gm.result = result; gmSave();
   try { localStorage.setItem('cad_group_result', JSON.stringify(result)); } catch (e) {}
   let sent = false;
-  if (fbDb) { try { fbDb.ref('argentinos/grupos/resultado').set(result); sent = true; } catch (e) {} }
+  if (fbDb) { try { await fbDb.ref('argentinos/grupos/resultado').set(result); sent = true; } catch (e) {showToast('No se pudo publicar: '+e.message,4000);return;} }
   gmCloseFinal();
   showToast((sent ? '🏁 Puntos publicados: ' : '🏁 Puntos calculados (sin conexión): ') + teams.map(t => t.name + ' +' + t.pts).join(' · '), 5200);
 }
@@ -2228,6 +2228,10 @@ function show(id, on) { const el = document.getElementById(id); if (el) el.style
 function setPhase(p) {
   if (!round) return;
   round.phase = p;
+  if(p==='faceoff' && MODE==='conductor' && fbRef && window.currentFixtureMatch?.()?.group){
+    const id=window.currentFixtureMatch().id;
+    fbRef.transaction(cur=>{if(!cur?.fixture?.active || cur.fixture.id!==id || cur.turn===round.foIdx)return;return Object.assign({},cur,{turn:round.foIdx||0});},undefined,false).catch(e=>showToast('No se pudo actualizar el turno: '+e.message));
+  }
   if (p !== 'play' && p !== 'steal') stopRoundTimer();
   const banner = document.getElementById('phase-banner');
   const icon = banner.querySelector('.pb-icon');
@@ -3609,7 +3613,7 @@ let _bzState = 'locked';
 const BUZZ_COUNTDOWN_MS = 3000;
 let _bzCountdownTimer = null;
 
-function fbToggle(){
+async function fbToggle(){
   if(!fbRef){ showToast('⚠️ Firebase no conectado'); return; }
   if(_bzOpen || _bzState==='countdown'){
     clearTimeout(_bzCountdownTimer);
@@ -3621,12 +3625,14 @@ function fbToggle(){
     // countdownStart va como ServerValue.TIMESTAMP (lo resuelve el servidor
     // de Firebase, no el reloj de este celu) para que el 3-2-1 quede
     // sincronizado en todos los dispositivos.
-    fbRef.set({ state:'countdown', winner:null, countdownStart:firebase.database.ServerValue.TIMESTAMP, countdownMs:BUZZ_COUNTDOWN_MS, names:fbNames() })
-      .then(()=>{ showToast('⏳ Cuenta regresiva…'); })
-      .catch(e=>{ showToast('Error: '+e.message); });
+    try{
+      const result=await fbRef.set({ state:'countdown', queue:[], turn:0, winner:null, countdownStart:firebase.database.ServerValue.TIMESTAMP, countdownMs:BUZZ_COUNTDOWN_MS, names:fbNames() });
+      if(result && result.committed===false){showToast('Activá la ronda desde el fixture antes de habilitar el buzzer');return;}
+      showToast('⏳ Cuenta regresiva…');
+    }catch(e){showToast('Error: '+e.message);return;}
     _bzCountdownTimer = setTimeout(()=>{
       if(!fbRef) return;
-      fbRef.set({ state:'open', winner:null, names:fbNames() })
+      fbRef.set({ state:'open', queue:[], turn:0, winner:null, names:fbNames() })
         .then(()=>{ showToast('🔓 Buzzer habilitado — esperando'); })
         .catch(e=>{ showToast('Error: '+e.message); });
     }, BUZZ_COUNTDOWN_MS);
@@ -3673,7 +3679,10 @@ function startCondBuzzerListener(){
       return;
     }
     const w = d.winner, s = d.state||'locked';
-    _bzOpen = (s==='open' && !w);
+    _bzOpen = (s==='open' && (!w || d.fixture?.group));
+    if(d.fixture?.group && round?.phase==='faceoff'){
+      (Array.isArray(d.queue)?d.queue:[]).forEach(entry=>buzz(entry.team));
+    }
     _bzState = s;
     renderBzToggle();
     if(w){

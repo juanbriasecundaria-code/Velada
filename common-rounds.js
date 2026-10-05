@@ -25,7 +25,9 @@
     const names={guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?'};
     const action=id==='guess'?'activateGuessRound':id==='argentinos'?'activateArgentinosRound':'activateCommonRound';
     const activate=id==='guess'||id==='argentinos'?action+'('+n+',this)':action+'(\''+id+'\','+n+',this)';
-    return '<div class="fixture-round"><div class="round-label">Ronda '+n+' <span class="bye-tag">'+names[id]+' · '+(id==='impostor'?'individual · no suma al ranking grupal':'todos los equipos juntos')+'</span><button class="fixture-edit-toggle" onclick="'+activate+'">▶ Activar ronda '+n+'</button></div><div class="match-row '+(commonRoundDone(id)?'done':'')+'" onclick="'+(id==='impostor'?"activateTab('impostor')":id==='qld'?"window.open('quien_lo_dijo.html','_blank')":"openAutoResultadosModal()")+'"><span class="match-game-badge">'+names[id]+'</span><span class="match-players">'+(id==='impostor'?'Ranking individual':'Resultado grupal')+'</span><span class="match-result">'+(commonRoundDone(id)?'✓ Cargado':'Abrir / cargar')+'</span></div></div>';
+    const colors={guess:'#bf8cff',argentinos:'#f0bc54',impostor:'#ef7979',qld:'#6bc5ec'};
+    const roster=id==='impostor'?'Ranking individual':TEAMS.map(commonEscape).join(' · ');
+    return '<div class="fixture-round"><div class="round-label">Ronda '+n+' <span class="bye-tag">'+names[id]+' · '+(id==='impostor'?'individual · no suma al ranking grupal':'todos los equipos juntos')+'</span><button class="fixture-edit-toggle" onclick="'+activate+'">▶ Activar ronda '+n+'</button></div><div class="match-row '+(commonRoundDone(id)?'done':'')+'" onclick="openCommonResultModal(\''+id+'\')"><span class="match-game-badge" style="color:'+colors[id]+';background:'+colors[id]+'22">'+names[id]+'</span><span class="match-players">'+roster+'</span><span class="match-result">'+(commonRoundDone(id)?'✓ Cargado':(window._commonResults||{})[id]?'Resultado disponible':'Abrir / cargar')+'</span></div></div>';
   };
   window.activateCommonRound=async function(id,round,button){
     if(!window._rtdb){showToast('⚠️','Esperá la conexión con Firebase',false);return;}
@@ -38,14 +40,15 @@
       });
       updates['velada/activeRound']={id,round,token};
       await window._rtdb.ref().update(updates);state.activeMatches=[];state.activeCommonRound={id,round};saveState();
-      if(id==='impostor')activateTab('impostor');else window.open('quien_lo_dijo.html','_blank');
+      showToast('▶','Ronda '+round+' activada',true);
     }catch(e){showToast('⚠️',e.message,false);}finally{button.disabled=false;}
   };
   window.commonAutoRows=function(){
     const order=ensureCommonRoundOrder(),limit=order.findIndex(id=>!commonRoundDone(id));
     const rows=[];
     order.forEach((id,index)=>{
-      if(id.startsWith('duel:') || (limit>=0&&index>limit))return;
+      if(id.startsWith('duel:'))return;
+      if(limit>=0&&index>limit && !(window._commonResults||{})[id])return;
       const result=(window._commonResults||{})[id],firma=JSON.stringify(result||null);
       if(commonRoundDone(id)&&(!result||(state.autoResultadosAplicados||{})['common-'+id]===firma))return;
       rows.push({common:id,phase:'f2',round:index+1,matchId:'common-'+id,gameName:{guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?'}[id],status:result?'auto':'pending',resultado:result,firma});
@@ -85,3 +88,30 @@ window.nextCommonRound=function(){return ensureCommonRoundOrder().find(id=>!comm
 window.commonGroupRoundsDone=function(){return ensureCommonRoundOrder().filter(id=>!id.startsWith('duel:')&&id!=='impostor').every(commonRoundDone);};
 
 window.hasCommonRoundResults=function(){return ['guess','argentinos','impostor','qld'].some(commonRoundDone);};
+
+function commonEscape(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+window.openCommonResultModal=function(id){
+  const names={guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?'};
+  const files={guess:'guess_Movies_Songs.html',argentinos:'100_Argentinos_Dicen.html',qld:'quien_lo_dijo.html'};
+  let bg=document.getElementById('common-result-modal');
+  if(!bg){bg=document.createElement('div');bg.id='common-result-modal';bg.className='modal-bg';document.body.append(bg);bg.onclick=e=>{if(e.target===bg)bg.classList.remove('open');};}
+  window._commonEditing=id;
+  const points=id==='qld'?TEAMS.map((t,i)=>(state.qldTeamPoints||{})[i]||0):TEAMS.map(t=>((state[id+'Round']||{}).byTeam||{})[t]||0);
+  bg.innerHTML='<div class="modal" style="max-height:90vh;overflow-y:auto"><div class="modal-title">'+names[id]+' · Ronda '+commonRoundNumber(id)+'</div><div class="modal-sub">'+(id==='impostor'?'Puntúa en el ranking individual.':'Resultado de todos los equipos · puntos para el ranking grupal')+'</div>'+(id==='impostor'?'<button class="btn" onclick="document.getElementById(\'common-result-modal\').classList.remove(\'open\');activateTab(\'impostor\')">Cargar resultado individual</button>':TEAMS.map((t,i)=>'<label style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0"><span>'+commonEscape(t)+'</span><input type="number" step="1" id="common-points-'+i+'" value="'+points[i]+'" style="width:75px" aria-label="Puntos de '+commonEscape(t)+'"></label>').join(''))+'<div class="modal-actions"><button class="btn btn-ghost" onclick="document.getElementById(\'common-result-modal\').classList.remove(\'open\')">Cancelar</button>'+(id!=='impostor'?'<button class="btn" onclick="importCommonResult()">Traer resultado del juego</button><button class="btn btn-primary" onclick="saveCommonResult()">Guardar</button>':'')+'</div>'+(files[id]?'<a class="btn" href="'+files[id]+'" target="_blank" rel="noopener">Abrir pantalla del juego</a>':'')+'</div>';
+  bg.classList.add('open');
+};
+window.importCommonResult=function(){
+  const id=window._commonEditing,result=(window._commonResults||{})[id];
+  if(!result){showToast('⚠️','Todavía no hay un resultado publicado para este juego',false);return;}
+  const row={common:id,status:'auto',resultado:result,matchId:'common-'+id,firma:JSON.stringify(result)};
+  if(!applyCommonAutoRow(row)){showToast('⚠️','El resultado no corresponde a todos los equipos actuales',false);return;}
+  saveState();renderFase2();openCommonResultModal(id);showToast('✓','Resultado cargado',true);
+};
+window.saveCommonResult=function(){
+  const id=window._commonEditing,values=TEAMS.map((t,i)=>{const v=document.getElementById('common-points-'+i).value;return v.trim()?Number(v):NaN;});
+  if(values.some(v=>!Number.isFinite(v))){showToast('⚠️','Completá los puntos de todos los equipos',false);return;}
+  if(id==='qld'){state.qldTeamPoints=Object.fromEntries(values.map((v,i)=>[i,v]));window._qldTeamPoints=state.qldTeamPoints;}
+  else state[id+'Round']={byTeam:Object.fromEntries(TEAMS.map((t,i)=>[t,values[i]])),ts:Date.now()};
+  TEAMS.forEach(t=>{if(state.commonCellPts)delete state.commonCellPts[t+'||'+id];});
+  saveState();renderFase2();document.getElementById('common-result-modal').classList.remove('open');
+};

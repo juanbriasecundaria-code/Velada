@@ -856,8 +856,8 @@ body.vb-clean .vb-peek { display: flex; }
   font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.1em;
   text-transform:uppercase;margin:0 .5rem}
 </style>
-<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="buzzer-rounds.js?v=2"></script><script src="auto-live.js"></script>
-<script src="round-host.js?v=2"></script>
+<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="buzzer-rounds.js?v=20261005b"></script><script src="auto-live.js"></script>
+<script src="round-host.js?v=20261005b"></script>
 </head>
 <body>
 
@@ -2105,6 +2105,20 @@ window.qldPhotos = window.qldPhotos || {};
   try {
     await asegurar(() => window.firebase && firebase.initializeApp, V + 'firebase-app-compat.js');
     await asegurar(() => window.firebase && firebase.firestore, V + 'firebase-firestore-compat.js');
+    await asegurar(() => window.firebase && firebase.database, V + 'firebase-database-compat.js');
+    const gameConfig = {
+  apiKey:"AIzaSyB37WkRQqBWVYkZ84AE2u17pAOs_9ZCgCg",
+  authDomain:"guessmovie-905e2.firebaseapp.com",
+  databaseURL:"https://guessmovie-905e2-default-rtdb.firebaseio.com",
+  projectId:"guessmovie-905e2",
+  storageBucket:"guessmovie-905e2.firebasestorage.app",
+  messagingSenderId:"313601369235",
+  appId:"1:313601369235:web:f8b28a2ec187a934fa1966"
+};
+    let gameApp;try{gameApp=firebase.app('palabras-game');}catch(e){gameApp=firebase.initializeApp(gameConfig,'palabras-game');}
+    window._palabrasDb=gameApp.database();
+    window.dispatchEvent(new Event('palabras-db-ready'));
+    startPalabrasLive();
     let app;
     try { app = firebase.app('photos'); } catch (e) { app = firebase.initializeApp(photosFbConfig, 'photos'); }
     app.firestore().collection('ndj').doc('photos').onSnapshot((snap) => {
@@ -2280,7 +2294,7 @@ window.veladaConn = function(estado){
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-<script src="palabras-rounds.js"></script>
+<script src="palabras-rounds.js?v=20261005b"></script>
 <script>
 BuzzerAutoLive.watchReset('palabras',()=>window._palabrasDb,()=>{
   score={a:0,b:0};roundsLog=[];roundBaseline=null;

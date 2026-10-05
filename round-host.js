@@ -7,7 +7,7 @@
       const expected=match&&match.id;
       return tx(current=>{
         if(!loaded || (current&&current.fixture&&current.fixture.id)!==expected)return;
-        if(match && !match.active)return;
+        if(match && (!match.active || !current?.fixture?.active))return;
         const next=Object.assign({},value);
         if(current&&current.fixture){next.fixture=current.fixture;next.names=current.fixture.names;}
         return next;

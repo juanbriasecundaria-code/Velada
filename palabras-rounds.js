@@ -22,7 +22,7 @@
     ['f2'].forEach(phase=>{
       const data=fixtureRaw[phase];
       if(!data||!Array.isArray(data.fixture)) return;
-      const ctx={players:data.players,teams:data.teams,fullNames:data.fullNames,games:data.games};
+      const ctx={players:data.players||(fixtureRaw.f1||{}).players||[],teams:data.teams,fullNames:data.fullNames,games:data.games};
       data.fixture.forEach(m=>{
         const g=m[3], round=m[0], a=m[1], b=m[2];
         if(BuzzerRounds.gameId((ctx.games||[])[g])!=='palabras') return;
@@ -75,7 +75,7 @@
       gate.textContent='El cruce cambió. Volvé a elegir tu nombre. ';
       const a=document.createElement('a');a.href='index.html?game=palabras';a.textContent='Elegir participante';a.style.color='inherit';gate.append(a);
     }else if(who){gate.textContent='Estás jugando como '+who.name;}
-    else if(valid){gate.textContent='Partida individual · '+match.players.map(p=>p.name).join(' vs. ');}
+    else if(valid){gate.textContent='Partida grupal · '+match.players.map(p=>p.name).join(' vs. ');}
     else if(!visitor){gate.textContent='Buscando el próximo cruce de Palabras a Tiempo…';}
     if(!connected)gate.append(document.createTextNode(' · Sin conexión: esperando sincronización.'));
     if(!visitor && !manualOffline && !(valid&&connected)){

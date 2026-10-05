@@ -669,9 +669,9 @@ body.guess-all-teams .part-gscore{font-size:clamp(28px,3.6vw,46px);line-height:1
  body.guess-all-teams #participant .part-main{width:100%}
  .guess-team-photo{width:32px;height:32px}
 }
-</style><script src="buzzer-rounds.js?v=2"></script><script src="auto-live.js"></script>
-<script src="round-host.js?v=2"></script>
-<script src="guess-rounds.js?v=3"></script>
+</style><script src="buzzer-rounds.js?v=20261005b"></script><script src="auto-live.js"></script>
+<script src="round-host.js?v=20261005b"></script>
+<script src="guess-rounds.js?v=20261005b"></script>
 <script src="guess-teams.js?v=3"></script>
 </head>
 <body>
@@ -1191,7 +1191,7 @@ function setFbStatus(state, msg){
 let _buzzBlocked = null;
 const BUZZ_COUNTDOWN_MS = 3000;
 let _buzzCountdownTimer = null;
-function fbOpenBuzzer(blocked){
+async function fbOpenBuzzer(blocked){
   if(typeof GROUP!=='undefined' && GROUP) gResetQueue();
   _buzzBlocked = blocked || null;
   if(!fbRef) return;
@@ -1199,10 +1199,13 @@ function fbOpenBuzzer(blocked){
   // countdownStart va como ServerValue.TIMESTAMP (lo resuelve el servidor
   // de Firebase, no el reloj de este celu) para que el 3-2-1 quede
   // sincronizado en todos los dispositivos.
-  fbRef.set({ state:'countdown', winner:null, blocked:_buzzBlocked, countdownStart:firebase.database.ServerValue.TIMESTAMP, countdownMs:BUZZ_COUNTDOWN_MS, names:{ a:nameA, b:nameB } });
+  try {
+    const result=await fbRef.set({ state:'countdown', queue:[],turn:0,winner:null, blocked:_buzzBlocked, countdownStart:firebase.database.ServerValue.TIMESTAMP, countdownMs:BUZZ_COUNTDOWN_MS, names:{ a:nameA, b:nameB } });
+    if(result && result.committed===false){showToast('Activá esta ronda desde el fixture antes de habilitar el buzzer');return;}
+  }catch(e){showToast('No se pudo habilitar el buzzer: '+e.message);return;}
   _buzzCountdownTimer = setTimeout(()=>{
     if(!fbRef) return;
-    fbRef.set({ state:'open', winner:null, blocked:_buzzBlocked, names:{ a:nameA, b:nameB } });
+    fbRef.set({ state:'open',queue:[],turn:0,winner:null, blocked:_buzzBlocked, names:{ a:nameA, b:nameB } });
   }, BUZZ_COUNTDOWN_MS);
 }
 

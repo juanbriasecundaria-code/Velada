@@ -30,7 +30,8 @@ vm.runInContext(s.slice(s.indexOf('function renderFase2()'),s.indexOf('function 
 let updates;ctx._rtdb={ref:()=>({update:async u=>{updates=u;}})};ctx.showToast=()=>{};vm.runInContext(read('velada-rounds.js'),ctx);
 (async()=>{
  await ctx.activateArgentinosRound(4,{disabled:false});const arg=updates['argentinos/buzzer'];assert(arg.fixture.active);assert.equal(arg.fixture.game,'argentinos');assert.equal(arg.fixture.players.length,2);assert.equal(arg.fixture.players[0].side,'a');
- const buzzing=ctx.BuzzerRounds.buzz({...arg,state:'open'},arg.fixture.id,'A','a',100);assert.equal(buzzing.winner.name,'A');assert.equal(buzzing.state,'won');
+ const buzzing=ctx.BuzzerRounds.buzz({...arg,state:'open'},arg.fixture.id,'A','a',100);assert.equal(buzzing.queue[0].name,'A');assert.equal(buzzing.state,'open');
+ const second=ctx.BuzzerRounds.buzz(buzzing,arg.fixture.id,'B','b',120);assert.equal(second.queue.length,2);assert.equal(second.queue[1].name,'B');assert.equal(ctx.BuzzerRounds.buzz(second,arg.fixture.id,'A','a',140),undefined);
  await ctx.activateGuessRound(1,{disabled:false});const guess=updates['velada/buzzer'];const queued=ctx.BuzzerRounds.buzz({...guess,state:'open'},guess.fixture.id,'A','A',100);assert.equal(queued.queue[0].name,'A');
  // Game-group assignment preserves original participants and remaps buzzer slots.
  ctx.gm={cur:{a:0,b:1},teams:[{name:'Rojo',origs:[0]},{name:'Azul',origs:[1]}],origs:[{members:['A']},{members:['B']}]};ctx.currentFixtureMatch=()=>arg.fixture;let pub;ctx.fbRef={transaction:async fn=>{pub=fn(arg);}};

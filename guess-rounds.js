@@ -6,7 +6,7 @@ window.connectGuessRound=function(ref){
       stopTimer();hideRoundWinnerOverlays();
     }
     if(!m||!m.active){if(typeof gLeave==='function')gLeave();return;}
-    if(m.group){gEnter(m,changed);return;}
+    if(m.group){if(changed || !GROUP)gEnter(m,changed);return;}
     if(typeof gLeave==='function')gLeave();
     nameA=m.names.a;nameB=m.names.b;
     let saved;try{saved=localStorage.getItem('guess_fixture_match');}catch(e){}

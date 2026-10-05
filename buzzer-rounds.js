@@ -12,7 +12,7 @@
   }
   function members(label, players, fullNames){
     return String(label||'').split('/').map(n=>n.trim()).filter(Boolean).map(full=>
-      players.find(p=>p===full || (fullNames[p]||'')===full) || full);
+      (players||[]).find(p=>p===full || (fullNames[p]||'')===full) || full);
   }
   function buildMatch(phase, match, ctx, id){
     const [round,a,b,g]=match, labels=ctx.teams;
@@ -42,9 +42,9 @@
   }
   function buzz(current,matchId,player,side,ms){
     if(!current || !current.fixture || current.fixture.id!==matchId || !allowed(current.fixture,player,side)) return;
-    if(current.fixture.group && current.fixture.game==='movies'){
+    if(current.fixture.group){
       // Cola de buzzer: cada equipo entra una sola vez, en el orden en que apretó.
-      if(current.state!=='open') return;
+      if(current.state!=='open' || current.blocked===side) return;
       const queue=Array.isArray(current.queue)?current.queue.slice():[];
       if(queue.some(q=>q.team===side)) return;
       queue.push({team:side,name:player,ms:(ms==null?null:ms)});

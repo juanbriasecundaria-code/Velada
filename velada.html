@@ -520,8 +520,10 @@
   }
 
   /* scrollable table wrapper */
-  .table-wrap { overflow-x: auto; scrollbar-width:none; -ms-overflow-style:none; }
-  .table-wrap::-webkit-scrollbar { display:none; width:0; height:0; }
+  .table-wrap { overflow-x: auto; scrollbar-width:thin; scrollbar-color:rgba(200,240,96,.45) transparent; }
+  .table-wrap::-webkit-scrollbar { height:7px; }
+  .table-wrap::-webkit-scrollbar-thumb { background:rgba(200,240,96,.4);border-radius:8px; }
+  .table-wrap::-webkit-scrollbar-track { background:rgba(255,255,255,.04); }
 
   @media (max-width: 600px) {
     .stats-grid { grid-template-columns: repeat(2,1fr); }
@@ -3990,9 +3992,9 @@ body.solo-impostor #tv-btn{ opacity:.42 }
 .pr-del{ background:none; border:none; color:var(--danger); font-size:9px;
   cursor:pointer; font-family:inherit; padding:1px }
 </style>
-<style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style><script src="buzzer-rounds.js?v=2"></script>
-<script src="velada-rounds.js?v=2"></script>
-<script src="common-rounds.js?v=2"></script>
+<style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style><script src="buzzer-rounds.js?v=20261005b"></script>
+<script src="velada-rounds.js?v=20261005b"></script>
+<script src="common-rounds.js?v=20261005b"></script>
 </head>
 <body>
 <script>
@@ -4256,6 +4258,7 @@ function _applyRulesParsed(parsed) {
   if (parsed.general) Object.assign(RULES_CONFIG.general, parsed.general);
   if (/dos rondas especiales/.test(RULES_CONFIG.general.intro)) RULES_CONFIG.general.intro = RULES_DEFAULT.general.intro;
   if (parsed.impostor) Object.assign(RULES_CONFIG.impostor, parsed.impostor);
+  if(parsed.qld)RULES_CONFIG.qld=Object.assign({},parsed.qld);
   ['f1','f2'].forEach(phase => {
     if (Array.isArray(parsed[phase])) {
       // OJO: reemplaza la lista completa (no solo mergear por índice) para que
@@ -4413,6 +4416,10 @@ function saveRuleCard(phase, idx) {
   }, 50);
 }
 
+function saveQldRules(){
+  RULES_CONFIG.qld={desc:document.getElementById('qld-rule-desc').value.trim()};saveRulesConfig();renderReglas();document.getElementById('quien-rule-card').open=true;
+}
+
 function saveImpostorConfig() {
   const pts_nd = parseFloat(document.getElementById('imp-pts-nd')?.value) || 0;
   const pts_d = parseFloat(document.getElementById('imp-pts-d')?.value) || 0;
@@ -4555,7 +4562,7 @@ function renderReglas() {
         </div>
         <div class="rule-edit-field">
           <label class="rule-edit-label">Formato (ej: Mejor de 3 rondas)</label>
-          <input class="rule-edit-input" id="${prefix}-format" value="${g.format.replace(/"/g,'&quot;')}">
+          <input class="rule-edit-input" id="${prefix}-format" value="${String(g.format||'').replace(/"/g,'&quot;')}">
         </div>
         <div class="rule-edit-field">
           <label class="rule-edit-label">Puntajes</label>
@@ -4580,7 +4587,7 @@ function renderReglas() {
         </div>
         <div class="rule-edit-field">
           <label class="rule-edit-label">Condición del bonus</label>
-          <input class="rule-edit-input" id="${prefix}-bonus_label" value="${g.bonus_label.replace(/"/g,'&quot;')}">
+          <input class="rule-edit-input" id="${prefix}-bonus_label" value="${String(g.bonus_label||'').replace(/"/g,'&quot;')}">
         </div>
         <label class="rule-edit-checkbox-row"><input type="checkbox" id="${prefix}-allow_draw" ${g.allow_draw?'checked':''}> Admite empate</label>
         <div class="rule-edit-field">
@@ -4830,10 +4837,15 @@ function renderReglas() {
       <div class="tiebreak-list">${tiebreakItems}</div>
     </div>
 
-    <!-- IMPOSTOR -->
-    <div class="section-header anchor-target" id="reglas-impostor" style="margin-top:2rem">
-      <span class="section-title"><span class="dot-indicator impostor"></span>Ronda — Impostor</span>
+    <!-- Fase grupal -->
+    <div class="section-header anchor-target" id="reglas-fase2" style="margin-top:2rem">
+      <span class="section-title"><span class="dot-indicator fase2"></span>Fase grupal</span>
     </div>
+    <div class="card">
+      <p class="rules-intro">Se conforman ${TEAMS.length} equipos por sorteo. Se juegan ${RoundPlan.order(state,F2_FIXTURE,GAMES_F2).length} rondas en orden aleatorio: duelos simultáneos y rondas con todos juntos. Todos los equipos juegan en cada ronda (${TEAMS.length % 2 === 1 ? 'salvo el que descansa por turno' : 'no hay descansos'}), pasando por las ${rc.f2.length} estaciones a lo largo de la fase, con rondas comunes de Guess, 100 Argentinos, Impostor y ¿Quién lo dijo? intercaladas aleatoriamente. Impostor puntúa solo en su ranking individual. Clasifica el equipo con mayor puntaje acumulado.</p>
+    </div>
+    <!-- IMPOSTOR -->
+<div id="reglas-impostor" class="anchor-target"></div>
     <details class="rule-card${editing ? ' edit-mode' : ''}" id="imp-rule-card">
       <summary><span class="rule-name"><span class="rule-icon-badge impostor">🕵️</span>Impostor (todos contra todos)${editing?'<span class="rule-edited-badge">✏️ editable</span>':''}</span><span class="rule-summary-right">${(state.impostor && Array.isArray(state.impostor.rounds) && state.impostor.rounds.length > 0) ? '<span class="station-badge done">✓ Jugada</span>' : ''}<span class="rule-chevron">▾</span></span></summary>
       <div class="rule-body">
@@ -4847,13 +4859,6 @@ function renderReglas() {
       ${impEditBody}
     </details>
 
-    <!-- Fase grupal -->
-    <div class="section-header anchor-target" id="reglas-fase2" style="margin-top:2rem">
-      <span class="section-title"><span class="dot-indicator fase2"></span>Fase grupal</span>
-    </div>
-    <div class="card">
-      <p class="rules-intro">Se conforman ${TEAMS.length} equipos por sorteo. Se juegan ${RoundPlan.order(state,F2_FIXTURE,GAMES_F2).length} rondas en orden aleatorio: duelos simultáneos y rondas con todos juntos. Todos los equipos juegan en cada ronda (${TEAMS.length % 2 === 1 ? 'salvo el que descansa por turno' : 'no hay descansos'}), pasando por las ${rc.f2.length} estaciones a lo largo de la fase, con rondas comunes de Guess, 100 Argentinos, Impostor y ¿Quién lo dijo? intercaladas aleatoriamente. Impostor puntúa solo en su ranking individual. Clasifica el equipo con mayor puntaje acumulado.</p>
-    </div>
     ${rc.f2.map((g,i) => gameCard('f2',i)).join('')}
     ${editing ? (canEditStations('f2') ? `
       <div class="card" style="margin-top:0.75rem">
@@ -4868,19 +4873,18 @@ function renderReglas() {
       </div>`) : ''}
 
     <!-- RONDA ESPECIAL — QUIÉN LO DIJO -->
-    <div class="section-header anchor-target" id="reglas-quien" style="margin-top:2rem">
-      <span class="section-title"><span class="dot-indicator quien"></span>Ronda — ¿Quién lo dijo?</span>
-    </div>
+<div id="reglas-quien" class="anchor-target"></div>
     <details class="rule-card" id="quien-rule-card">
       <summary><span class="rule-name"><span class="rule-icon-badge quien">🗣️</span>¿Quién lo dijo?</span><span class="rule-summary-right">${(window._qldTeamPoints && Object.keys(window._qldTeamPoints).length > 0) ? '<span class="station-badge done">✓ Jugada</span>' : ''}<span class="rule-chevron">▾</span></span></summary>
       <div class="rule-body">
-        <p class="rule-desc">Se muestran frases, memes, imágenes, audios o videos cortados de famosos, fútbol, películas, series y dibujitos. Hay que adivinar quién lo dijo y/o cómo termina la frase. El buzzer del celular es individual (cada uno presiona con su propio nombre), pero lo que acierte suma para la pareja de Fase grupal a la que pertenece. Se juega hasta que una pareja llegue a 10 puntos, o hasta que se terminen las cartas del mazo — en ese caso gana la que tenga más puntos.</p>
+        <p class="rule-desc">${(rc.qld||{}).desc || 'Se muestran frases, memes, imágenes, audios o videos cortados de famosos, fútbol, películas, series y dibujitos. Hay que adivinar quién lo dijo y/o cómo termina la frase. El buzzer del celular es individual (cada uno presiona con su propio nombre), pero lo que acierte suma para la pareja de Fase grupal a la que pertenece. Se juega hasta que una pareja llegue a 10 puntos, o hasta que se terminen las cartas del mazo — en ese caso gana la que tenga más puntos.'}</p>
         <div class="rule-footer">
           <span class="score-pill win">1° puesto · 3 pts</span>
           <span class="score-pill bonus">2° puesto · 2 pts</span>
           <span class="score-pill draw">3° puesto · 1 pt</span>
         </div>
       </div>
+      ${editing ? `<div class="rule-edit-panel" style="display:flex"><label class="rule-edit-label">Descripción de ¿Quién lo dijo?</label><textarea class="rule-edit-textarea" id="qld-rule-desc">${(rc.qld||{}).desc || 'Se muestran frases, memes, imágenes, audios o videos cortados de famosos, fútbol, películas, series y dibujitos. Hay que adivinar quién lo dijo y/o cómo termina la frase. El buzzer del celular es individual (cada uno presiona con su propio nombre), pero lo que acierte suma para la pareja de Fase grupal a la que pertenece. Se juega hasta que una pareja llegue a 10 puntos, o hasta que se terminen las cartas del mazo — en ese caso gana la que tenga más puntos.'}</textarea><button class="btn btn-primary" onclick="saveQldRules()">Guardar reglas</button></div>` : ''}
     </details>
 
     <!-- FINAL -->
@@ -6396,6 +6400,8 @@ function markLocalTs(key, ts) {
         qldDb.ref(path).on('value',snap=>{
           const data=snap.val();
           window._commonResults[id]=data&&((data.byTeam||data.byGroup)||Array.isArray(data.standings)&&data.standings.length)?data:null;
+          if(typeof renderFixtureF2==='function')renderFixtureF2();
+          if(document.getElementById('auto-modal-bg')?.classList.contains('open') && _autoModalState){_autoModalState.rows=computeAutoResultadosRows();renderAutoResultadosModal();}
         });
       });
       // Leemos el resultado ya finalizado de la ronda (1°/2°/3° puesto → 3/2/1 pts)
