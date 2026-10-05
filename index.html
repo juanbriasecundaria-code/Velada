@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script>window.VELADA_GAME='hub';</script><script src="firebase-config.js"></script><script src="velada-model.js"></script><script src="mazos-iniciales.js"></script><script src="velada-access.js"></script><script src="velada-store.js"></script><script src="velada-bonuses.js"></script><script src="velada-runtime.js"></script><link rel="stylesheet" href="velada-integration.css">
-
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -18,12 +16,14 @@
 <meta name="application-name" content="HUB">
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAFR0lEQVR4nO3dy3UTQRBG4ZIOKy8IgHAIgUAJgXAIwAttYQHjI43n0T39rL/ut8dqTV+X2rLw3GwSb29f/4xeA8o8Hu+30WsYtgAC1jci8K4PSMRx9Yq7+YMQMdZaxt3sCxMyzrQIu/oXJGTkqhn2vdYXMiNmXFOzmyrfGYSMWkqndfGEJmbUVNpTUdDEjBZKuro03gkZveQeQbInNDGjp9zesoImZoyQ011y0MSMkVL7q/o+NDBaUtBMZ8wgpcPToIkZMznr8TBoYsaMjrrkDA0pu0EznTGzvT43gyZmeLDVKUcOSPkUNNMZnqx7ZUJDykvQTGd49NwtExpSCBpSPoLmuAHPln6Z0JBC0JByM+O4AR1MaEghaEghaEi5c36GEiY0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pHwZvQA1v37/yP4337/9bLCSmG58luO6K/GmIvJrCDpTy4j3EHc6gk4wIuI9xH2MoA/MFPIaYW8j6A0zh7xG2K8I+omnkNcI+x/eh/7Pc8xm/tdfS/gJrRhC5GkdekIrxmym+7xShA1afdPVn9+ecEeOiBsd6QgSakJHjNks1vMOE3SkTd0S5fmHCDrKZp6JcB3kg46wiTnUr4d80IhFOmj1aXSV8nWRDVp502pQvT6SQatuVm2K10kyaMQlF7Ti1GlJ7XpJBa22Ob0oXTf+jEEjKZ+fUAppFjIfTpohjpIPAXlf/yyY0IVqRfD8dWaI2yuJM/SoAFpNtFGTUuEbiQl9QY/glsdQiKwn9xO694b3np69H8/7N5D7oHsadRRQ+GGtF4JONDqq0Y/vheuge708zhJTr3V4Pna4DrqHWWJezLae2RA0pLgNusfL4qzTsMe6vB473Abd2qwxL2Zf3ygEDSkEDSkEvcHLy7mXdfbkMmivP7B44/E6uwwa2EPQK95exr2ttzWChhSChhSChhSChhSChhSChhSChhSChhSCXvH2615v622NoCHFZdD8urcPj9fZZdCteXkZ97LOnggaUggaUgh6x+wv57OvbxS3QUf+r/yR/4TDGbdBA1sI+sRsU3q29czGddDR/nhhtD9OeYXroHsaHfXox/eCoDOMioqY07kPWv2WDeq33KiNmwZdsETWcvOZyte4n9BmerdBU7tNXU9M6ELP8Xm/k6wCmVsjm80Vhbd7fStMZzMmdDMzxRqJxBl6oTJlelO6blJBm2ltTg9q10suaMQmGbTa1GlF8TpJBm2muVk1qV4f2aDNdDetlPJ1kQ4a8cgHrTyNrlC/HvJBm+lvYqoI1yFE0GYxNvNIlOcfJmizOJu6Ful5S304KUeEz1pECnkRakI/U99s9ee3J2zQZrqbrvq8UoQ9cqwpHEEih7wIPaGfeY/B+/prYUJv8DStCfkVQR+YOWxC3kbQCWYKm5CPEXSmEXETcTqCLtAybiK+hqAruxI58dZD0JDC+9CQQtCQQtCQQtCQQtCQQtCQQtCQQtCQQtCQQtCQcn883m+jFwHUwoSGFIKGFIKGlLuZGedoKHg83m9MaEghaEj5CJpjBzxb+mVCQwpBQ8pL0Bw74NFzt0xoSPkUNFManqx7ZUJDymbQTGl4sNXp7oQmasxsr0+OHJByGDRTGjM66vJ0QhM1ZnLWY9KRg6gxg5QOOUNDSnLQTGmMlNpf1oQmaoyQ0132kYOo0VNub0VxcjsLtHJ1cBb9UMi0RgslXRW/y0HUqKm0p6oxcgTBVbUGY9X3oZnWuKJmN80CZFrjTIsB2HyiEjbWWr6Sdz0iEHdcvY6jw868xK1vxM9UfwH1NcGsbt/HlgAAAABJRU5ErkJggg==">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22180%22%20height%3D%22180%22%20viewBox%3D%220%200%20180%20180%22%3E%3Crect%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2240%22%20fill%3D%22%230a0a0e%22/%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-size%3D%22110%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%3E%F0%9F%94%94%3C/text%3E%3C/svg%3E">
-<link rel="icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%F0%9F%94%94&lt;/text&gt;&lt;/svg&gt;">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔔</text></svg>">
 <script>
 window._fbScriptsLoaded=0;window._fbScriptsDone=false;
 function _onFbLoad(){window._fbScriptsLoaded++;if(window._fbScriptsLoaded>=2){window._fbScriptsDone=true;if(window._fbReadyCb)window._fbReadyCb();}}
 function _onFbError(){window._fbScriptsDone=true;window._fbError='No se pudo cargar Firebase. Verificá tu conexión a internet.';if(typeof showError==='function')showError(window._fbError);if(window._fbReadyCb)window._fbReadyCb();}
 </script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" onload="_onFbLoad()" onerror="_onFbError()"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" onload="_onFbLoad()" onerror="_onFbError()"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -387,7 +387,7 @@ body { animation: appEnter .32s ease-out both; }
 .skip-splash #splash{display:none!important}
 
 </style>
-
+<script src="buzzer-rounds.js"></script>
 </head>
 <body>
 <script>if(new URLSearchParams(location.search).get('hub')) document.documentElement.classList.add('skip-splash');</script>
@@ -620,7 +620,7 @@ function applyTeamNames(d){
   }
 }
 // Activa el listener en vivo de nombres (se actualiza al instante en todos)
-function startNamesListener(){ return;
+function startNamesListener(){
   if(!fbRef) return;
   if(namesListener){ fbRef.off('value', namesListener); namesListener=null; }
   namesListener = fbRef.on('value', snap=>{
@@ -648,7 +648,7 @@ if(window._fbError) showError(window._fbError);
 // ── FIREBASE ─────────────────────────────────────────────────────
 let _fbServerOffsetMs = 0; // diferencia entre el reloj de este dispositivo y el del servidor
 function nowServer(){ return Date.now() + (_fbServerOffsetMs||0); }
-function initFirebase(cb){ return;return;
+function initFirebase(cb){
   if(fbInited){ cb(); return; }
   if(!window._fbScriptsDone){ window._fbReadyCb=()=>initFirebase(cb); return; }
   if(typeof firebase==='undefined'){ showError('Firebase no disponible. Verificá tu conexión.'); return; }
@@ -739,7 +739,7 @@ function stopIndivListener(){
 // window.onQldPhotosUpdate() cuando cambia.
 let lastIndivList = [];
 window.onQldPhotosUpdate = function(){ if(lastIndivList.length) renderIndividualPlayers(lastIndivList); };
-function startIndividualPlayerListener(){ return;
+function startIndividualPlayerListener(){
   stopIndivListener();
   const ref = fbDb.ref('velada/qld/teams');
   let resolved = false;
@@ -781,7 +781,7 @@ function startIndividualPlayerListener(){ return;
     finish(DEFAULT_QLD_PLAYERS);
   });
 }
-const DEFAULT_QLD_PLAYERS = [];
+const DEFAULT_QLD_PLAYERS = ['Martin','Valentín','Laza','Tomás','Thiago','Lara','Totti','Risu','Cori','Flor'];
 function renderIndividualPlayers(list){
   lastIndivList = list;
   const wrap = document.getElementById('team-list-individual');
@@ -1523,7 +1523,48 @@ function checkPw(){
 <!-- ── FOTOS DE PERFIL: conexión directa a Firestore (mismo proyecto y documento
      'ndj/photos' que arma velada.html). En vivo, sin depender de reabrir
      velada.html — igual que participante.html. ── -->
-
+<script type="module">
+// Mismo SDK que el resto de la página (compat 10.12): antes este bloque
+// cargaba además el SDK modular, o sea dos Firebase en el mismo celular.
+const photosFbConfig = {
+  apiKey: "AIzaSyB-1B426OH2ZYKHT1n8VVzmv0h_10186Zo",
+  authDomain: "cumple-598e7.firebaseapp.com",
+  projectId: "cumple-598e7",
+  storageBucket: "cumple-598e7.firebasestorage.app",
+  messagingSenderId: "92890914103",
+  appId: "1:92890914103:web:ab78f983eee410e6eb8eb2"
+};
+window.qldPhotos = window.qldPhotos || {};
+(async function fotosDePerfil() {
+  const V = 'https://www.gstatic.com/firebasejs/10.12.0/';
+  const esperar = ms => new Promise(r => setTimeout(r, ms));
+  async function asegurar(listo, src) {
+    if (listo()) return;
+    // Si la página ya lo está cargando (mismo src), no se inyecta otra vez
+    if (!document.querySelector('script[src="' + src + '"]')) {
+      const s = document.createElement('script'); s.src = src; document.head.appendChild(s);
+    }
+    for (let i = 0; i < 300; i++) { if (listo()) return; await esperar(100); }
+    throw new Error('No cargó ' + src);
+  }
+  try {
+    await asegurar(() => window.firebase && firebase.initializeApp, V + 'firebase-app-compat.js');
+    await asegurar(() => window.firebase && firebase.firestore, V + 'firebase-firestore-compat.js');
+    let app;
+    try { app = firebase.app('photos'); } catch (e) { app = firebase.initializeApp(photosFbConfig, 'photos'); }
+    app.firestore().collection('ndj').doc('photos').onSnapshot((snap) => {
+      if (!snap.exists) return;
+      try {
+        const o = JSON.parse(snap.data().data);
+        if (o && typeof o === 'object') {
+          window.qldPhotos = o;
+          if (typeof window.onQldPhotosUpdate === 'function') window.onQldPhotosUpdate();
+        }
+      } catch (e) { console.warn('Error al parsear fotos:', e); }
+    }, (err) => console.warn('Firebase onSnapshot error (photos):', err));
+  } catch (e) { console.warn('Fotos de perfil sin conexión:', e); }
+})();
+</script>
 <script>
 // ── Pantalla siempre encendida ─────────────────────────────────────────
 // Evita que el celular (o la notebook del TV) apague la pantalla mientras
@@ -1544,6 +1585,6 @@ function checkPw(){
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-
-<script src="velada-hub.js"></script></body>
+<script src="hub-rounds.js"></script>
+</body>
 </html>

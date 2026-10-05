@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script>window.VELADA_GAME='argentinos';</script><script src="firebase-config.js"></script><script src="velada-model.js"></script><script src="mazos-iniciales.js"></script><script src="velada-access.js"></script><script src="velada-store.js"></script><script src="velada-bonuses.js"></script><script src="velada-runtime.js"></script><link rel="stylesheet" href="velada-integration.css">
-
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -18,7 +16,9 @@
 <meta name="application-name" content="100 Arg">
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAFRUlEQVR4nO3dO3YTQRBG4ZIOkQMydsIKWDgrYCdkDpRCAOMjjefRPf2sv+6XY7Wmr0ttWXhuNom3t69/Rq8BZR6P99voNQxbAAHrGxF41wck4rh6xd38QYgYay3jbvaFCRlnWoRd/QsSMnLVDPte6wuZETOuqdlNle8MQkYtpdO6eEITM2oq7akoaGJGCyVdXRrvhIxeco8g2ROamNFTbm9ZQRMzRsjpLjloYsZIqf1VfR8aGC0paKYzZpDS4WnQxIyZnPV4GDQxY0ZHXXKGhpTdoJnOmNlen5tBEzM82OqUIwekfAqa6QxP1r0yoSHlJWimMzx67pYJDSkEDSkfQXPcgGdLv0xoSCFoSLmZcdyADiY0pBA0pBA0pNw5P0MJExpSCBpSCBpSCBpSCBpSCBpSCBpSCBpSCBpSCBpSvoxegJrfP79n/5tvP341WElMNz7Lcd2VeFMR+TUEnallxHuIOx1BJxgR8R7iPkbQB2YKeY2wtxH0hplDXiPsVwT9xFPIa4T9D+9D/+c5ZjP/668l/IRWDCHytA49oRVjNtN9XinCBq2+6erPb0+4I0fEjY50BAk1oSPGbBbreYcJOtKmbony/EMEHWUzz0S4DvJBR9jEHOrXQz5oxCIdtPo0ukr5usgGrbxpNaheH8mgVTerNsXrJBk04pILWnHqtKR2vaSCVtucXpSuG3/GoJGUz08ohTQLmQ8nzRBHyYeAvK9/FkzoQrUieP46M8TtlcQZelQArSbaqEmp8I3EhL6gR3DLYyhE1pP7Cd17w3tPz96P5/0byH3QPY06Cij8sNYLQScaHdXox/fCddC9Xh5nianXOjwfO1wH3cMsMS9mW89sCBpS3Abd42Vx1mnYY11ejx1ug25t1pgXs69vFIKGFIKGFILe4OXl3Ms6e3IZtNcfWLzxeJ1dBg3sIegVby/j3tbbGkFDCkFDCkFDCkFDCkFDCkFDCkFDCkFDCkGvePt1r7f1tkbQkOIyaH7d24fH6+wy6Na8vIx7WWdPBA0pBA0pBL1j9pfz2dc3itugI/9X/sh/wuGM26CBLQR9YrYpPdt6ZuM66Gh/vDDaH6e8wnXQPY2OevTje0HQGUZFRczp3AetfssG9Vtu1MZNgy5YImu5+Uzla9xPaDO926Cp3aauJyZ0oef4vN9JVoHMrZHN5orC272+FaazGRO6mZlijUTiDL1QmTK9KV03qaDNtDanB7XrJRc0YpMMWm3qtKJ4nSSDNtPcrJpUr49s0Ga6m1ZK+bpIB4145INWnkZXqF8P+aDN9DcxVYTrECJosxibeSTK8w8TtFmcTV2L9LylPpyUI8JnLSKFvAg1oZ+pb7b689sTNmgz3U1XfV4pwh451hSOIJFDXoSe0M+8x+B9/bUwoTd4mtaE/IqgD8wcNiFvI+gEM4VNyMcIOtOIuIk4HUEXaBk3EV9D0JVdiZx46yFoSOF9aEghaEghaEghaEghaEghaEghaEghaEghaEghaEi5Px7vt9GLAGphQkMKQUMKQUPK3cyMczQUPB7vNyY0pBA0pHwEzbEDni39MqEhhaAh5SVojh3w6LlbJjSkfAqaKQ1P1r0yoSFlM2imNDzY6nR3QhM1ZrbXJ0cOSDkMmimNGR11eTqhiRozOesx6chB1JhBSoecoSElOWimNEZK7S9rQhM1RsjpLvvIQdToKbe3oji5nQVauTo4i34oZFqjhZKuit/lIGrUVNpT1Rg5guCqWoOx6vvQTGtcUbObZgEyrXGmxQBsPlEJG2stX8m7HhGIO65ex9FhZ17i1jfiZ6q/plPBkyQaBe4AAAAASUVORK5CYII=">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22180%22%20height%3D%22180%22%20viewBox%3D%220%200%20180%20180%22%3E%3Crect%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2240%22%20fill%3D%22%230a0a0e%22/%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-size%3D%22110%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%3E%F0%9F%8E%A4%3C/text%3E%3C/svg%3E">
-<link rel="icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%F0%9F%8E%A4&lt;/text&gt;&lt;/svg&gt;">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎤</text></svg>">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -349,6 +349,15 @@
   .qpick-toggle-used:active { color: var(--text); }
   .deck-del { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 0 0.2rem; flex-shrink: 0; line-height: 1; }
   .deck-del:active { color: var(--red); }
+  .qform-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 0.65rem; }
+  .qform-answers { display: flex; flex-direction: column; gap: 0.4rem; }
+  .qform-row { display: flex; align-items: center; gap: 0.4rem; }
+  .qform-rank { font-size: 11px; font-weight: 700; color: var(--muted); min-width: 14px; text-align: right; flex-shrink: 0; }
+  .qform-ans-input { flex: 1; min-width: 0; padding: 0.6rem 0.7rem; border-radius: 9px; border: 1.5px solid var(--border2); background: var(--surface); color: var(--text); font-size: 14px; font-family: inherit; outline: none; }
+  .qform-ans-input:focus { border-color: var(--accent); }
+  .qform-votes-input { width: 60px; flex-shrink: 0; padding: 0.6rem 0.4rem; border-radius: 9px; border: 1.5px solid var(--border2); background: var(--surface); color: var(--text); font-size: 14px; font-family: inherit; outline: none; text-align: center; }
+  .qform-votes-input:focus { border-color: var(--accent); }
+  .qform-add-ans-btn { background: transparent; border: 1.5px dashed var(--border2); color: var(--text); }
   .deck-footer { display: flex; gap: 0.5rem; align-items: center; }
   .deck-restore { flex: 1; }
   .deck-done { flex: 0 0 auto; padding: 0.8rem 1.6rem; }
@@ -782,7 +791,9 @@ body.vb-clean .vb-peek { display: flex; }
 }
 
 </style>
-<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style>
+<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="buzzer-rounds.js"></script><script src="auto-live.js"></script>
+<script src="round-host.js"></script>
+<script src="argentinos-rounds.js"></script>
 </head>
 <body>
 <div class="velada-bar"></div>
@@ -1032,6 +1043,29 @@ body.vb-clean .vb-peek { display: flex; }
 </div>
 
 <!-- ── VAR ── -->
+<div class="var-overlay" id="var-overlay">
+  <div class="var-box">
+    <svg class="var-frame" viewBox="0 0 200 120" preserveAspectRatio="none" aria-hidden="true"><rect x="5" y="5" width="190" height="110" rx="7"/></svg>
+    <div class="var-scan"></div>
+    <div class="var-mark">VAR</div>
+    <div class="var-status">En revisión<span class="var-dots"><span>.</span><span>.</span><span>.</span></span></div>
+  </div>
+  <div class="var-decision" id="var-decision">
+    <div class="var-decision-title">Revisión de la jugada</div>
+    <div class="var-verdicts">
+      <button class="var-verdict right" onclick="varVerdict('valid')">
+        <span class="vv-emoji">✅</span><span class="vv-main">La doy por válida</span>
+        <span class="vv-sub">Tocá la respuesta en el tablero para revelarla</span>
+      </button>
+      <button class="var-verdict wrong" onclick="varVerdict('invalid')">
+        <span class="vv-emoji">❌</span><span class="vv-main">No la doy</span>
+        <span class="vv-sub">Cuenta como error / strike</span>
+      </button>
+    </div>
+    <button class="var-cancel" onclick="closeVAR()">Cancelar revisión</button>
+  </div>
+</div>
+
 <!-- ── VICTORIA ── -->
 <div class="win-overlay" id="win-overlay">
   <div class="win-trophy">🏆</div>
@@ -1061,13 +1095,14 @@ body.vb-clean .vb-peek { display: flex; }
       <button class="meta-opt-btn" data-t="0" onclick="setTarget(0)" style="width:100%">Sin meta (juego libre)</button>
     </div>
     <div class="deck-add-row">
-      <input type="number" id="meta-custom" class="deck-add-input" placeholder="Meta personalizada…" min="1" inputmode="numeric" onkeydown="if(event.key==='Enter')setTargetCustom()">
+      <input type="number" id="meta-custom" class="deck-add-input" placeholder="Meta personalizada…" min="1" inputmode="numeric"
+        onkeydown="if(event.key==='Enter')setTargetCustom()">
       <button class="deck-add-btn" onclick="setTargetCustom()">Usar</button>
     </div>
     <div style="margin-top:1rem;padding-top:0.85rem;border-top:1px solid var(--border)">
       <div style="font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem">⏱ Timer por turno</div>
       <div style="display:flex;gap:0.35rem;flex-wrap:wrap">
-        <button class="timer-opt-btn" data-s="0" onclick="setTimerSecs(0)">Off</button>
+        <button class="timer-opt-btn" data-s="0"  onclick="setTimerSecs(0)">Off</button>
         <button class="timer-opt-btn" data-s="15" onclick="setTimerSecs(15)">15s</button>
         <button class="timer-opt-btn" data-s="20" onclick="setTimerSecs(20)">20s</button>
         <button class="timer-opt-btn" data-s="30" onclick="setTimerSecs(30)">30s</button>
@@ -1105,9 +1140,12 @@ body.vb-clean .vb-peek { display: flex; }
 <div class="sheet-overlay" id="deck-overlay">
   <div class="comodin-sheet">
     <div class="sheet-title">✏️ Editar preguntas</div>
-    <div class="sheet-sub">Creá una pregunta y agregá respuestas con sus votos. La más votada queda en el primer puesto.<br><b>Pregunta | respuesta:votos, respuesta:votos, …</b><br>Ej: <i>Una fruta | Manzana:26, Banana:22, Naranja:17</i></div>
-    <div class="deck-add-row">
-      <button class="deck-add-btn" onclick="addBankQuestion()">Agregar pregunta</button>
+    <div class="sheet-sub">Activá, desactivá o borrá las que ya están. Para agregar una nueva, completá la tarjeta: la pregunta y las respuestas en orden, de la más votada a la menos.</div>
+    <div class="deck-add-row qform-card">
+      <input id="qform-q" class="deck-add-input" placeholder="Pregunta (ej: Una fruta)">
+      <div class="qform-answers" id="qform-answers"></div>
+      <button class="deck-add-btn qform-add-ans-btn" onclick="qformAddAnswerRow()">+ Agregar respuesta</button>
+      <button class="deck-add-btn" onclick="qformSubmit()">Agregar pregunta</button>
     </div>
     <div class="deck-list" id="deck-list"></div>
     <input type="file" id="bank-import-input" accept="application/json,.json" style="display:none" onchange="importBankFile(event)">
@@ -1331,7 +1369,7 @@ let winState = null;   // {team} cuando hay campeón (para sincronizar al TV)
 function loadBank() {
   try {
     const d = localStorage.getItem(SK_BANK);
-    if (d) { const arr = JSON.parse(d); if (Array.isArray(arr) && arr.length) { bank = arr.map(normBankItem).filter(x => x.q && x.a.length); /* Explicit empty decks remain empty. */ return; } }
+    if (d) { const arr = JSON.parse(d); if (Array.isArray(arr) && arr.length) { bank = arr.map(normBankItem).filter(x => x.q && x.a.length); mergeNewDefaults(); return; } }
   } catch (e) {}
   bank = DEFAULT_BANK.map(normBankItem);
 }
@@ -2228,7 +2266,7 @@ document.addEventListener('pointerup', kbDockPointerUp);
 document.addEventListener('pointercancel', kbDockPointerUp);
 
 // ── EDITOR DE BANCO ──
-function openDeckEditor() { renderDeckList(); document.getElementById('deck-overlay').classList.add('open'); }
+function openDeckEditor() { renderDeckList(); qformReset(); document.getElementById('deck-overlay').classList.add('open'); }
 function closeDeckEditor() { document.getElementById('deck-overlay').classList.remove('open'); syncUI(); }
 function renderDeckList() {
   const list = document.getElementById('deck-list');
@@ -2243,27 +2281,46 @@ function renderDeckList() {
 }
 function toggleBank(i) { if (!bank[i]) return; bank[i].enabled = !bank[i].enabled; saveBank(); renderDeckList(); }
 function deleteBank(i) { if (!bank[i]) return; bank.splice(i, 1); saveBank(); renderDeckList(); }
-function addBankQuestion() {
-  const input = document.getElementById('deck-add-input');
-  const raw = (input.value || '').trim(); if (!raw) return;
-  const parts = raw.split('|');
-  if (parts.length < 2) { alert('Formato: Pregunta | respuesta:votos, respuesta:votos'); return; }
-  const q = parts[0].trim();
-  const ansRaw = parts.slice(1).join('|').split(',');
-  const a = [];
-  ansRaw.forEach(chunk => {
-    const m = chunk.trim(); if (!m) return;
-    const idx = m.lastIndexOf(':');
-    let t, v;
-    if (idx > 0) { t = m.slice(0, idx).trim(); v = parseInt(m.slice(idx + 1).trim(), 10) || 0; }
-    else { t = m; v = 0; }
-    if (t) a.push({ t, v });
-  });
-  if (!q || a.length === 0) { alert('Falta la pregunta o las respuestas.'); return; }
-  bank.push(normBankItem({ q, a, enabled: true }));
-  saveBank(); renderDeckList(); input.value = '';
-  const list = document.getElementById('deck-list'); list.scrollTop = list.scrollHeight;
+// ── TARJETA PARA AGREGAR PREGUNTA (en vez de texto con formato) ──
+let _qform = { answers: [] };
+function qformReset() {
+  _qform = { answers: [{ t: '', v: '' }, { t: '', v: '' }] };
+  const q = document.getElementById('qform-q'); if (q) q.value = '';
+  qformRenderAnswers();
 }
+function qformRenderAnswers() {
+  const wrap = document.getElementById('qform-answers'); if (!wrap) return;
+  wrap.innerHTML = _qform.answers.map((a, i) => `
+    <div class="qform-row">
+      <span class="qform-rank">${i + 1}º</span>
+      <input class="qform-ans-input" placeholder="Respuesta" value="${(a.t || '').replace(/"/g, '&quot;')}" oninput="qformUpdate(${i},'t',this.value)">
+      <input class="qform-votes-input" type="number" min="0" inputmode="numeric" placeholder="Votos" value="${a.v || ''}" oninput="qformUpdate(${i},'v',this.value)">
+      ${_qform.answers.length > 2 ? `<button class="deck-del" onclick="qformRemoveAnswer(${i})" aria-label="Quitar respuesta">✕</button>` : ''}
+    </div>`).join('');
+}
+function qformUpdate(i, field, val) { if (!_qform.answers[i]) return; _qform.answers[i][field] = val; }
+function qformAddAnswerRow() {
+  _qform.answers.push({ t: '', v: '' });
+  qformRenderAnswers();
+  const wrap = document.getElementById('qform-answers'); if (wrap) wrap.scrollTop = wrap.scrollHeight;
+}
+function qformRemoveAnswer(i) {
+  if (_qform.answers.length <= 2) return;
+  _qform.answers.splice(i, 1);
+  qformRenderAnswers();
+}
+function qformSubmit() {
+  const qInput = document.getElementById('qform-q');
+  const q = ((qInput && qInput.value) || '').trim();
+  const a = _qform.answers
+    .map(x => ({ t: (x.t || '').trim(), v: parseInt(x.v, 10) || 0 }))
+    .filter(x => x.t);
+  if (!q || a.length < 2) { alert('Falta la pregunta o hay menos de 2 respuestas con texto.'); return; }
+  bank.push(normBankItem({ q, a, enabled: true }));
+  saveBank(); renderDeckList(); qformReset();
+  const list = document.getElementById('deck-list'); if (list) list.scrollTop = list.scrollHeight;
+}
+qformReset();
 function restoreBank() {
   if (!confirm('¿Restaurar las preguntas originales? Se pierden tus cambios y las agregadas.')) return;
   bank = DEFAULT_BANK.map(normBankItem); saveBank(); renderDeckList();
@@ -2901,7 +2958,7 @@ function showToast(msg, ms = 2200) {
   t._hideTimer = setTimeout(() => { t.style.opacity = '0'; }, ms);
 }
 
-function initFirebase(){ return;return;
+function initFirebase(){
   if(fbInited) return;
   try{
     if(!firebase.apps.some(a => a.name === '[DEFAULT]')) firebase.initializeApp(FB_CFG);
@@ -2992,7 +3049,7 @@ function renderBzToggle(){
   }
 }
 
-function startCondBuzzerListener(){ return;
+function startCondBuzzerListener(){
   if(!fbRef) return;
   let _lastReset = null; // el primer snapshot solo se registra, no se aplica
   fbRef.on('value', snap=>{
@@ -3091,7 +3148,7 @@ function writeSync() {
   if (bc) { try { bc.postMessage(json); } catch (e) {} }
 }
 let _hb = null;
-function startHeartbeat() { return; if (_hb) clearInterval(_hb); _hb = setInterval(writeSync, 150); writeSync(); }
+function startHeartbeat() { if (_hb) clearInterval(_hb); _hb = setInterval(writeSync, 150); writeSync(); }
 
 // Participante: escucha y renderiza
 let pLastSig = null, pLastSnap = null;
@@ -3103,7 +3160,7 @@ function onSync(json) {
   renderParticipant(snap, pLastSnap);
   pLastSnap = snap; pLastSig = sig;
 }
-function startParticipant() { return;
+function startParticipant() {
   window.addEventListener('storage', (e) => { if (e.key === SYNC_KEY && e.newValue) onSync(e.newValue); });
   if (bc) bc.onmessage = (e) => onSync(typeof e.data === 'string' ? e.data : JSON.stringify(e.data));
   let j = null; try { j = localStorage.getItem(SYNC_KEY); } catch (e) {}
@@ -3635,7 +3692,7 @@ loadState(); syncUI(); syncScoreUI(); renderMetaBtn();
 
   function limpio(on){
     body.classList.toggle('vb-clean', on);
-    try{ localStorage.setItem('velada2026_ui_vb_clean', on ? '1' : '0'); }catch(e){}
+    try{ localStorage.setItem('ndj_vb_clean', on ? '1' : '0'); }catch(e){}
   }
   peek.addEventListener('click', function(){ limpio(false); });
 
@@ -3649,7 +3706,7 @@ loadState(); syncUI(); syncScoreUI(); renderMetaBtn();
       limpio(true);
     });
   }
-  try{ if(localStorage.getItem('velada2026_ui_vb_clean') === '1') limpio(true); }catch(e){}
+  try{ if(localStorage.getItem('ndj_vb_clean') === '1') limpio(true); }catch(e){}
 })();
 
 // ── ESTADO DE CONEXIÓN CON TRES NIVELES ──────────────────────────────
@@ -3679,7 +3736,7 @@ window.veladaConn = function(estado){
   setTimeout(function(){ esperarReacciones(intentos + 1); }, 500);
 })(0);
 
-/* Legacy reset disabled. */ void ('argentinos',()=>fbDb,()=>{
+BuzzerAutoLive.watchReset('argentinos',()=>fbDb,()=>{
   score={a:0,b:0};fmDuelScore=null;fmLiveWinner=null;
   if(fm)fmClose();
   if(winState)closeWin();
@@ -3708,5 +3765,5 @@ window.veladaConn = function(estado){
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-<script src="velada-decks.js"></script><script src="velada-survey.js"></script></body>
+</body>
 </html>

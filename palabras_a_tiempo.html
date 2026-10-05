@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script>window.VELADA_GAME='palabras';</script><script src="firebase-config.js"></script><script src="velada-model.js"></script><script src="mazos-iniciales.js"></script><script src="velada-access.js"></script><script src="velada-store.js"></script><script src="velada-bonuses.js"></script><script src="velada-runtime.js"></script><link rel="stylesheet" href="velada-integration.css">
-
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -18,7 +16,7 @@
 <meta name="application-name" content="Palabras">
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAFR0lEQVR4nO3dy3UTQRBG4ZIOKy8IgHAIgUAJgXAIwAttYQHjI43n0T39rL/ut8dqTV+X2rLw3GwSb29f/4xeA8o8Hu+30WsYtgAC1jci8K4PSMRx9Yq7+YMQMdZaxt3sCxMyzrQIu/oXJGTkqhn2vdYXMiNmXFOzmyrfGYSMWkqndfGEJmbUVNpTUdDEjBZKuro03gkZveQeQbInNDGjp9zesoImZoyQ011y0MSMkVL7q/o+NDBaUtBMZ8wgpcPToIkZMznr8TBoYsaMjrrkDA0pu0EznTGzvT43gyZmeLDVKUcOSPkUNNMZnqx7ZUJDykvQTGd49NwtExpSCBpSPoLmuAHPln6Z0JBC0JByM+O4AR1MaEghaEghaEi5c36GEiY0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pHwZvQA1v37/yP4337/9bLCSmG58luO6K/GmIvJrCDpTy4j3EHc6gk4wIuI9xH2MoA/MFPIaYW8j6A0zh7xG2K8I+omnkNcI+x/eh/7Pc8xm/tdfS/gJrRhC5GkdekIrxmym+7xShA1afdPVn9+ecEeOiBsd6QgSakJHjNks1vMOE3SkTd0S5fmHCDrKZp6JcB3kg46wiTnUr4d80IhFOmj1aXSV8nWRDVp502pQvT6SQatuVm2K10kyaMQlF7Ti1GlJ7XpJBa22Ob0oXTf+jEEjKZ+fUAppFjIfTpohjpIPAXlf/yyY0IVqRfD8dWaI2yuJM/SoAFpNtFGTUuEbiQl9QY/glsdQiKwn9xO694b3np69H8/7N5D7oHsadRRQ+GGtF4JONDqq0Y/vheuge708zhJTr3V4Pna4DrqHWWJezLae2RA0pLgNusfL4qzTsMe6vB473Abd2qwxL2Zf3ygEDSkEDSkEvcHLy7mXdfbkMmivP7B44/E6uwwa2EPQK95exr2ttzWChhSChhSChhSChhSChhSChhSChhSChhSCXvH2615v622NoCHFZdD8urcPj9fZZdCteXkZ97LOnggaUggaUgh6x+wv57OvbxS3QUf+r/yR/4TDGbdBA1sI+sRsU3q29czGddDR/nhhtD9OeYXroHsaHfXox/eCoDOMioqY07kPWv2WDeq33KiNmwZdsETWcvOZyte4n9BmerdBU7tNXU9M6ELP8Xm/k6wCmVsjm80Vhbd7fStMZzMmdDMzxRqJxBl6oTJlelO6blJBm2ltTg9q10suaMQmGbTa1GlF8TpJBm2muVk1qV4f2aDNdDetlPJ1kQ4a8cgHrTyNrlC/HvJBm+lvYqoI1yFE0GYxNvNIlOcfJmizOJu6Ful5S304KUeEz1pECnkRakI/U99s9ee3J2zQZrqbrvq8UoQ9cqwpHEEih7wIPaGfeY/B+/prYUJv8DStCfkVQR+YOWxC3kbQCWYKm5CPEXSmEXETcTqCLtAybiK+hqAruxI58dZD0JDC+9CQQtCQQtCQQtCQQtCQQtCQQtCQQtCQQtCQQtCQcn883m+jFwHUwoSGFIKGFIKGlLuZGedoKHg83m9MaEghaEj5CJpjBzxb+mVCQwpBQ8pL0Bw74NFzt0xoSPkUNFManqx7ZUJDymbQTGl4sNXp7oQmasxsr0+OHJByGDRTGjM66vJ0QhM1ZnLWY9KRg6gxg5QOOUNDSnLQTGmMlNpf1oQmaoyQ0132kYOo0VNub0VxcjsLtHJ1cBb9UMi0RgslXRW/y0HUqKm0p6oxcgTBVbUGY9X3oZnWuKJmN80CZFrjTIsB2HyiEjbWWr6Sdz0iEHdcvY6jw868xK1vxM9UfwH1NcGsbt/HlgAAAABJRU5ErkJggg==">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22180%22%20height%3D%22180%22%20viewBox%3D%220%200%20180%20180%22%3E%3Crect%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2240%22%20fill%3D%22%230a0a0e%22/%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-size%3D%22110%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%3E%F0%9F%8E%AF%3C/text%3E%3C/svg%3E">
-<link rel="icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%E2%8F%B1%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏱️</text></svg>">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   :root {
@@ -1012,7 +1010,8 @@ body.vb-clean .vb-peek { display: flex; }
   font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.1em;
   text-transform:uppercase;margin:0 .5rem}
 </style>
-<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style>
+<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="buzzer-rounds.js"></script><script src="auto-live.js"></script>
+<script src="round-host.js"></script>
 </head>
 <body>
 <!-- ══════════════════════════════════════════════════════════════════
@@ -1021,7 +1020,105 @@ body.vb-clean .vb-peek { display: flex; }
      Se sincroniza por Firebase RTDB (velada/config/varEnabled) y,
      como respaldo, por localStorage entre pestañas del mismo navegador.
      ══════════════════════════════════════════════════════════════════ -->
-<script>window.VarSwitch={enabled:false,onChange:fn=>fn(false),set:()=>{}};</script>
+<script>
+window.VarSwitch = (function () {
+  const LS_KEY    = 'velada_var_enabled';
+  const RTDB_PATH = 'velada/config/varEnabled';
+  const CFG = {
+    apiKey: "AIzaSyB37WkRQqBWVYkZ84AE2u17pAOs_9ZCgCg",
+    authDomain: "guessmovie-905e2.firebaseapp.com",
+    databaseURL: "https://guessmovie-905e2-default-rtdb.firebaseio.com",
+    projectId: "guessmovie-905e2",
+    appId: "1:313601369235:web:f8b28a2ec187a934fa1966"
+  };
+
+  let enabled = true;          // por defecto el VAR viene activado
+  let _ref    = null;
+  const subs  = [];
+
+  function readInitial() {
+    try {
+      const q = new URLSearchParams(location.search).get('var');
+      if (q === '0' || q === '1') {
+        localStorage.setItem(LS_KEY, q);
+        return q === '1';
+      }
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw === null) return true;
+      return raw === '1';
+    } catch (e) { return true; }
+  }
+
+  function emit() {
+    subs.forEach(fn => { try { fn(enabled); } catch (e) {} });
+  }
+
+  function set(v, opts) {
+    v = !!v;
+    const push    = !!(opts && opts.push);
+    const changed = (v !== enabled);
+    enabled = v;
+    try { localStorage.setItem(LS_KEY, v ? '1' : '0'); } catch (e) {}
+    if (push && _ref) { try { _ref.set(v); } catch (e) {} }
+    if (changed) emit();
+  }
+
+  enabled = readInitial();
+
+  // Otras pestañas del mismo navegador
+  window.addEventListener('storage', function (e) {
+    if (e.key === LS_KEY) set(e.newValue === '1');
+  });
+
+  function attachRef(ref) {
+    _ref = ref;
+    ref.on('value', function (snap) {
+      const v = snap.val();
+      if (v === null || v === undefined) return;
+      set(v === true || v === 1 || v === '1');
+    });
+  }
+
+  // Conexión propia a Firebase (solo si la página no la maneja por su cuenta)
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      const s = document.createElement('script');
+      s.src = src; s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+  if (!window.VAR_SWITCH_MANUAL) {
+    (async function () {
+      const _connDot = document.getElementById('velada-conn-dot');
+      try {
+        if (typeof firebase === 'undefined' || !firebase.database) {
+          await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+          await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js');
+        }
+        let app;
+        try { app = firebase.app('varcfg'); } catch (e) { app = firebase.initializeApp(CFG, 'varcfg'); }
+        attachRef(app.database().ref(RTDB_PATH));
+        window._palabrasDb=app.database();
+        window.dispatchEvent(new Event('palabras-db-ready'));
+        if (_connDot) _connDot.classList.add('on');
+      } catch (e) {
+        console.warn('VarSwitch: sin sincronización remota, se usa localStorage', e);
+        if (_connDot) _connDot.classList.add('err');
+      }
+    })();
+  }
+
+  return {
+    get enabled() { return enabled; },
+    set: set,
+    attachRef: attachRef,
+    onChange: function (fn) {
+      subs.push(fn);
+      try { fn(enabled); } catch (e) {}
+    }
+  };
+})();
+</script>
 
 <div class="velada-bar"></div>
 <div class="velada-bar-title"><span class="vb-icon">⏱️</span>Palabras a Tiempo</div>
@@ -1141,9 +1238,34 @@ body.vb-clean .vb-peek { display: flex; }
   </button>
 
   <!-- VAR por equipo (3 usos cada uno) — visible solo si está activado en velada.html -->
+  <div class="action-section" id="var-section">
+    <div class="action-section-label">📺 Disputar una palabra ya dicha</div>
+    <div class="var-btn-row">
+      <button class="var-btn" id="var-btn-a" onclick="requestVAR('a')">
+        <span class="var-btn-label">VAR</span>
+        <span class="var-btn-name" id="var-btn-name-a">Equipo 1</span>
+        <span class="var-dots-row" id="var-dots-a">
+          <span class="var-dot"></span>
+          <span class="var-dot"></span>
+          <span class="var-dot"></span>
+        </span>
+      </button>
+      <button class="var-btn" id="var-btn-b" onclick="requestVAR('b')">
+        <span class="var-btn-label">VAR</span>
+        <span class="var-btn-name" id="var-btn-name-b">Equipo 2</span>
+        <span class="var-dots-row" id="var-dots-b">
+          <span class="var-dot"></span>
+          <span class="var-dot"></span>
+          <span class="var-dot"></span>
+        </span>
+      </button>
+    </div>
+  </div>
+
   <div class="footer-links">
     <button class="reset-link" onclick="openDeckEditor()">✏️ editar mazo</button>
     <span class="footer-sep">·</span>
+    <button class="reset-link" onclick="openPinConfig()">🔒 PIN</button>
     <span class="footer-sep">·</span>
     <button class="reset-link" onclick="resetAll()">reiniciar todo</button>
   </div>
@@ -1194,7 +1316,8 @@ body.vb-clean .vb-peek { display: flex; }
     <div class="sheet-title">✏️ Editar mazo</div>
     <div class="sheet-sub">Activá, desactivá o borrá categorías. Agregá las tuyas.</div>
     <div class="deck-add-row">
-      <input type="text" id="deck-add-input" class="deck-add-input" placeholder="Nueva categoría…" maxlength="48" onkeydown="if(event.key==='Enter')addDeckCat()">
+      <input type="text" id="deck-add-input" class="deck-add-input" placeholder="Nueva categoría…" maxlength="48"
+        onkeydown="if(event.key==='Enter')addDeckCat()">
       <button class="deck-add-btn" onclick="addDeckCat()">Agregar</button>
     </div>
     <div class="deck-list" id="deck-list"></div>
@@ -1216,14 +1339,45 @@ body.vb-clean .vb-peek { display: flex; }
 </div>
 
 <!-- ── VAR EN REVISIÓN ── -->
+<div class="var-overlay" id="var-overlay">
+  <div class="var-box">
+    <svg class="var-frame" viewBox="0 0 200 120" preserveAspectRatio="none" aria-hidden="true">
+      <rect x="5" y="5" width="190" height="110" rx="7"/>
+    </svg>
+    <div class="var-scan"></div>
+    <div class="var-mark">VAR</div>
+    <div class="var-status">En revisión<span class="var-dots"><span>.</span><span>.</span><span>.</span></span></div>
+  </div>
+
+  <!-- Panel de veredicto: aparece al terminar la animación -->
+  <div class="var-decision" id="var-decision">
+    <div class="var-decision-title">VAR pedido por <span id="var-requester-name">Equipo 1</span></div>
+    <div class="var-verdicts">
+      <button class="var-verdict right" onclick="varVerdict('right')">
+        <span class="vv-emoji">✅</span>
+        <span class="vv-main">Acertaron</span>
+        <span class="vv-sub">Se sigue con otra carta</span>
+      </button>
+      <button class="var-verdict wrong" onclick="varVerdict('wrong')">
+        <span class="vv-emoji">❌</span>
+        <span class="vv-main">Se equivocaron</span>
+        <span class="vv-sub">Pierden la ronda · suma <span id="vv-wrong-team">Equipo 2</span></span>
+      </button>
+    </div>
+    <button class="var-cancel" onclick="cancelVAR()">Cancelar (no descuenta el uso)</button>
+  </div>
+</div>
+
 <!-- ── EDITOR DE NOMBRES ── -->
 <div class="sheet-overlay" id="names-overlay">
   <div class="comodin-sheet">
     <div class="sheet-title">✏️ Nombres de los equipos</div>
     <div class="sheet-sub">Personalizá cómo se llaman los dos equipos.</div>
     <div class="name-edit-row">
-      <input type="text" id="name-input-a" class="deck-add-input" maxlength="22" placeholder="Equipo 1" onkeydown="if(event.key==='Enter')saveNames()">
-      <input type="text" id="name-input-b" class="deck-add-input" maxlength="22" placeholder="Equipo 2" onkeydown="if(event.key==='Enter')saveNames()">
+      <input type="text" id="name-input-a" class="deck-add-input" maxlength="22" placeholder="Equipo 1"
+        onkeydown="if(event.key==='Enter')saveNames()">
+      <input type="text" id="name-input-b" class="deck-add-input" maxlength="22" placeholder="Equipo 2"
+        onkeydown="if(event.key==='Enter')saveNames()">
     </div>
     <div class="deck-footer">
       <button class="sheet-cancel deck-restore" onclick="closeNameEditor()">Cancelar</button>
@@ -2071,7 +2225,7 @@ function computeBonusInfo() {
   return { sinPerderRonda: { a: log.every(r => r.winner !== 'b'), b: log.every(r => r.winner !== 'a') } };
 }
 let palabrasLiveStarted=false;
-function startPalabrasLive(){ return;
+function startPalabrasLive(){
   if(palabrasLiveStarted||!window._palabrasDb)return;
   palabrasLiveStarted=true;
   BuzzerAutoLive.start({
@@ -2116,7 +2270,7 @@ let _pinPendingTeam = null;
 let _pinConfigMode = false;
 
 function getStoredPin() {
-  try { return '100'; } catch(e) { return '100'; }
+  try { return localStorage.getItem(PIN_KEY_PAT) || '1227'; } catch(e) { return '1227'; }
 }
 function setStoredPin(p) {
   try { if (p) localStorage.setItem(PIN_KEY_PAT, p); else localStorage.removeItem(PIN_KEY_PAT); } catch(e) {}
@@ -2357,7 +2511,48 @@ document.addEventListener('keydown', function(e) {
 </script>
 <!-- ── FOTOS DE PERFIL: conexión directa a Firestore (mismo proyecto y documento
      'ndj/photos' que arma velada.html), igual que en quien_lo_dijo.html/participante.html. ── -->
-
+<script type="module">
+// Mismo SDK que el resto de la página (compat 10.12): antes este bloque
+// cargaba además el SDK modular, o sea dos Firebase en el mismo celular.
+const photosFbConfig = {
+  apiKey: "AIzaSyB-1B426OH2ZYKHT1n8VVzmv0h_10186Zo",
+  authDomain: "cumple-598e7.firebaseapp.com",
+  projectId: "cumple-598e7",
+  storageBucket: "cumple-598e7.firebasestorage.app",
+  messagingSenderId: "92890914103",
+  appId: "1:92890914103:web:ab78f983eee410e6eb8eb2"
+};
+window.qldPhotos = window.qldPhotos || {};
+(async function fotosDePerfil() {
+  const V = 'https://www.gstatic.com/firebasejs/10.12.0/';
+  const esperar = ms => new Promise(r => setTimeout(r, ms));
+  async function asegurar(listo, src) {
+    if (listo()) return;
+    // Si la página ya lo está cargando (mismo src), no se inyecta otra vez
+    if (!document.querySelector('script[src="' + src + '"]')) {
+      const s = document.createElement('script'); s.src = src; document.head.appendChild(s);
+    }
+    for (let i = 0; i < 300; i++) { if (listo()) return; await esperar(100); }
+    throw new Error('No cargó ' + src);
+  }
+  try {
+    await asegurar(() => window.firebase && firebase.initializeApp, V + 'firebase-app-compat.js');
+    await asegurar(() => window.firebase && firebase.firestore, V + 'firebase-firestore-compat.js');
+    let app;
+    try { app = firebase.app('photos'); } catch (e) { app = firebase.initializeApp(photosFbConfig, 'photos'); }
+    app.firestore().collection('ndj').doc('photos').onSnapshot((snap) => {
+      if (!snap.exists) return;
+      try {
+        const o = JSON.parse(snap.data().data);
+        if (o && typeof o === 'object') {
+          window.qldPhotos = o;
+          if (typeof window.onQldPhotosUpdate === 'function') window.onQldPhotosUpdate();
+        }
+      } catch (e) { console.warn('Error al parsear fotos:', e); }
+    }, (err) => console.warn('Firebase onSnapshot error (photos):', err));
+  } catch (e) { console.warn('Fotos de perfil sin conexión:', e); }
+})();
+</script>
 <script>
 // Avatar reutilizable: foto real si está cargada en Firestore, si no un círculo con la inicial.
 // Independiente del resto del archivo (no depende de ningún escapeHtml propio del juego).
@@ -2468,7 +2663,7 @@ function syncNowPlaying(){
 
   function limpio(on){
     body.classList.toggle('vb-clean', on);
-    try{ localStorage.setItem('velada2026_ui_vb_clean', on ? '1' : '0'); }catch(e){}
+    try{ localStorage.setItem('ndj_vb_clean', on ? '1' : '0'); }catch(e){}
   }
   peek.addEventListener('click', function(){ limpio(false); });
 
@@ -2482,7 +2677,7 @@ function syncNowPlaying(){
       limpio(true);
     });
   }
-  try{ if(localStorage.getItem('velada2026_ui_vb_clean') === '1') limpio(true); }catch(e){}
+  try{ if(localStorage.getItem('ndj_vb_clean') === '1') limpio(true); }catch(e){}
 })();
 
 // ── ESTADO DE CONEXIÓN CON TRES NIVELES ──────────────────────────────
@@ -2518,6 +2713,12 @@ window.veladaConn = function(estado){
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-
-<script src="velada-decks.js"></script><script src="velada-native.js"></script></body>
+<script src="palabras-rounds.js"></script>
+<script>
+BuzzerAutoLive.watchReset('palabras',()=>window._palabrasDb,()=>{
+  score={a:0,b:0};roundsLog=[];roundBaseline=null;
+  saveScore();saveState();syncScoreUI();syncUI();
+});
+</script>
+</body>
 </html>

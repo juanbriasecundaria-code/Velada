@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script>window.VELADA_GAME='movies';</script><script src="firebase-config.js"></script><script src="velada-model.js"></script><script src="mazos-iniciales.js"></script><script src="velada-access.js"></script><script src="velada-store.js"></script><script src="velada-bonuses.js"></script><script src="velada-runtime.js"></script><link rel="stylesheet" href="velada-integration.css">
-
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -18,7 +16,7 @@
 <meta name="application-name" content="Guess">
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAFR0lEQVR4nO3dy3UTQRBG4ZIOKy8IgHAIgUAJgXAIwAttYQHjI43n0T39rL/ut8dqTV+X2rLw3GwSb29f/4xeA8o8Hu+30WsYtgAC1jci8K4PSMRx9Yq7+YMQMdZaxt3sCxMyzrQIu/oXJGTkqhn2vdYXMiNmXFOzmyrfGYSMWkqndfGEJmbUVNpTUdDEjBZKuro03gkZveQeQbInNDGjp9zesoImZoyQ011y0MSMkVL7q/o+NDBaUtBMZ8wgpcPToIkZMznr8TBoYsaMjrrkDA0pu0EznTGzvT43gyZmeLDVKUcOSPkUNNMZnqx7ZUJDykvQTGd49NwtExpSCBpSPoLmuAHPln6Z0JBC0JByM+O4AR1MaEghaEghaEi5c36GEiY0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pBA0pHwZvQA1v37/yP4337/9bLCSmG58luO6K/GmIvJrCDpTy4j3EHc6gk4wIuI9xH2MoA/MFPIaYW8j6A0zh7xG2K8I+omnkNcI+x/eh/7Pc8xm/tdfS/gJrRhC5GkdekIrxmym+7xShA1afdPVn9+ecEeOiBsd6QgSakJHjNks1vMOE3SkTd0S5fmHCDrKZp6JcB3kg46wiTnUr4d80IhFOmj1aXSV8nWRDVp502pQvT6SQatuVm2K10kyaMQlF7Ti1GlJ7XpJBa22Ob0oXTf+jEEjKZ+fUAppFjIfTpohjpIPAXlf/yyY0IVqRfD8dWaI2yuJM/SoAFpNtFGTUuEbiQl9QY/glsdQiKwn9xO694b3np69H8/7N5D7oHsadRRQ+GGtF4JONDqq0Y/vheuge708zhJTr3V4Pna4DrqHWWJezLae2RA0pLgNusfL4qzTsMe6vB473Abd2qwxL2Zf3ygEDSkEDSkEvcHLy7mXdfbkMmivP7B44/E6uwwa2EPQK95exr2ttzWChhSChhSChhSChhSChhSChhSChhSChhSCXvH2615v622NoCHFZdD8urcPj9fZZdCteXkZ97LOnggaUggaUgh6x+wv57OvbxS3QUf+r/yR/4TDGbdBA1sI+sRsU3q29czGddDR/nhhtD9OeYXroHsaHfXox/eCoDOMioqY07kPWv2WDeq33KiNmwZdsETWcvOZyte4n9BmerdBU7tNXU9M6ELP8Xm/k6wCmVsjm80Vhbd7fStMZzMmdDMzxRqJxBl6oTJlelO6blJBm2ltTg9q10suaMQmGbTa1GlF8TpJBm2muVk1qV4f2aDNdDetlPJ1kQ4a8cgHrTyNrlC/HvJBm+lvYqoI1yFE0GYxNvNIlOcfJmizOJu6Ful5S304KUeEz1pECnkRakI/U99s9ee3J2zQZrqbrvq8UoQ9cqwpHEEih7wIPaGfeY/B+/prYUJv8DStCfkVQR+YOWxC3kbQCWYKm5CPEXSmEXETcTqCLtAybiK+hqAruxI58dZD0JDC+9CQQtCQQtCQQtCQQtCQQtCQQtCQQtCQQtCQQtCQcn883m+jFwHUwoSGFIKGFIKGlLuZGedoKHg83m9MaEghaEj5CJpjBzxb+mVCQwpBQ8pL0Bw74NFzt0xoSPkUNFManqx7ZUJDymbQTGl4sNXp7oQmasxsr0+OHJByGDRTGjM66vJ0QhM1ZnLWY9KRg6gxg5QOOUNDSnLQTGmMlNpf1oQmaoyQ0132kYOo0VNub0VxcjsLtHJ1cBb9UMi0RgslXRW/y0HUqKm0p6oxcgTBVbUGY9X3oZnWuKJmN80CZFrjTIsB2HyiEjbWWr6Sdz0iEHdcvY6jw868xK1vxM9UfwH1NcGsbt/HlgAAAABJRU5ErkJggg==">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22180%22%20height%3D%22180%22%20viewBox%3D%220%200%20180%20180%22%3E%3Crect%20width%3D%22180%22%20height%3D%22180%22%20rx%3D%2240%22%20fill%3D%22%230a0a0e%22/%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-size%3D%22110%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22central%22%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E">
-<link rel="icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%F0%9F%8E%AC&lt;/text&gt;&lt;/svg&gt;">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
 <script>
 // Carga Firebase de forma deferida para no bloquear el juego si falla la red
 window._fbScriptsLoaded = 0;
@@ -29,6 +27,8 @@ function _onFbScriptLoad(){
 }
 function _onFbScriptError(){ window._fbScriptsDone = true; console.warn('[Firebase] script load failed — running offline'); if(window._fbReadyCb) window._fbReadyCb(); }
 </script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" onload="_onFbScriptLoad()" onerror="_onFbScriptError()"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js" onload="_onFbScriptLoad()" onerror="_onFbScriptError()"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -474,6 +474,9 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .divider{height:1px;background:var(--border2);margin:.25rem 0}
 .add-form{border:1.5px solid var(--border2);border-radius:var(--radius);padding:.9rem;background:var(--surface2);display:flex;flex-direction:column;gap:.6rem}
 .add-form-title{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.add-form-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.add-form-close{flex:0 0 auto;width:30px;height:30px;border-radius:9px;border:1.5px solid var(--border2);background:var(--surface);color:var(--muted);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.add-form-close:active{opacity:.7}
 .ist-row{display:flex;gap:.35rem}
 .ist-btn{flex:1;padding:.45rem;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface);color:var(--muted);font-family:inherit;font-size:11px;font-weight:800;cursor:pointer}
 .ist-btn.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
@@ -621,7 +624,9 @@ body.vb-clean .vb-peek { display: flex; }
   body.gms-tv .velada-bar-dot,
   body.gms-tv .hub-link{display:none}
 }
-</style>
+</style><script src="buzzer-rounds.js"></script><script src="auto-live.js"></script>
+<script src="round-host.js"></script>
+<script src="guess-rounds.js"></script>
 </head>
 <body>
 <div class="velada-bar"></div>
@@ -740,10 +745,10 @@ body.vb-clean .vb-peek { display: flex; }
       <div class="timer-display" id="timer-display"><div class="timer-num" id="timer-num">15</div><div class="timer-unit">seg</div></div>
       <div style="display:flex;gap:.3rem;align-items:center">
         <button class="timer-btn tbtn-start" id="tbtn-start" onclick="startTimer()">▶ Iniciar</button>
-        <button class="timer-btn tbtn-stop" id="tbtn-stop" onclick="stopTimer()">⏹ Parar</button>
+        <button class="timer-btn tbtn-stop"  id="tbtn-stop"  onclick="stopTimer()">⏹ Parar</button>
         <button class="timer-btn tbtn-reset" onclick="resetTimer()">↺</button>
         <button class="timer-btn tbtn-reset" onclick="adjTimer(-5)" title="−5 seg">−5</button>
-        <button class="timer-btn tbtn-reset" onclick="adjTimer(5)" title="+5 seg">+5</button>
+        <button class="timer-btn tbtn-reset" onclick="adjTimer(5)"  title="+5 seg">+5</button>
       </div>
     </div>
     <div class="phase-banner" id="phase-banner"></div>
@@ -836,12 +841,12 @@ body.vb-clean .vb-peek { display: flex; }
 
 <!-- Deck editor -->
 <div class="sheet-ov" id="deck-ov">
-  <button type="button" class="v-deck-close" onclick="closeDeckEditor()" aria-label="Cerrar mazo">×</button><div class="sheet-panel" id="deck-panel">
+  <div class="sheet-panel" id="deck-panel">
     <div class="sheet-title">✏️ Mazo de cartas</div>
     <div class="sheet-sub" id="deck-count-label">…</div>
     <div class="deck-actions-row">
       <button class="deck-action-btn dab-movie" onclick="showAddForm('movie')">+ 🎬 Película</button>
-      <button class="deck-action-btn dab-song" onclick="showAddForm('song')">+ 🎵 Canción</button>
+      <button class="deck-action-btn dab-song"  onclick="showAddForm('song')">+ 🎵 Canción</button>
     </div>
     <div class="deck-actions-row">
       <button class="deck-action-btn" style="border-color:var(--border2);color:var(--muted)" onclick="document.getElementById('import-json-input').click()">📥 Importar JSON</button>
@@ -853,7 +858,7 @@ body.vb-clean .vb-peek { display: flex; }
       <button class="deck-action-btn" style="border-color:var(--purple);color:var(--purple)" onclick="randomizeSongModes()">🎲 Modos canciones</button>
     </div>
     <div class="add-form" id="add-movie-form" style="display:none">
-      <div class="add-form-title">🎬 Película</div>
+      <div class="add-form-head"><div class="add-form-title">🎬 Película</div><button class="add-form-close" onclick="hideAddForms()" aria-label="Cerrar" title="Cerrar">✕</button></div>
       <div class="fc"><div class="form-label">Título (solo el conductor)</div><input class="form-input" id="nm-title" placeholder="Ej: Titanic" maxlength="80"></div>
       <div class="fc"><div class="form-label">Tipo de imagen</div>
         <div class="ist-row"><button class="ist-btn on" id="ik-poster" onclick="setImgKind('poster')">🖼 Póster</button><button class="ist-btn" id="ik-frame" onclick="setImgKind('frame')">🎞 Frame(s)</button><button class="ist-btn" id="ik-emoji" onclick="setImgKind('emoji')">😀 Emojis</button></div>
@@ -911,7 +916,7 @@ body.vb-clean .vb-peek { display: flex; }
       <div class="fl"><button class="add-submit" onclick="submitMovie()">Guardar película</button><button class="sheet-close" style="flex:0 0 auto;width:auto;padding:.75rem 1rem;font-size:13px" onclick="hideAddForms()">✕</button></div>
     </div>
     <div class="add-form" id="add-song-form" style="display:none">
-      <div class="add-form-title">🎵 Canción</div>
+      <div class="add-form-head"><div class="add-form-title">🎵 Canción</div><button class="add-form-close" onclick="hideAddForms()" aria-label="Cerrar" title="Cerrar">✕</button></div>
       <div class="fc"><div class="form-label">Título (solo el conductor)</div><input class="form-input" id="ns-title" placeholder="Ej: Eye of the Tiger — Survivor" maxlength="80"></div>
       <div class="fc"><div class="form-label">Fuente de audio</div>
         <div class="audio-src-tabs">
@@ -934,9 +939,7 @@ body.vb-clean .vb-peek { display: flex; }
         <div class="fc"><div class="form-label">Cortar en (segundos, opcional)</div><input class="form-input" id="ns-end-local" placeholder="ej: 25 (antes del título)" type="number" min="0" inputmode="numeric" style="max-width:220px"></div>
       </div>
       <div class="fc"><div class="form-label">Letra (una línea por renglón — opcional)</div>
-        <textarea class="form-input" id="ns-lyrics" rows="4" placeholder="Pegá la letra (una frase por renglón)
-o pegá un .lrc con tiempos: [00:12.50]Is this the real life
-Marcá con *asteriscos* la palabra a tapar en Huecos"></textarea>
+        <textarea class="form-input" id="ns-lyrics" rows="4" placeholder="Pegá la letra (una frase por renglón)&#10;o pegá un .lrc con tiempos: [00:12.50]Is this the real life&#10;Marcá con *asteriscos* la palabra a tapar en Huecos"></textarea>
       </div>
       <div class="fc"><div class="form-label">Cómo se muestra</div>
         <div class="ist-row" style="flex-wrap:wrap">
@@ -1051,7 +1054,7 @@ let fbDb=null, fbRef=null, fbDeckRef=null, fbStateRef=null, fbInited=false, _las
 
 // ── REACCIONES RÁPIDAS DE LOS JUGADORES ─────────────────────────────
 let _lastReactionTs = 0;
-function listenReactions(){ return;
+function listenReactions(){
   if(!fbRef) return;
   fbRef.child('reaccion').on('value', snap=>{
     const r = snap.val();
@@ -1076,7 +1079,7 @@ function showFloatingReaction(emoji){
   }
 }
 
-function initFirebase(){ return;return;
+function initFirebase(){
   if(fbInited) return;
   // Si los scripts aún no terminaron de cargar, esperamos
   if(!window._fbScriptsDone){
@@ -1160,7 +1163,7 @@ function fbLock(){
   fbRef.set({ state:'locked', winner:null, blocked:null, names:{ a:nameA, b:nameB } });
 }
 
-function startCondListener(){ return;
+function startCondListener(){
   if(!fbRef) return;
   let _lastReset = null; // el primer snapshot solo se registra, no se aplica
   fbRef.on('value', snap=>{
@@ -1528,7 +1531,7 @@ let gridAutoReveal=(()=>{try{return localStorage.getItem('gms_gridAuto')==='1';}
 
 // ─── SYNC ────────────────────────────────────────────────────────
 let _bc=null,_hb=null;
-function initSync(){ return;
+function initSync(){
   try{_bc=new BroadcastChannel('gms_sync');_bc.onmessage=e=>{if(MODE==='participant')onLive(e.data);};}catch(e){}
   window.addEventListener('storage',e=>{if(e.key==='gms_live'&&MODE==='participant')onLive(e.newValue);});
 }
@@ -1587,11 +1590,11 @@ function fbPushState(st){
   _lastFbStateJson=j;
   try{fbStateRef.set(safe);}catch(e){}
 }
-function startPartStateListener(){ return;
+function startPartStateListener(){
   if(!fbStateRef)return;
   fbStateRef.on('value',snap=>{const d=snap.val();if(d&&d.type==='state')renderParticipant(d);});
 }
-function startHeartbeat(){ return;if(_hb)clearInterval(_hb);_hb=setInterval(sendState,200);sendState();}
+function startHeartbeat(){if(_hb)clearInterval(_hb);_hb=setInterval(sendState,200);sendState();}
 function onLive(raw){try{const d=typeof raw==='string'?JSON.parse(raw):raw;if(d.type==='state')renderParticipant(d);else if(d.type==='yt_play')partResumeSong({youtubeId:d.youtubeId,startAt:d.startAt||0});else if(d.type==='yt_restart')partPlaySong({youtubeId:d.youtubeId,startAt:d.startAt||0});else if(d.type==='yt_pause')partPauseSong();else if(d.type==='yt_stop')partStopSong();else if(d.type==='local_play'||d.type==='local_stop'){/* audio local: suena solo en la compu del conductor */};}catch(e){}}
 
 // ─── STORAGE ─────────────────────────────────────────────────────
@@ -3570,7 +3573,7 @@ function saveNames(){if(window.currentFixtureMatch && currentFixtureMatch()?.act
 
   function limpio(on){
     body.classList.toggle('vb-clean', on);
-    try{ localStorage.setItem('velada2026_ui_vb_clean', on ? '1' : '0'); }catch(e){}
+    try{ localStorage.setItem('ndj_vb_clean', on ? '1' : '0'); }catch(e){}
   }
   peek.addEventListener('click', function(){ limpio(false); });
 
@@ -3584,7 +3587,7 @@ function saveNames(){if(window.currentFixtureMatch && currentFixtureMatch()?.act
       limpio(true);
     });
   }
-  try{ if(localStorage.getItem('velada2026_ui_vb_clean') === '1') limpio(true); }catch(e){}
+  try{ if(localStorage.getItem('ndj_vb_clean') === '1') limpio(true); }catch(e){}
 })();
 
 // ── ESTADO DE CONEXIÓN CON TRES NIVELES ──────────────────────────────
@@ -3614,7 +3617,7 @@ window.veladaConn = function(estado){
   setTimeout(function(){ esperarReacciones(intentos + 1); }, 500);
 })(0);
 
-/* Legacy reset disabled. */ void ('movies',()=>fbDb,()=>{
+BuzzerAutoLive.watchReset('movies',()=>fbDb,()=>{
   scoreA=0;scoreB=0;saveScore();
   if(MODE==='conductor'){syncScoreUI();sendState();}
 });
@@ -3640,5 +3643,5 @@ window.veladaConn = function(estado){
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-<script src="velada-decks.js"></script><script src="velada-native.js"></script></body>
+</body>
 </html>

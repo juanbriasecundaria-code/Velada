@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script>window.VELADA_GAME='tv';</script><script src="firebase-config.js"></script><script src="velada-model.js"></script><script src="mazos-iniciales.js"></script><script src="velada-access.js"></script><script src="velada-store.js"></script><script src="velada-bonuses.js"></script><script src="velada-runtime.js"></script><link rel="stylesheet" href="velada-integration.css">
-
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -11,7 +9,7 @@
 <title>📺 Podio en vivo — La Velada del Año</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -1129,7 +1127,7 @@
     50%{ box-shadow:0 0 70px rgba(245,200,66,0.45); }
   }
 </style>
-<script src="vendor/qrcode.js"></script><link rel="stylesheet" href="velada-original-extras.css"></head>
+</head>
 <body>
 
 <!-- ── Resplandor de fondo + marca fija (presentes en todos los estados) ── -->
@@ -1147,15 +1145,20 @@
   <div class="tv-timer-label">⏱ Cronómetro</div>
 
   <!-- Arc SVG -->
-  <svg class="tv-timer-arc" viewbox="0 0 48 48" id="timer-arc-svg">
-    <circle class="timer-ring-bg" cx="24" cy="24" r="20" stroke-width="3.5"></circle>
-    <circle class="timer-ring-fill" cx="24" cy="24" r="20" stroke-width="3.5" stroke="var(--success)" stroke-dasharray="125.66" stroke-dashoffset="0" transform="rotate(-90 24 24)" id="timer-ring"></circle>
+  <svg class="tv-timer-arc" viewBox="0 0 48 48" id="timer-arc-svg">
+    <circle class="timer-ring-bg"   cx="24" cy="24" r="20" stroke-width="3.5"/>
+    <circle class="timer-ring-fill" cx="24" cy="24" r="20" stroke-width="3.5"
+      stroke="var(--success)"
+      stroke-dasharray="125.66"
+      stroke-dashoffset="0"
+      transform="rotate(-90 24 24)"
+      id="timer-ring"/>
   </svg>
 
   <div class="tv-timer-display" id="timer-display">--:--</div>
 
   <div class="tv-timer-controls">
-    <button class="tv-timer-btn play" id="timer-play-btn" onclick="timerPlayPause()">▶</button>
+    <button class="tv-timer-btn play"  id="timer-play-btn"  onclick="timerPlayPause()">▶</button>
     <button class="tv-timer-btn reset" id="timer-reset-btn" onclick="timerReset()">↺</button>
   </div>
 
@@ -1261,11 +1264,11 @@
     <div class="tv-ruleta-wheel-area">
       <div class="tv-ruleta-pointer"></div>
       <div class="tv-ruleta-wheel-outer">
-        <svg id="tv-ruleta-wheel-svg" class="tv-ruleta-wheel-svg" viewbox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg id="tv-ruleta-wheel-svg" class="tv-ruleta-wheel-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div class="tv-ruleta-hub">🎰</div>
     </div>
-    <div class="tv-ruleta-result-name" id="tv-ruleta-result-name"> </div>
+    <div class="tv-ruleta-result-name" id="tv-ruleta-result-name">&nbsp;</div>
     <div class="tv-ruleta-card" id="tv-ruleta-card"></div>
   </div>
 </div>
@@ -1285,10 +1288,2465 @@
 </div>
 
 <script src="puntos.js?v=1"></script>
-<script>/* TV rendered by velada-tv.js with the original figures */</script>
-<script>/* TV rendered by velada-tv.js with the original figures */</script>
-<script>/* TV rendered by velada-tv.js with the original figures */</script>
+<script>
+// ── SEMILLA DEL MODO TV ─────────────────────────────────────────────
+// velada.html la manda en la URL (#s=...) y además la deja en localStorage.
+// Como viaja en la URL, un F5 (o que Edge restaure la pestaña) la conserva:
+// la TV vuelve sola, sin tener que abrirla de nuevo desde la app.
+function __byesDe(fixture, n) {
+  const byes = {};
+  const rounds = {};
+  (fixture || []).forEach(function (m) { (rounds[m[0]] = rounds[m[0]] || new Set()).add(m[1]); rounds[m[0]].add(m[2]); });
+  Object.keys(rounds).forEach(function (r) {
+    const libres = [];
+    for (let i = 0; i < n; i++) if (!rounds[r].has(i)) libres.push(i);
+    if (libres.length) byes[r] = libres;
+  });
+  return byes;
+}
+var __TV_PHASE = (function () {
+  const f = new URLSearchParams(location.search).get('fase');
+  return (f === 'fase1' || f === 'fase2') ? f : 'both';
+})();
+var __SEED = (function () {
+  function dec(str) {
+    try {
+      const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+      const bin = atob(b64);
+      const bytes = Uint8Array.from(bin, function (c) { return c.charCodeAt(0); });
+      return JSON.parse(new TextDecoder().decode(bytes));
+    } catch (e) { return null; }
+  }
+  let seed = null;
+  const m = location.hash.match(/[#&]s=([^&]+)/);
+  if (m) seed = dec(m[1]);
+  if (!seed) { try { seed = JSON.parse(localStorage.getItem('ndj_tv_seed') || 'null'); } catch (e) {} }
+  seed = seed || {};
+  // Lo más nuevo que haya guardado en esta PC le gana a la semilla
+  try {
+    const st = JSON.parse(localStorage.getItem('ndj_state') || 'null');
+    if (st) {
+      if (st.playersSnapshot && st.playersSnapshot.length) seed.players = st.playersSnapshot;
+      if (st.teamsSnapshot && st.teamsSnapshot.length) seed.teams = st.teamsSnapshot;
+      if (st.f1FixtureSnapshot && st.f1FixtureSnapshot.fixture) {
+        seed.f1Fixture = st.f1FixtureSnapshot.fixture;
+        seed.f1Byes = __byesDe(seed.f1Fixture, (seed.players || []).length);
+      }
+      if (st.f2FixtureSnapshot && st.f2FixtureSnapshot.fixture) seed.f2Fixture = st.f2FixtureSnapshot.fixture;
+    }
+  } catch (e) {}
+  try { const r = localStorage.getItem('ndj_rules'); if (r) seed.rules = JSON.parse(r); } catch (e) {}
+  try { const c = localStorage.getItem('ndj_colors'); if (c) seed.colors = JSON.parse(c); } catch (e) {}
+  return seed;
+})();
+</script>
+<script>
+// ============================================================
+// CRONÓMETRO
+// ============================================================
+let _timerTotal    = 0;   // segundos totales del preset
+let _timerLeft     = 0;   // segundos restantes
+let _timerRunning  = false;
+let _timerInterval = null;
+const CIRCUMFERENCE = 2 * Math.PI * 20; // r=20 → 125.66
+
+function timerFmt(s) {
+  if (s < 0) s = 0;
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+}
+
+function timerSetPreset(secs) {
+  timerStop();
+  _timerTotal = secs;
+  _timerLeft  = secs;
+  timerUpdateUI();
+  // Mark active preset
+  document.querySelectorAll('.tv-preset-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function timerAskCustom() {
+  const raw = prompt('Tiempo personalizado (minutos):');
+  if (!raw) return;
+  const mins = parseFloat(raw.replace(',','.'));
+  if (!isFinite(mins) || mins <= 0) return;
+  timerStop();
+  _timerTotal = Math.round(mins * 60);
+  _timerLeft  = _timerTotal;
+  document.querySelectorAll('.tv-preset-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('timer-custom-btn').classList.add('active');
+  timerUpdateUI();
+}
+
+function timerPlayPause() {
+  if (_timerTotal === 0) return; // nothing set
+  if (_timerRunning) {
+    timerStop();
+  } else {
+    if (_timerLeft <= 0) { _timerLeft = _timerTotal; } // restart if done
+    timerStart();
+  }
+}
+
+function timerStart() {
+  if (_timerInterval) clearInterval(_timerInterval);
+  _timerRunning = true;
+  document.getElementById('timer-play-btn').textContent = '⏸';
+  document.getElementById('timer-play-btn').classList.replace('play','pause');
+  _timerInterval = setInterval(() => {
+    _timerLeft--;
+    timerUpdateUI();
+    if (_timerLeft <= 0) {
+      timerStop();
+      timerDone();
+    }
+  }, 1000);
+  timerUpdateUI();
+}
+
+function timerStop() {
+  _timerRunning = false;
+  if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+  const btn = document.getElementById('timer-play-btn');
+  if (btn) { btn.textContent = '▶'; btn.classList.replace('pause','play'); }
+  // Remove done state if manually stopped
+  const el = document.getElementById('tv-timer');
+  if (el) el.classList.remove('done');
+  timerUpdateUI();
+}
+
+function timerReset() {
+  timerStop();
+  _timerLeft = _timerTotal;
+  timerUpdateUI();
+}
+
+function timerDone() {
+  const el = document.getElementById('tv-timer');
+  if (el) { el.classList.add('done'); el.classList.remove('running','danger'); }
+  // Alarm sound: descending beeps
+  try {
+    const ctx = window._tvAC || new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    [[880,0],[880,0.18],[880,0.36],[440,0.55]].forEach(([f,d]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(f, ctx.currentTime + d);
+      gain.gain.setValueAtTime(0.18, ctx.currentTime + d);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 0.15);
+      osc.start(ctx.currentTime + d);
+      osc.stop(ctx.currentTime + d + 0.16);
+    });
+  } catch(e) {}
+}
+
+function timerUpdateUI() {
+  const display = document.getElementById('timer-display');
+  const ring    = document.getElementById('timer-ring');
+  const el      = document.getElementById('tv-timer');
+  if (!display || !ring || !el) return;
+
+  display.textContent = _timerTotal > 0 ? timerFmt(_timerLeft) : '--:--';
+
+  // Arc progress
+  const pct = _timerTotal > 0 ? (_timerLeft / _timerTotal) : 1;
+  const offset = CIRCUMFERENCE * (1 - pct);
+  ring.style.strokeDashoffset = offset;
+
+  // Color: green → gold → red
+  const isRunning = _timerRunning;
+  const isDanger  = _timerTotal > 0 && _timerLeft <= 30 && _timerLeft > 0;
+  const isDone    = _timerTotal > 0 && _timerLeft <= 0;
+
+  el.classList.toggle('running', isRunning && !isDanger && !isDone);
+  el.classList.toggle('danger',  isRunning && isDanger);
+  // done is set by timerDone()
+
+  const strokeColor = isDone ? 'var(--danger)' : isDanger ? 'var(--danger)' : isRunning ? 'var(--success)' : 'var(--border2)';
+  ring.style.stroke = strokeColor;
+}
+
+// Init display
+timerUpdateUI();
+
+// ---- Data seeded from parent at open time, refreshed from localStorage ----
+const PLAYERS_INIT = (__SEED.players || []);
+const TEAMS_INIT   = (__SEED.teams || []);
+let   F1_FIXTURE   = (__SEED.f1Fixture || []);
+let   F1_BYES      = (__SEED.f1Byes || {});
+let   F2_FIXTURE   = (__SEED.f2Fixture || []);
+const TV_PHASE     = __TV_PHASE; // 'fase1' | 'fase2' | 'both'
+try { document.getElementById('tv-sub-fase').textContent = TV_PHASE === 'fase1' ? ' — Fase 1 Individual' : TV_PHASE === 'fase2' ? ' — Fase 2 Grupal' : ''; } catch (e) {}
+const FULL_NAMES_TV = (__SEED.fullNames || {});
+// En modo 'both' (abierto desde Reglas) el TV muestra una fase por vez con
+// pestañas; esta variable recuerda cuál se está viendo (arranca en Fase 1).
+let _tvBothView = 'f1';
+try { const _v = localStorage.getItem('ndj_tv_both_view'); if (_v === 'f1' || _v === 'f2') _tvBothView = _v; } catch (e) {}
+const RULES_INIT   = (__SEED.rules || null);    // reglas sembradas desde el padre (clave en file://)
+const ENTITY_COLORS_INIT = (__SEED.colors || {}); // colores custom por jugador/equipo
+let   MIIS_INIT = (__SEED.miis || {}); // personalizacion (pose/accesorio) por jugador
+function tvMii(n){ try{ const raw=localStorage.getItem('ndj_miis'); if(raw){ const o=JSON.parse(raw); if(o&&o[n]) return o[n]; } }catch(e){} return MIIS_INIT[n]||null; }
+const GUEST_URL    = new URL('participante.html', location.href).href; // link a participante.html (calculado en la ventana principal)
+
+// ── QR de invitados: siempre visible, se dibuja solo al abrir el TV ──
+(function renderTVGuestQR() {
+  const el = document.getElementById('tv-guest-qr-canvas');
+  if (!el) return;
+  function draw() {
+    el.innerHTML = '';
+    try {
+      new QRCode(el, { text: GUEST_URL, width: 200, height: 200, colorDark: '#0f0f13', colorLight: '#ffffff' });
+    } catch (e) {
+      el.innerHTML = '<div style="padding:4px;color:#888;font-size:9px">Error QR</div>';
+    }
+  }
+  if (window.QRCode) { draw(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  s.onload = draw;
+  s.onerror = () => { el.innerHTML = '<div style="padding:4px;color:#888;font-size:9px">Sin conexión</div>'; };
+  document.head.appendChild(s);
+})();
+
+// Reglas en el TV: prioriza localStorage (updates en vivo si el origin lo comparte),
+// y si no hay (caso file://), usa lo sembrado al abrir. Nunca cae a hardcode.
+function getTVRules() {
+  try { const s = localStorage.getItem('ndj_rules'); if (s) return JSON.parse(s); } catch(e) {}
+  return RULES_INIT;
+}
+
+// Colores custom: prioriza localStorage, sino usa los sembrados al abrir
+function getTVEntityColors() {
+  try { const s = localStorage.getItem('ndj_colors'); if (s) return JSON.parse(s); } catch(e) {}
+  return ENTITY_COLORS_INIT || {};
+}
+
+// Paleta de fallback por índice (igual que teamColor en el padre)
+const TV_PALETTE = ['#60b4f0','#e84040','#c8f060','#c060e8','#f5c842','#3aaa68','#e8903a','#ff7eb6','#ffffff','#a0c4ff'];
+function tvEntityColor(name, idx) {
+  const colors = getTVEntityColors();
+  return (colors && colors[name]) || TV_PALETTE[idx % TV_PALETTE.length];
+}
+
+// ── EQUIPOS DE DOS en el TV: cada integrante puede tener su propia foto ──
+function tvMembers(name) {
+  return String(name || '').split('/').map(function(s) { return s.trim(); }).filter(Boolean);
+}
+function tvPhotosFor(name, photos) {
+  const parts = tvMembers(name);
+  if (parts.length > 1) {
+    return parts.map(function(p, i) { return photos[p] || (i === 0 ? (photos[name] || null) : null); });
+  }
+  return [photos[name] || null];
+}
+function tvFigureHtml(name, color, size, pose, photos) {
+  const parts = tvMembers(name);
+  if (parts.length > 1) {
+    // Mismo criterio que en la app: dibujamos a todos los integrantes y
+    // achicamos según cuántos sean, para no descolocar el podio del TV.
+    const ph = tvPhotosFor(name, photos);
+    const n = parts.length;
+    const escala = n === 2 ? 0.86 : (n === 3 ? 0.70 : 0.60);
+    const s2 = Math.round(size * escala);
+    const poseDe = function(i) {
+      if (i === 0) return 'hug-right';
+      if (i === n - 1) return 'hug-left';
+      return 'victory';
+    };
+    return '<div class="mii-duo mii-grupo-' + Math.min(n, 5) + '">'
+      + parts.map(function(p, i) {
+          const cls = (i === 0 ? 'mii-duo-l' : (i === n - 1 ? 'mii-duo-r' : 'mii-duo-m'));
+          return '<div class="mii-duo-fig ' + cls + '">'
+            + miiFigureSVG(tvEntityColor(p, i) || color, s2, poseDe(i), ph[i]) + '</div>';
+        }).join('')
+      + '</div>';
+  }
+  return miiFigureSVG(color, size, pose, photos[name] || null);
+}
+function tvAvatarHtml(name, idx, photos) {
+  const parts = tvMembers(name);
+  const color = tvEntityColor(name, idx);
+  if (parts.length > 1) {
+    const ph = tvPhotosFor(name, photos);
+    const one = function(p, m) {
+      return p ? '<img class="tv-rank-avatar-img" src="' + p + '" alt="">'
+               : '<div class="tv-rank-avatar-fallback" style="background:' + color + '">' + ((m.trim()[0] || '?').toUpperCase()) + '</div>';
+    };
+    // Un avatar por integrante: antes se cortaba en dos y el tercero no salía
+    return '<span class="tv-avatar-duo">'
+      + parts.map(function(m, i){ return one(ph[i], m); }).join('') + '</span>';
+  }
+  const ph = photos[name] || null;
+  return ph ? '<img class="tv-rank-avatar-img" src="' + ph + '" alt="">'
+            : '<div class="tv-rank-avatar-fallback" style="background:' + color + '">' + ((name.split('/')[0].trim()[0] || '?').toUpperCase()) + '</div>';
+}
+
+// Apply single-phase layout immediately
+(function applyPhaseLayout() {
+  const podiums = document.getElementById('tv-podiums');
+  const f1El    = document.getElementById('tv-f1');
+  const f2El    = document.getElementById('tv-f2');
+  const divider = document.getElementById('tv-divider');
+  document.body.classList.add('phase-' + TV_PHASE);
+  if (TV_PHASE === 'fase1') {
+    f2El.style.display = 'none';
+    divider.style.display = 'none';
+    podiums.style.gridTemplateColumns = '1fr';
+    f1El.style.maxWidth = '820px';
+    f1El.style.margin = '0 auto';
+    f1El.style.width = '100%';
+  } else if (TV_PHASE === 'fase2') {
+    f1El.style.display = 'none';
+    divider.style.display = 'none';
+    podiums.style.gridTemplateColumns = '1fr';
+    f2El.style.maxWidth = '820px';
+    f2El.style.margin = '0 auto';
+    f2El.style.width = '100%';
+  } else {
+    // 'both': en vez de apilar las dos fases (queda larguísimo), se muestran
+    // en pestañas Fase 1 / Fase 2 — se arranca en Fase 1 y se alterna con los
+    // botones del header. Cada pestaña se ve igual que abrir esa fase directo.
+    setTVBothView(_tvBothView);
+  }
+})();
+
+// Alterna qué fase se ve en modo 'both' (solo aplica en ese modo). Muestra una
+// fase por vez, centrada y a ancho completo — idéntico al layout de una sola
+// fase — y marca la pestaña activa. No toca nada más del Modo TV.
+function setTVBothView(view) {
+  if (TV_PHASE !== 'both') return;
+  _tvBothView = (view === 'f2') ? 'f2' : 'f1';
+  try { localStorage.setItem('ndj_tv_both_view', _tvBothView); } catch (e) {}
+  const podiums = document.getElementById('tv-podiums');
+  const f1El    = document.getElementById('tv-f1');
+  const f2El    = document.getElementById('tv-f2');
+  const divider = document.getElementById('tv-divider');
+  if (!podiums || !f1El || !f2El) return;
+  if (divider) divider.style.display = 'none';
+  podiums.style.gridTemplateColumns = '1fr';
+  const show = (el) => { el.style.display = ''; el.style.maxWidth = '820px'; el.style.margin = '0 auto'; el.style.width = '100%'; };
+  if (_tvBothView === 'f2') { f1El.style.display = 'none'; show(f2El); }
+  else { f2El.style.display = 'none'; show(f1El); }
+  try { document.body.setAttribute('data-tv-view', _tvBothView); } catch (e) {}
+  document.querySelectorAll('#tv-phase-tabs .tv-phase-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === _tvBothView);
+  });
+}
+
+function lighten(hex, amt) {
+  let c = hex.replace('#','');
+  if (c.length===3) c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+  const r=Math.min(255,parseInt(c.slice(0,2),16)+Math.round(amt*120));
+  const g=Math.min(255,parseInt(c.slice(2,4),16)+Math.round(amt*100));
+  const b=Math.min(255,parseInt(c.slice(4,6),16)+Math.round(amt*80));
+  return 'rgb('+r+','+g+','+b+')';
+}
+
+function miiFigureSVG(color, size, pose, photoDataUrl) {
+  const s=size, uid='tv'+Math.random().toString(36).slice(2,8), cx=s/2;
+  const headR=s*0.215, headCy=headR+s*0.01, neckT=headCy+headR;
+  const torsoT=neckT+s*0.04, torsoH=s*0.22, torsoW=s*0.38;
+  const torsoB=torsoT+torsoH, torsoL=cx-torsoW/2, torsoR2=cx+torsoW/2, torsoRad=s*0.07;
+  const legW=s*0.12, legH=s*0.22, legGap=s*0.03;
+  const legLX=cx-legGap/2-legW, legRX=cx+legGap/2, legT=torsoB-s*0.03, legB=legT+legH, legRad=s*0.05;
+  const armW=s*0.10, armH=s*0.20, armRad=s*0.05, armShY=torsoT+s*0.03;
+  const light=lighten(color,0.28), dark=lighten(color,-0.12);
+  const skinBase='#f5c8a0', skinDark='#e8a878';
+  const neckW=s*0.09, neckH=s*0.05;
+  let aL,aR;
+  if(pose==='victory'){
+    aL='<rect x="'+(torsoL-armW-s*0.03)+'" y="'+(armShY-armH*0.85)+'" width="'+armW+'" height="'+armH+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(-38,'+(torsoL-s*0.03+armW/2)+','+armShY+')"/>';
+    aR='<rect x="'+(torsoR2-s*0.01)+'" y="'+(armShY-armH*0.85)+'" width="'+armW+'" height="'+armH+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(38,'+(torsoR2-s*0.01+armW/2)+','+armShY+')"/>';
+  } else if(pose==='side'){
+    aL='<rect x="'+(torsoL-armW-s*0.01)+'" y="'+armShY+'" width="'+armW+'" height="'+armH+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(12,'+(torsoL-armW/2-s*0.01)+','+armShY+')"/>';
+    aR='<rect x="'+(torsoR2+s*0.01)+'" y="'+armShY+'" width="'+armW+'" height="'+armH+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(-12,'+(torsoR2+s*0.01+armW/2)+','+armShY+')"/>';
+  } else if(pose==='wave'){
+    aL='<rect x="'+(torsoL-armW+s*0.01)+'" y="'+armShY+'" width="'+armW+'" height="'+armH+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(16,'+(torsoL-armW/2)+','+armShY+')"/>';
+    aR='<rect x="'+(torsoR2-s*0.01)+'" y="'+(armShY-armH*0.75)+'" width="'+armW+'" height="'+(armH*1.2)+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(-28,'+(torsoR2-s*0.01+armW/2)+','+armShY+')"/>';
+  } else if(pose==='hip'){
+    aL='<rect x="'+(torsoL-armW*0.7)+'" y="'+armShY+'" width="'+armW+'" height="'+(armH*0.9)+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(48,'+(torsoL-armW*0.7+armW/2)+','+armShY+')"/>';
+    aR='<rect x="'+(torsoR2-armW*0.3)+'" y="'+armShY+'" width="'+armW+'" height="'+(armH*0.9)+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(-48,'+(torsoR2-armW*0.3+armW/2)+','+armShY+')"/>';
+  } else if(pose==='hug-right'||pose==='hug-left'){
+    const _up_r='<rect x="'+(torsoR2-s*0.01)+'" y="'+(armShY-armH*0.55)+'" width="'+armW+'" height="'+(armH*1.15)+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(-72,'+(torsoR2-s*0.01+armW/2)+','+armShY+')"/>';
+    const _up_l='<rect x="'+(torsoL-armW+s*0.01)+'" y="'+(armShY-armH*0.55)+'" width="'+armW+'" height="'+(armH*1.15)+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(72,'+(torsoL-armW+s*0.01+armW/2)+','+armShY+')"/>';
+    const _out_l='<rect x="'+(torsoL-armW+s*0.01)+'" y="'+armShY+'" width="'+armW+'" height="'+armH+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(14,'+(torsoL-armW/2)+','+armShY+')"/>';
+    const _out_r='<rect x="'+(torsoR2-s*0.01)+'" y="'+armShY+'" width="'+armW+'" height="'+armH+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(-14,'+(torsoR2-s*0.01+armW/2)+','+armShY+')"/>';
+    if(pose==='hug-right'){ aL=_out_l; aR=_up_r; } else { aL=_up_l; aR=_out_r; }
+  } else {
+    aL='<rect x="'+(torsoL-armW)+'" y="'+armShY+'" width="'+armW+'" height="'+armH+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(22,'+(torsoL-armW/2)+','+armShY+')"/>';
+    aR='<rect x="'+torsoR2+'" y="'+armShY+'" width="'+armW+'" height="'+armH+'" rx="'+armRad+'" fill="'+light+'" transform="rotate(-22,'+(torsoR2+armW/2)+','+armShY+')"/>';
+  }
+  const torsoEl='<rect x="'+torsoL+'" y="'+torsoT+'" width="'+torsoW+'" height="'+torsoH+'" rx="'+torsoRad+'" fill="'+color+'"/><rect x="'+torsoL+'" y="'+torsoT+'" width="'+torsoW+'" height="'+(torsoH*0.45)+'" rx="'+torsoRad+'" fill="'+light+'" opacity="0.25"/>';
+  const legLEl='<rect x="'+legLX+'" y="'+legT+'" width="'+legW+'" height="'+legH+'" rx="'+legRad+'" fill="'+dark+'"/>';
+  const legREl='<rect x="'+legRX+'" y="'+legT+'" width="'+legW+'" height="'+legH+'" rx="'+legRad+'" fill="'+dark+'"/>';
+  const shoeW=legW+s*0.04, shoeH=s*0.06;
+  const sL='<rect x="'+(legLX-s*0.02)+'" y="'+(legB-shoeH*0.5)+'" width="'+shoeW+'" height="'+shoeH+'" rx="'+(shoeH/2)+'" fill="'+lighten(dark,-0.15)+'"/>';
+  const sR='<rect x="'+(legRX-s*0.02)+'" y="'+(legB-shoeH*0.5)+'" width="'+shoeW+'" height="'+shoeH+'" rx="'+(shoeH/2)+'" fill="'+lighten(dark,-0.15)+'"/>';
+  const neckEl='<rect x="'+(cx-neckW/2)+'" y="'+(neckT-s*0.01)+'" width="'+neckW+'" height="'+(neckH+s*0.01)+'" rx="'+(neckW*0.3)+'" fill="'+skinDark+'"/>';
+  let headEl;
+  if(photoDataUrl){
+    headEl='<defs><clipPath id="hcp'+uid+'"><circle cx="'+cx+'" cy="'+headCy+'" r="'+headR+'"/></clipPath><radialGradient id="hrim'+uid+'" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="rgba(255,255,255,0.25)"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient></defs><circle cx="'+cx+'" cy="'+headCy+'" r="'+headR+'" fill="'+skinBase+'"/><image href="'+photoDataUrl+'" x="'+(cx-headR)+'" y="'+(headCy-headR)+'" width="'+(headR*2)+'" height="'+(headR*2)+'" clip-path="url(#hcp'+uid+')" preserveAspectRatio="xMidYMid slice"/><circle cx="'+cx+'" cy="'+headCy+'" r="'+headR+'" fill="url(#hrim'+uid+')"/><circle cx="'+cx+'" cy="'+headCy+'" r="'+headR+'" fill="none" stroke="'+light+'" stroke-width="'+(s*0.02)+'"/>';
+  } else {
+    const eRx=headR*0.115,eRy=headR*0.14,eY=headCy-headR*0.05,eOff=headR*0.3,smR=headR*0.28;
+    headEl='<defs><radialGradient id="hg'+uid+'" cx="40%" cy="30%" r="65%"><stop offset="0%" stop-color="'+skinBase+'"/><stop offset="100%" stop-color="'+skinDark+'"/></radialGradient></defs><circle cx="'+cx+'" cy="'+headCy+'" r="'+headR+'" fill="url(#hg'+uid+')" stroke="'+light+'" stroke-width="'+(s*0.02)+'"/><ellipse cx="'+(cx-eOff)+'" cy="'+eY+'" rx="'+eRx+'" ry="'+eRy+'" fill="#2a1f14"/><ellipse cx="'+(cx+eOff)+'" cy="'+eY+'" rx="'+eRx+'" ry="'+eRy+'" fill="#2a1f14"/><circle cx="'+(cx-eOff+eRx*0.4)+'" cy="'+(eY-eRy*0.35)+'" r="'+(eRx*0.38)+'" fill="rgba(255,255,255,0.75)"/><circle cx="'+(cx+eOff+eRx*0.4)+'" cy="'+(eY-eRy*0.35)+'" r="'+(eRx*0.38)+'" fill="rgba(255,255,255,0.75)"/><path d="M'+(cx-smR)+','+(headCy+headR*0.22)+' Q'+cx+','+(headCy+headR*0.52)+' '+(cx+smR)+','+(headCy+headR*0.22)+'" stroke="#2a1f14" stroke-width="'+(s*0.025)+'" fill="none" stroke-linecap="round"/>';
+  }
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 '+s+' '+s+'" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">'+aL+aR+torsoEl+legLEl+legREl+sL+sR+neckEl+headEl+'</svg>';
+}
+
+// Totales oficiales publicados por la app principal (state.liveTotals).
+// Devuelve null si no hay dato para ese nombre → se usa el cálculo local.
+function tvLiveTotal(state, phase, name) {
+  const lt = state && state.liveTotals && state.liveTotals[phase];
+  if (!lt || !Object.prototype.hasOwnProperty.call(lt, name)) return null;
+  const v = Number(lt[name]);
+  return isFinite(v) ? v : null;
+}
+function getPoints(type, state, PLAYERS, TEAMS) {
+  const pts = _getPointsLocal(type, state, PLAYERS, TEAMS);
+  const names = type === 'f1' ? PLAYERS : TEAMS;
+  pts.forEach((p, i) => { const v = tvLiveTotal(state, type, names[i]); if (v !== null) p.total = v; });
+  return pts;
+}
+function _getPointsLocal(type, state, PLAYERS, TEAMS) {
+  // Misma cuenta que la tabla de velada.html (puntos.js)
+  const ctx = {
+    state: state, players: PLAYERS, teams: TEAMS,
+    f1Fixture: F1_FIXTURE, f1Byes: F1_BYES, f2Fixture: F2_FIXTURE,
+    rules: getTVRules(), fullNames: FULL_NAMES_TV
+  };
+  return type === 'f1' ? Puntos.jugadores(ctx) : Puntos.equipos(ctx);
+}
+
+// ── ORDEN CRONOLÓGICO REAL DE JUEGO ─────────────────────────────────────
+// Compartido por el gráfico de evolución, los logros y el resumen de cierre,
+// para que los tres cuenten siempre la misma historia. Si el resultado tiene
+// timestamp real (res.t, guardado desde que existe este gráfico) se ordena
+// por hora exacta; los resultados viejos o los de "Simular velada" no tienen
+// timestamp, así que quedan en su orden de fixture — y siempre van antes que
+// los que sí lo tienen, asumiendo que ya estaban jugados cuando se empezó a
+// trackear la hora.
+function sortByPlayOrder(entries) {
+  return entries.slice().sort((x, y) => {
+    if (x.t != null && y.t != null) return x.t - y.t;
+    if (x.t != null && y.t == null) return 1;
+    if (x.t == null && y.t != null) return -1;
+    return x.fixtureIdx - y.fixtureIdx;
+  });
+}
+// Entradas jugadas de una sola fase (F1 o F2), en orden real de juego.
+function phaseChronoEntries(fixture, bucket) {
+  const entries = [];
+  fixture.forEach(([r, a, b, g], fixtureIdx) => {
+    const res = bucket[r + '-' + a + '-' + b];
+    if (!res) return;
+    entries.push({ r: r, a: a, b: b, g: g, res: res, fixtureIdx: fixtureIdx, key: r + '-' + a + '-' + b, t: (typeof res.t === 'number' ? res.t : null) });
+  });
+  return sortByPlayOrder(entries);
+}
+// Entradas jugadas de F1 + F2 combinadas, en orden real de juego (mismo
+// criterio que el modo "Total" del gráfico de evolución).
+function combinedChronoEntries(state) {
+  const combined = [];
+  F1_FIXTURE.forEach(m => combined.push({ type: 'f1', r: m[0], m: m }));
+  F2_FIXTURE.forEach(m => combined.push({ type: 'f2', r: m[0], m: m }));
+  combined.sort((x, y) => x.r - y.r || (x.type === y.type ? 0 : (x.type === 'f1' ? -1 : 1)));
+  const entries = [];
+  combined.forEach(({ type, m }, fixtureIdx) => {
+    const [r, a, b, g] = m;
+    const res = (type === 'f1' ? state.f1 : state.f2)[r + '-' + a + '-' + b];
+    if (!res) return;
+    entries.push({ type: type, r: r, a: a, b: b, g: g, res: res, fixtureIdx: fixtureIdx, key: r + '-' + a + '-' + b, t: (typeof res.t === 'number' ? res.t : null) });
+  });
+  return sortByPlayOrder(entries);
+}
+
+// ── EVOLUCIÓN DE LA NOCHE — curva acumulada duelo a duelo ──────────────
+// Reconstruye, en el orden real de juego (por hora cuando existe, si no en
+// el orden del fixture), cómo fue subiendo el total de cada jugador/equipo.
+// Los extras que no tienen un duelo asociado (bonus manual, comodines,
+// apuestas, Impostor, ¿Quién lo dijo?, ajustes) se suman como un último
+// escalón, para que el total final coincida siempre con el de getPoints().
+function buildEvoSeries(mode, state, PLAYERS, TEAMS) {
+  const RC = getTVRules();
+  const short = n => String(n || '').split('/')[0].trim().split(' ')[0];
+
+  // Mapa jugador → índice de su equipo (equipos son "Nombre / Nombre")
+  const teamOfPlayer = {};
+  TEAMS.forEach((t, ti) => { String(t || '').split('/').forEach(p => { teamOfPlayer[p.trim()] = ti; }); });
+
+  // idxA/idxB: índices originales del fixture (contra los que se compara res.winner).
+  // nameA/nameB: nombres a usar como claves del delta devuelto (pueden ser
+  // distintos de PLAYERS/TEAMS, p.ej. cuando en modo 'total' se reparte un
+  // resultado de equipo entre sus integrantes).
+  function f1MatchDelta(idxA, idxB, nameA, nameB, res, g) {
+    const gCfg = (RC && g !== undefined && RC.f1 && RC.f1[g]) ? RC.f1[g] : null;
+    const winPts = gCfg ? gCfg.pts_win : 3, bonusPts = gCfg ? gCfg.pts_bonus : 1, drawPts = gCfg ? gCfg.pts_draw : 1;
+    const d = {};
+    if (res.winner === 'empate') { d[nameA] = drawPts; d[nameB] = drawPts; }
+    else { const wIsA = (res.winner === idxA); d[wIsA ? nameA : nameB] = winPts + (res.bonus ? bonusPts : 0); d[wIsA ? nameB : nameA] = 0; }
+    return d;
+  }
+  function f2MatchDelta(idxA, idxB, nameA, nameB, res, g) {
+    const gCfg = (RC && g !== undefined && RC.f2 && RC.f2[g]) ? RC.f2[g] : null;
+    const winPts = gCfg ? gCfg.pts_win : 3, bonusPts = gCfg ? gCfg.pts_bonus : 1, drawPts = gCfg ? gCfg.pts_draw : 1;
+    const d = {};
+    if (res.winner === 'empate') { d[nameA] = drawPts; d[nameB] = drawPts; }
+    else { const wIsA = (res.winner === idxA); d[wIsA ? nameA : nameB] = winPts + (res.bonus ? bonusPts : 0); d[wIsA ? nameB : nameA] = 0; }
+    return d;
+  }
+  function f1Extras() {
+    const ex = {}; PLAYERS.forEach(n => ex[n] = 0);
+    const impNoPts = (RC && RC.impostor) ? RC.impostor.pts_noDescubierto : 4;
+    const impDesPts = (RC && RC.impostor) ? RC.impostor.pts_descubierto : 2;
+    try {
+      if (state.impostor && Array.isArray(state.impostor.rounds)) {
+        state.impostor.rounds.forEach(rd => {
+          if (rd.mode === 'noDescubierto' && ex[rd.impostorName] !== undefined) ex[rd.impostorName] += impNoPts;
+          else if (rd.mode === 'descubierto' && ex[rd.accusedName] !== undefined) ex[rd.accusedName] += impDesPts;
+        });
+      }
+      const bm = state.bonusManual || {};
+      PLAYERS.forEach(n => { if (bm[n] && bm[n].pts) ex[n] += Number(bm[n].pts) || 0; });
+      (state.comodines || []).forEach(c => { if (c.status === 'done' && ex[c.player] !== undefined) ex[c.player] += Number(c.delta) || 0; });
+      const bets = state.bets || {}, bw = {}, bb = {};
+      Object.keys(bets).forEach(k => {
+        const res = state.f1[k]; if (!res || res.winner === 'empate') return;
+        const pp = k.split('-').map(Number);
+        Object.keys(bets[k]).forEach(who => {
+          const own = (PLAYERS[pp[1]] === who || PLAYERS[pp[2]] === who);
+          if (bets[k][who] === res.winner) bw[who] = (bw[who] || 0) + 1; else if (own) bb[who] = true;
+        });
+      });
+      Object.keys(bw).forEach(who => { if (!bb[who] && ex[who] !== undefined) ex[who] += bw[who]; });
+      (((state.adjust || {}).f1) || []).forEach(a => { if (ex[a.name] !== undefined) ex[a.name] += Number(a.pts) || 0; });
+      const vs = state.vsJC || {};
+      PLAYERS.forEach(n => { if (typeof vs[n] === 'number') ex[n] += vs[n]; });
+    } catch (e) {}
+    return ex;
+  }
+  function f2Extras() {
+    const ex = {}; TEAMS.forEach(n => ex[n] = 0);
+    try {
+      const qld = state.qldTeamPoints || {};
+      Object.keys(qld).forEach(k => { const t = TEAMS[parseInt(k, 10)]; if (t !== undefined && ex[t] !== undefined) ex[t] += Number(qld[k]) || 0; });
+      (state.comodinesF2 || []).forEach(c => { if (c.status === 'done' && ex[c.player] !== undefined) ex[c.player] += Number(c.delta) || 0; });
+      (((state.adjust || {}).f2) || []).forEach(a => { if (ex[a.name] !== undefined) ex[a.name] += Number(a.pts) || 0; });
+    } catch (e) {}
+    return ex;
+  }
+
+  // Construye pasos [{run:{nombre:total}}] a partir de una secuencia de
+  // entradas ya ordenadas cronológicamente (ver phaseChronoEntries arriba).
+  function stepsFromEntries(entries, names, deltaFn) {
+    const run = {}; names.forEach(n => run[n] = 0);
+    const steps = [];
+    entries.forEach(e => {
+      const d = deltaFn(e.a, e.b, names[e.a], names[e.b], e.res, e.g);
+      Object.keys(d).forEach(n => { if (run[n] !== undefined) run[n] += d[n]; });
+      steps.push(Object.assign({}, run));
+    });
+    return steps;
+  }
+
+  let names, steps, extras, wins = {}, played = {}, orderedEntries;
+
+  if (mode === 'f2') {
+    names = TEAMS.slice();
+    orderedEntries = phaseChronoEntries(F2_FIXTURE, state.f2 || {});
+    steps = stepsFromEntries(orderedEntries, names, f2MatchDelta);
+    extras = f2Extras();
+    F2_FIXTURE.forEach(([r, a, b]) => { const res = state.f2[r + '-' + a + '-' + b]; if (!res) return;
+      [names[a], names[b]].forEach(n => played[n] = (played[n] || 0) + 1);
+      if (res.winner !== 'empate') { const w = names[res.winner]; wins[w] = (wins[w] || 0) + 1; } });
+  } else if (mode === 'total') {
+    names = PLAYERS.slice();
+    // Combina F1 (por jugador) + F2 (por equipo, repartido a sus integrantes),
+    // en el mismo orden real de juego que usan los logros y el resumen.
+    orderedEntries = combinedChronoEntries(state);
+    const run = {}; names.forEach(n => run[n] = 0);
+    steps = [];
+    orderedEntries.forEach(e => {
+      if (e.type === 'f1') {
+        const d = f1MatchDelta(e.a, e.b, names[e.a], names[e.b], e.res, e.g);
+        Object.keys(d).forEach(n => { if (run[n] !== undefined) run[n] += d[n]; });
+        [names[e.a], names[e.b]].forEach(n => played[n] = (played[n] || 0) + 1);
+        if (e.res.winner !== 'empate') { const w = names[e.res.winner]; wins[w] = (wins[w] || 0) + 1; }
+      } else {
+        const teamA = TEAMS[e.a], teamB = TEAMS[e.b];
+        const d = f2MatchDelta(e.a, e.b, teamA, teamB, e.res, e.g);
+        Object.keys(d).forEach(teamName => {
+          String(teamName).split('/').forEach(p => { const pn = p.trim(); if (run[pn] !== undefined) run[pn] += d[teamName]; });
+        });
+      }
+      steps.push(Object.assign({}, run));
+    });
+    const exF1 = f1Extras(), exF2 = f2Extras();
+    extras = {}; names.forEach(n => extras[n] = (exF1[n] || 0) + (teamOfPlayer[n] !== undefined ? (exF2[TEAMS[teamOfPlayer[n]]] || 0) : 0));
+  } else {
+    names = PLAYERS.slice();
+    orderedEntries = phaseChronoEntries(F1_FIXTURE, state.f1 || {});
+    steps = stepsFromEntries(orderedEntries, names, f1MatchDelta);
+    extras = f1Extras();
+    F1_FIXTURE.forEach(([r, a, b]) => { const res = state.f1[r + '-' + a + '-' + b]; if (!res) return;
+      [names[a], names[b]].forEach(n => played[n] = (played[n] || 0) + 1);
+      if (res.winner !== 'empate') { const w = names[res.winner]; wins[w] = (wins[w] || 0) + 1; } });
+  }
+
+  // Punto final: sumar extras (bonus, comodines, impostor, etc.)
+  const lastRun = steps.length ? Object.assign({}, steps[steps.length - 1]) : (() => { const z = {}; names.forEach(n => z[n] = 0); return z; })();
+  // Con totales oficiales disponibles, los extras son la diferencia exacta
+  // entre lo que suman los duelos y el total de la tabla.
+  names.forEach(n => {
+    let target = null;
+    if (mode === 'f2') target = tvLiveTotal(state, 'f2', n);
+    else if (mode === 'total') {
+      const a = tvLiveTotal(state, 'f1', n);
+      const t = teamOfPlayer[n] !== undefined ? TEAMS[teamOfPlayer[n]] : null;
+      const b = t != null ? tvLiveTotal(state, 'f2', t) : 0;
+      if (a !== null && b !== null) target = a + b;
+    } else target = tvLiveTotal(state, 'f1', n);
+    if (target !== null) extras[n] = target - (lastRun[n] || 0);
+  });
+  const hasExtras = Object.values(extras).some(v => v);
+  if (hasExtras) {
+    names.forEach(n => lastRun[n] = (lastRun[n] || 0) + (extras[n] || 0));
+    steps.push(lastRun);
+  }
+
+  const finalTotals = steps.length ? steps[steps.length - 1] : lastRun;
+  const series = names.map((n, i) => ({
+    name: n,
+    idx: i,
+    color: tvEntityColor(n, i),
+    points: [0].concat(steps.map(s => s[n] || 0)),
+    total: finalTotals[n] || 0,
+    wins: wins[n] || 0,
+    played: played[n] || 0
+  })).filter(s => s.points.some(p => p > 0) || s.total > 0);
+
+  series.sort((a, b) => b.total - a.total);
+  return { series: series, steps: steps.length, mode: mode, entries: orderedEntries };
+}
+
+function evoModeLabel(mode) {
+  return mode === 'f2' ? 'Fase Grupal' : (mode === 'total' ? 'Total de la noche' : 'Fase Individual');
+}
+
+function renderEvoSVG(series, maxSteps, stars, viewMode) {
+  const W = 600, H = 260, padL = 8, padR = 8, padT = 10, padB = 10;
+  const n = maxSteps + 1; // incluye el punto inicial en 0
+  const x = i => padL + (n > 1 ? (i / (n - 1)) * (W - padL - padR) : 0);
+
+  let grid = '';
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const gy = padT + f * (H - padT - padB);
+    grid += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="var(--border2)" stroke-width="1" stroke-dasharray="3,4" opacity="0.6"/>';
+  });
+
+  // Extiende los puntos de cada serie a exactamente n pasos (repitiendo el
+  // último valor si una serie tiene menos pasos que el máximo).
+  const matrix = series.map(s => {
+    const pts = s.points.slice(0, n);
+    while (pts.length < n) pts.push(pts[pts.length - 1] || 0);
+    return pts;
+  });
+
+  let lines = '';
+  let yOf; // función paso→coordenada Y para una serie puntual (para ubicar estrellitas)
+  const byName = {};
+
+  if (viewMode === 'pos') {
+    // Bump chart: eje Y = ranking (1° arriba del todo) en vez de puntos
+    // absolutos — con 6+ jugadores las curvas de puntos se apretujan, pero
+    // el orden relativo se lee mejor así. Empates se desempatan de forma
+    // estable por el índice ya ordenado por total final.
+    const count = series.length;
+    const ranks = matrix.map(() => new Array(n).fill(1));
+    for (let j = 0; j < n; j++) {
+      const order = matrix.map((_, i) => i).sort((a, b) => {
+        const diff = matrix[b][j] - matrix[a][j];
+        return diff !== 0 ? diff : (a - b);
+      });
+      order.forEach((i, rank) => { ranks[i][j] = rank + 1; });
+    }
+    const y = r => count > 1 ? padT + ((r - 1) / (count - 1)) * (H - padT - padB) : (padT + (H - padT - padB) / 2);
+    series.forEach((s, si) => {
+      byName[s.name] = { s: s, si: si };
+      const rs = ranks[si];
+      const d = rs.map((r, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(r).toFixed(1)).join(' ');
+      const lastR = rs[rs.length - 1];
+      lines += '<path class="tv-evo-line" data-si="' + si + '" d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>';
+      lines += '<circle class="tv-evo-line" data-si="' + si + '" cx="' + x(n - 1).toFixed(1) + '" cy="' + y(lastR).toFixed(1) + '" r="4.5" fill="' + s.color + '"/>';
+    });
+    yOf = (si, step) => y(ranks[si][step]);
+  } else {
+    const maxY = Math.max(1, ...series.map(s => Math.max(...s.points)));
+    const y = v => H - padB - (v / maxY) * (H - padT - padB);
+    series.forEach((s, si) => {
+      byName[s.name] = { s: s, si: si };
+      const pts = matrix[si];
+      const d = pts.map((v, i) => (i === 0 ? 'M' : 'L') + x(i).toFixed(1) + ',' + y(v).toFixed(1)).join(' ');
+      const last = pts[pts.length - 1];
+      lines += '<path class="tv-evo-line" data-si="' + si + '" d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"/>';
+      lines += '<circle class="tv-evo-line" data-si="' + si + '" cx="' + x(n - 1).toFixed(1) + '" cy="' + y(last).toFixed(1) + '" r="4.5" fill="' + s.color + '"/>';
+    });
+    yOf = (si, step) => y(matrix[si][step]);
+  }
+
+  // Estrellitas: un logro marcado en el paso exacto de la curva del jugador/
+  // equipo al que le pasó. Tocarla recuerda qué fue (tvEvoStarTap lee de
+  // window._tvEvoStars, que se llena en renderEvoChart antes de esto).
+  let starsSvg = '';
+  (stars || []).forEach((st, i) => {
+    const entry = byName[st.logro.who];
+    if (!entry || st.step > n - 1) return;
+    const cx = x(st.step).toFixed(1), cy = (yOf(entry.si, st.step) - 10).toFixed(1);
+    starsSvg += '<text class="tv-evo-star" data-si="' + entry.si + '" x="' + cx + '" y="' + cy
+      + '" font-size="15" text-anchor="middle" onclick="tvEvoStarTap(event,' + i + ')">⭐</text>';
+  });
+
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' + grid + lines + starsSvg + '</svg>';
+}
+
+// ── CAMBIOS DE LÍDER — cuenta cuántas veces cambió el 1er puesto en la
+// noche, recorriendo los mismos pasos de buildEvoSeries pero ordenando por
+// posición (no por puntos) en cada paso. Distinto de "El duelo más parejo"
+// del Wrapped: acá importa el trono (quién manda en cada momento), no un
+// cruce puntual. Un empate en la punta no cuenta como cambio (es ambiguo)
+// ni resetea al líder vigente.
+function countLeaderChanges(series, maxSteps) {
+  const n = maxSteps + 1;
+  if (!series.length || n < 2) return 0;
+  const matrix = series.map(s => {
+    const pts = s.points.slice(0, n);
+    while (pts.length < n) pts.push(pts[pts.length - 1] || 0);
+    return pts;
+  });
+  let changes = 0, prevLeader = null;
+  for (let j = 0; j < n; j++) {
+    let maxVal = -Infinity, leaders = [];
+    matrix.forEach((row, i) => {
+      if (row[j] > maxVal) { maxVal = row[j]; leaders = [i]; }
+      else if (row[j] === maxVal) leaders.push(i);
+    });
+    if (maxVal <= 0) continue; // todavía nadie tiene puntos
+    if (leaders.length === 1) {
+      if (prevLeader !== null && leaders[0] !== prevLeader) changes++;
+      prevLeader = leaders[0];
+    }
+  }
+  return changes;
+}
+
+// Toca una estrellita del gráfico: muestra qué logro se disparó ahí.
+function tvEvoStarTap(ev, i) {
+  if (ev) ev.stopPropagation();
+  const stars = window._tvEvoStars || [];
+  const st = stars[i];
+  if (!st) return;
+  const l = st.logro;
+  const tip = document.getElementById('tv-evo-tip');
+  if (!tip) return;
+  tip.innerHTML = '<div class="tv-evo-tip-emoji">' + l.emoji + '</div><div><b>' + l.title + '</b>'
+    + (l.who ? ' — ' + l.who : '') + (l.desc ? '<div class="tv-evo-tip-desc">' + l.desc + '</div>' : '') + '</div>';
+  tip.classList.add('show');
+  clearTimeout(window._tvEvoTipTimer);
+  window._tvEvoTipTimer = setTimeout(() => tip.classList.remove('show'), 4200);
+}
+function tvEvoHighlight(si) {
+  const wrap = document.getElementById('tv-evo-wrap');
+  const box = document.getElementById('tv-evo');
+  if (!wrap || !box) return;
+  wrap.classList.toggle('dim-others', si !== null);
+  box.querySelectorAll('.tv-evo-line, .tv-evo-row').forEach(el => {
+    el.classList.toggle('active', si !== null && el.dataset.si === String(si));
+  });
+}
+
+function renderEvoChart() {
+  const box = document.getElementById('tv-evo');
+  if (!box) return;
+  const st = window._tvLastState;
+  if (!st) return;
+  const PLAYERS = window._tvLastPlayers || [], TEAMS = window._tvLastTeams || [];
+  const mode = getEvoMode();
+  const view = getEvoView();
+  const data = buildEvoSeries(mode, st, PLAYERS, TEAMS);
+  const logros = computeLogros(st, PLAYERS, TEAMS);
+  const stars = view === 'pos' ? [] : (logros.stars[mode] || []);
+  window._tvEvoStars = stars;
+
+  const toggleHtml = '<div class="tv-evo-toggle">'
+    + ['f1', 'f2', 'total'].map(m => '<button data-mode="' + m + '" class="' + (m === mode ? 'active' : '') + '">'
+      + (m === 'f1' ? 'Individual' : m === 'f2' ? 'Grupal' : 'Total') + '</button>').join('')
+    + '</div>';
+  const viewToggleHtml = '<div class="tv-evo-toggle tv-evo-toggle2">'
+    + ['pts', 'pos'].map(v => '<button data-view="' + v + '" class="' + (v === view ? 'active' : '') + '">'
+      + (v === 'pts' ? '📈 Puntos' : '🪜 Posición') + '</button>').join('')
+    + '</div>';
+
+  let body;
+  if (!data.series.length || data.steps === 0) {
+    body = '<div class="tv-evo-empty">Todavía no hay resultados cargados en esta fase 🎲</div>';
+  } else {
+    const chart = renderEvoSVG(data.series, data.steps, stars, view);
+    const leaderChanges = countLeaderChanges(data.series, data.steps);
+    const leaderHtml = leaderChanges > 0
+      ? '<div class="tv-evo-leaderfacts">👑 El 1er puesto cambió de manos ' + leaderChanges + ' ' + (leaderChanges === 1 ? 'vez' : 'veces') + ' esta noche</div>'
+      : '';
+    const list = data.series.map((s, i) => {
+      const av = tvAvatarHtml(s.name, s.idx, window._tvLastPhotos || {});
+      return '<div class="tv-evo-row" data-si="' + i + '" style="border-color:' + s.color + '">'
+        + '<span class="tv-evo-pos">#' + (i + 1) + '</span>'
+        + '<span class="tv-evo-name">' + av + '<span><div>' + s.name.replace('/', ' & ') + '</div>'
+        + (mode !== 'total' ? '<div class="tv-evo-sub">' + s.wins + ' de ' + s.played + ' ganados</div>' : '') + '</span></span>'
+        + '<span class="tv-evo-pts" style="color:' + s.color + '">' + s.total + ' pts</span>'
+        + '</div>';
+    }).join('');
+    body = leaderHtml + '<div class="tv-evo-chart-wrap" id="tv-evo-wrap">' + chart
+      + '<div class="tv-evo-tip" id="tv-evo-tip"></div></div><div class="tv-evo-list">' + list + '</div>';
+  }
+
+  box.innerHTML = '<div class="tv-evo-head"><div class="tv-evo-title">📈 Evolución — ' + evoModeLabel(mode) + '</div>' + toggleHtml + '</div>' + viewToggleHtml + body;
+  box.querySelectorAll('.tv-evo-toggle:not(.tv-evo-toggle2) button').forEach(btn => {
+    btn.addEventListener('click', ev => { ev.stopPropagation(); setEvoMode(btn.dataset.mode); renderEvoChart(); });
+  });
+  box.querySelectorAll('.tv-evo-toggle2 button').forEach(btn => {
+    btn.addEventListener('click', ev => { ev.stopPropagation(); setEvoView(btn.dataset.view); renderEvoChart(); });
+  });
+  // Pasar el dedo/mouse por una fila (o su línea en la curva) resalta esa
+  // línea un instante y atenúa las demás — más fácil de seguir con 6+ series.
+  box.querySelectorAll('.tv-evo-row, .tv-evo-line').forEach(el => {
+    const si = el.dataset.si;
+    el.addEventListener('mouseenter', () => tvEvoHighlight(si));
+    el.addEventListener('mouseleave', () => tvEvoHighlight(null));
+    el.addEventListener('touchstart', ev => { ev.stopPropagation(); tvEvoHighlight(si); }, { passive: true });
+  });
+  box.addEventListener('touchstart', ev => { if (!ev.target.closest('.tv-evo-row, .tv-evo-line')) tvEvoHighlight(null); }, { passive: true });
+}
+
+function getEvoMode() {
+  try { return localStorage.getItem('ndj_evo_mode') || 'f1'; } catch (e) { return 'f1'; }
+}
+function setEvoMode(m) {
+  try { localStorage.setItem('ndj_evo_mode', m); } catch (e) {}
+}
+function getEvoView() {
+  try { return localStorage.getItem('ndj_evo_view') || 'pts'; } catch (e) { return 'pts'; }
+}
+function setEvoView(v) {
+  try { localStorage.setItem('ndj_evo_view', v); } catch (e) {}
+}
+
+const COLORS=['#a0b4c8','#f5c842','#cd7f32'];
+const POSES=['side','victory','slump'];
+const POS_LABELS=['2°','1°','3°'];
+const ORDER=[1,0,2]; // display: 2nd left, 1st center, 3rd right
+// figsize scales with viewport — grande en fase única. Como el modo 'both'
+// ahora muestra una fase por vez (con pestañas), también usa el tamaño grande.
+function figSize(slotIdx){
+  const base = [0.10,0.13,0.085];
+  return Math.round(Math.min(window.innerWidth,window.innerHeight)*base[slotIdx]);
+}
+
+let _prevKeys={f1:'',f2:''};
+let _tvCachedState = null; // estado recibido por postMessage (más fresco que localStorage)
+
+function renderTV() {
+  let state={f1:{},f2:{},impostor:{rounds:[]}};
+  let photos={};
+  let PLAYERS=PLAYERS_INIT.slice();
+  let TEAMS=TEAMS_INIT.slice();
+  try{
+    // Prioridad: estado recibido por postMessage > localStorage
+    const s = _tvCachedState || localStorage.getItem('ndj_state');
+    if(s) state=Object.assign({f1:{},f2:{},impostor:{rounds:[]}},JSON.parse(s));
+    const p=localStorage.getItem('ndj_photos');
+    if(p) photos=JSON.parse(p);
+    // Restore roster if saved
+    if(state.playersSnapshot) PLAYERS=state.playersSnapshot.slice();
+    if(state.teamsSnapshot)   TEAMS=state.teamsSnapshot.slice();
+    // Fixture en vivo: si el organizador lo regenera, la TV lo toma sin recargar
+    if(state.f1FixtureSnapshot&&Array.isArray(state.f1FixtureSnapshot.fixture)){ F1_FIXTURE=state.f1FixtureSnapshot.fixture; F1_BYES=__byesDe(F1_FIXTURE, PLAYERS.length); }
+    if(state.f2FixtureSnapshot&&Array.isArray(state.f2FixtureSnapshot.fixture)){ F2_FIXTURE=state.f2FixtureSnapshot.fixture; }
+  }catch(e){}
+
+  // Only render the phases that are shown
+  const phasesToRender = TV_PHASE === 'fase1' ? ['f1'] : TV_PHASE === 'fase2' ? ['f2'] : ['f1','f2'];
+
+  phasesToRender.forEach(phase=>{
+    const isF1=phase==='f1';
+    const entities=isF1?PLAYERS:TEAMS;
+    const ptsArr=getPoints(phase,state,PLAYERS,TEAMS);
+    const sorted=entities.map((n,i)=>({n,i,pts:ptsArr[i]})).sort((a,b)=>b.pts.total-a.pts.total);
+
+    const key=sorted.slice(0,3).map(s=>s.n+':'+s.pts.total).join('|');
+    const changed=key!==_prevKeys[phase];
+    if(changed) _prevKeys[phase]=key;
+
+    // Podium (top 3)
+    const podiumEl=document.getElementById('tv-podium-'+phase);
+    const slots=ORDER.map((pos,slotIdx)=>{
+      const entry=sorted[pos];
+      const name=entry?entry.n.split(' ')[0]:null;
+      const pts=entry?entry.pts.total:0;
+      const color=entry?tvEntityColor(entry.n,entry.i):COLORS[slotIdx];
+      const photo=entry?photos[entry.n]||null:null;
+      const sz=figSize(slotIdx);
+      const fig=entry?tvFigureHtml(entry.n,color,sz,POSES[slotIdx],photos):'';
+      const crown=slotIdx===1&&entry?'<div class="podium-crown">👑</div>':'';
+      const figHtml=entry?'<div class="podium-glow"></div>'+fig:'<div style="height:'+sz+'px;opacity:0.15;display:flex;align-items:center;justify-content:center;font-size:'+(sz*0.5)+'px">?</div>';
+      let badge='';
+      if(entry){const w=entry.pts.wins||0,l=entry.pts.losses||0;if(w>=3&&w>=l)badge=' 🔥';else if(l>=3)badge=' 🤡';}
+      const nameHtml=entry?'<div class="podium-name">'+name+badge+'</div>':'<div class="podium-empty-name">'+POS_LABELS[slotIdx]+'</div>';
+      const ptsHtml=entry?'<div class="podium-pts">'+pts+' pts</div>':'';
+      const animCls=changed?'enter-'+slotIdx:'';
+      return '<div class="podium-slot slot-'+slotIdx+' '+animCls+'"><div class="podium-avatar-wrap">'+crown+'<div style="position:relative;z-index:1">'+figHtml+'</div></div>'+nameHtml+ptsHtml+'<div class="podium-block"><span class="podium-block-num">'+POS_LABELS[slotIdx]+'</span></div></div>';
+    });
+    podiumEl.innerHTML=slots.join('');
+
+    // Rank list (4th+)
+    const rankEl=document.getElementById('tv-rank-'+phase);
+    const rest=sorted.slice(3);
+    rankEl.innerHTML=rest.length?rest.map((e,i)=>{
+      const av=tvAvatarHtml(e.n,e.i,photos);
+      return '<div class="tv-rank-row" data-ent="'+String(e.n).replace(/"/g,'&quot;')+'"><span class="tv-rank-pos">'+(i+4)+'°</span><span class="tv-rank-name">'+av+'<span>'+e.n+'</span></span><span class="tv-rank-pts'+(isF1?'':' f2')+'">'+e.pts.total+' pts</span></div>';
+    }).join(''):'';
+
+    // Quién sumó desde la última actualización: se le hace un flash a la fila y
+    // el total sube contando. Antes la tabla cambiaba sin que se notara nada.
+    reactToScoreChanges(phase, sorted);
+  });
+
+  renderTicker(state, PLAYERS, TEAMS);
+  // El relator lee siempre el último snapshot (state es local a renderTV)
+  window._tvLastState   = state;
+  window._tvLastPlayers = PLAYERS;
+  window._tvLastTeams   = TEAMS;
+  window._tvLastPhotos  = photos;
+  // Cambió algo real → cortamos el modo "mientras tanto" y buscamos logros nuevos
+  try {
+    const sig = JSON.stringify([state.f1, state.f2, (state.impostor || {}).rounds, state.comodines, state.comodinesF2, state.liveTotals]);
+    if (sig !== window._tvLastSig) {
+      window._tvLastSig = sig;
+      _idleLastChange = Date.now();
+      const ib = document.getElementById('tv-idle');
+      if (ib) ib.classList.remove('show');
+      const evb = document.getElementById('tv-evo');
+      if (evb) evb.classList.remove('show');
+      _idleOn = false;
+    }
+  } catch(e) {}
+  // El footer separa el reloj de la etiqueta de estado: "En vivo" solo si
+  // hubo un cambio real de datos hace poco. Si no, avisamos desde cuándo
+  // no hay novedades en vez de seguir mostrando la hora actual con el
+  // marcador "En vivo" — eso daría falsa confianza si Firebase se cortó
+  // y nadie lo nota.
+  try {
+    const _footerEl = document.getElementById('tv-footer');
+    if (_footerEl) {
+      const STALE_AFTER_MS = 10000; // ~5 ciclos de polling (2s c/u)
+      const msSinceChange = Date.now() - _idleLastChange;
+      const lastChangeStr = new Date(_idleLastChange).toLocaleTimeString('es-AR');
+      _footerEl.textContent = msSinceChange < STALE_AFTER_MS
+        ? '🔴 En vivo · ' + lastChangeStr
+        : '⏸ Sin cambios desde las ' + lastChangeStr;
+    }
+  } catch(e) {}
+  scanLogros(state, PLAYERS, TEAMS);
+  if (!window._relatorStarted) {
+    window._relatorStarted = true;
+    // Cada arranque va en su propio try/catch: si alguno falla, no se
+    // lleva puestos a los demás (antes un solo error acá abortaba todo
+    // el script, incluida la sincronización en vivo de más abajo).
+    try { startRelator(); } catch(e) { console.warn('startRelator:', e); }
+    try { startWall(); } catch(e) { console.warn('startWall:', e); }
+    try { startIdle(); } catch(e) { console.warn('startIdle:', e); }
+    if (!window._dragBooted) { window._dragBooted = true; try { initDraggables(); } catch(e) { console.warn('initDraggables:', e); } }
+  }
+  try { renderEstado(state); } catch(e) { console.warn('renderEstado:', e); }
+}
+
+// Apply estado layout once at init (hides irrelevant phase cards permanently)
+(function initEstadoLayout() {
+  const estadoEl = document.getElementById('tv-estado');
+  if (!estadoEl) return;
+  if (TV_PHASE === 'fase1') {
+    document.getElementById('tv-estado-f2').style.display  = 'none';
+    document.getElementById('tv-estado-imp').style.display = 'none';
+    document.getElementById('tv-estado-qld').style.display = 'none';
+    estadoEl.style.maxWidth = '820px';
+    estadoEl.style.margin   = 'clamp(10px,2vh,22px) auto 0';
+    estadoEl.style.width    = '100%';
+  } else if (TV_PHASE === 'fase2') {
+    document.getElementById('tv-estado-f1').style.display  = 'none';
+    document.getElementById('tv-estado-imp').style.display = 'none';
+    estadoEl.style.maxWidth = '820px';
+    estadoEl.style.margin   = 'clamp(10px,2vh,22px) auto 0';
+    estadoEl.style.width    = '100%';
+  }
+})();
+
+function renderEstado(state) {
+  const f1Total = F1_FIXTURE.length;
+  const f2Total = F2_FIXTURE.length;
+  const f1Done  = F1_FIXTURE.filter(([r,a,b]) => state.f1 && state.f1[r+'-'+a+'-'+b]).length;
+  const f2Done  = F2_FIXTURE.filter(([r,a,b]) => state.f2 && state.f2[r+'-'+a+'-'+b]).length;
+  const impDone = state.impostor && Array.isArray(state.impostor.rounds) && state.impostor.rounds.length > 0;
+  const qldDone = !!(state.qldTeamPoints && Object.keys(state.qldTeamPoints).length > 0);
+
+  const f1Pct  = f1Total  ? Math.round((f1Done  / f1Total)  * 100) : 0;
+  const f2Pct  = f2Total  ? Math.round((f2Done  / f2Total)  * 100) : 0;
+  const impPct = impDone  ? 100 : 0;
+  const qldPct = qldDone  ? 100 : 0;
+
+  function setPhase(id, count, pct, done) {
+    const countEl = document.getElementById('tv-estado-'+id+'-count');
+    const pctEl   = document.getElementById('tv-estado-'+id+'-pct');
+    const barEl   = document.getElementById('tv-estado-'+id+'-bar');
+    if (countEl) countEl.textContent = count;
+    if (pctEl)   { pctEl.textContent = pct + '%'; pctEl.classList.toggle('done', done); }
+    if (barEl)   barEl.style.width = pct + '%';
+  }
+
+  if (TV_PHASE !== 'fase2') setPhase('f1',  f1Done + '/' + f1Total + ' partidos', f1Pct, f1Done === f1Total);
+  if (TV_PHASE === 'both')  setPhase('imp', impDone ? '✓ completada' : 'pendiente', impPct, impDone);
+  if (TV_PHASE !== 'fase1') setPhase('f2',  f2Done + '/' + f2Total + ' partidos',  f2Pct, f2Done === f2Total);
+  if (TV_PHASE !== 'fase1') setPhase('qld', qldDone ? '✓ completada' : 'pendiente', qldPct, qldDone);
+}
+
+// ── TICKER (estado) ─────────────────────────────────────────
+// IMPORTANTE: declarado ANTES de la primera llamada a renderTV().
+// renderTV() -> renderTicker() usa estas variables; si quedan declaradas
+// más abajo, la llamada inicial cae en la Temporal Dead Zone y aborta todo
+// el script (incluido startSync), dejando la TV congelada.
+//
+// IMPORTANTE: renderTV() también dispara, en su primera ejecución,
+// startRelator() / startWall() / startIdle() / initDraggables() — así que
+// TODAS las variables que esas funciones tocan tienen que estar declaradas
+// (con let/const) ANTES de esta primera llamada, por la misma razón. Antes
+// vivían más abajo, en el bloque "natural" de cada feature, y como ninguna
+// de esas tres llamadas está en un try/catch, la primera de ellas que
+// pisaba una variable en TDZ (Temporal Dead Zone) tiraba un ReferenceError
+// que abortaba TODO el script — incluido startSync() más abajo, que es
+// justamente el que conecta Firebase/BroadcastChannel/polling. Por eso
+// fallaban a la vez el muro de fotos, el drag del QR/cronómetro y la
+// actualización en vivo: ninguno llegaba a inicializarse nunca.
+let _tickerAnim = null;
+let _tickerPos = 0;
+let _tickerWidth = 0;
+let _tickerSpeed = 50; // px/s
+let _tickerGen = 0; // generación: solo el loop más nuevo sobrevive
+
+let _relatorQueue = [], _relatorSeen = {}, _relatorTimer = null, _relatorShowing = false;
+
+let _logrosShown = {}, _logroQueue = [], _logroBusy = false;
+try { _logrosShown = JSON.parse(localStorage.getItem('ndj_logros_tv') || '{}'); } catch(e) { _logrosShown = {}; }
+
+let _idleLastChange = Date.now(), _idleTimer = null, _idleOn = false, _idleIdx = 0;
+const IDLE_AFTER_MS = 150000; // 2 min y medio sin novedades
+
+let _tvWall = [], _tvWallIdx = 0, _tvWallTimer = null;
+
+// TV_SCALE_* también tienen que estar declaradas ANTES de esta primera
+// llamada a renderTV(): initDraggables() (invocada desde adentro de
+// renderTV en su primer render) las usa para restaurar el tamaño guardado,
+// y al ser const quedaban en Temporal Dead Zone si se declaraban más
+// abajo, junto a initDraggables(). Eso rompía el drag/resize sin mostrar
+// ningún error (el ReferenceError caía en el try/catch de más abajo, pero
+// window._dragBooted ya había quedado en true, así que nunca se
+// reintentaba). Mismo patrón que el bug de _tickerAnim y compañía.
+const TV_SCALE_MIN = 0.55, TV_SCALE_MAX = 2.0, TV_SCALE_STEP = 0.1;
+
+// reactToScoreChanges() (llamada desde renderTV, incluida su primera
+// ejecución de más abajo) necesita estas dos declaradas ya. Mismo motivo
+// que TV_SCALE_*: si vivían junto a la función, más abajo, quedaban en
+// Temporal Dead Zone en el primer render y tiraban ReferenceError.
+const _prevPts = { f1: null, f2: null };
+const _prevLeader = { f1: null, f2: null };
+
+// Blindado: un error acá no debe impedir que el resto del script (sync,
+// drag, QR, etc.) se termine de definir y ejecutar más abajo.
+try { renderTV(); } catch(e) { console.warn('renderTV inicial:', e); }
+
+function buildTickerItems(state, PLAYERS, TEAMS) {
+  const items = [];
+
+  // Collect f1 results (most recent first via Object.entries order)
+  const f1Entries = Object.entries(state.f1 || {});
+  const f2Entries = Object.entries(state.f2 || {});
+
+  // Helpers
+  function f1Item(key, res) {
+    const [r, a, b] = key.split('-').map(Number);
+    const game = (() => {
+      const match = F1_FIXTURE.find(m => m[0]===r && m[1]===a && m[2]===b);
+      if (!match) return '?';
+      const RC = getTVRules();
+      if (RC && RC.f1 && RC.f1[match[3]]) return RC.f1[match[3]].name;
+      const G = ['Curling','100 Argentinos Dicen','UNO','Palabras a Tiempo','Carrera de Mentes','Spot It'];
+      return G[match[3]] || '?';
+    })();
+    const nameA = (PLAYERS[a] || '?').split(' ')[0];
+    const nameB = (PLAYERS[b] || '?').split(' ')[0];
+    if (res.winner === 'empate') {
+      return '<span class="tv-ticker-item"><span class="tk-icon">🤝</span><span class="tk-vs">' + nameA + ' vs ' + nameB + '</span><span class="tk-game">' + game + ' · Empate</span></span>';
+    }
+    const winner = (PLAYERS[res.winner] || '?').split(' ')[0];
+    const loser  = res.winner === a ? nameB : nameA;
+    return '<span class="tv-ticker-item"><span class="tk-icon">⚡</span><span class="tk-winner">' + winner + '</span><span class="tk-vs">venció a ' + loser + '</span><span class="tk-game">' + game + '</span>' + (res.bonus ? '<span class="tk-bonus">+bonus</span>' : '') + '</span>';
+  }
+
+  function f2Item(key, res) {
+    const [r, a, b] = key.split('-').map(Number);
+    const game = (() => {
+      const match = F2_FIXTURE.find(m => m[0]===r && m[1]===a && m[2]===b);
+      if (!match) return '?';
+      const RC = getTVRules();
+      if (RC && RC.f2 && RC.f2[match[3]]) return RC.f2[match[3]].name;
+      const G = ["Mario Party","Time's Up","Beer Pong","Guess Movie/Song","El Erudito","Jenga"];
+      return G[match[3]] || '?';
+    })();
+    const nameA = (TEAMS[a] || '?').split('/')[0].trim().split(' ')[0];
+    const nameB = (TEAMS[b] || '?').split('/')[0].trim().split(' ')[0];
+    if (res.winner === 'empate') {
+      return '<span class="tv-ticker-item f2"><span class="tk-icon">🤝</span><span class="tk-vs">' + nameA + ' vs ' + nameB + '</span><span class="tk-game">' + game + ' · Empate</span></span>';
+    }
+    const winner = (TEAMS[res.winner] || '?').split('/')[0].trim().split(' ')[0];
+    const loser  = res.winner === a ? nameB : nameA;
+    return '<span class="tv-ticker-item f2"><span class="tk-icon">⚡</span><span class="tk-winner">' + winner + '</span><span class="tk-vs">venció a ' + loser + '</span><span class="tk-game">' + game + '</span>' + (res.bonus ? '<span class="tk-bonus">+bonus</span>' : '') + '</span>';
+  }
+
+  f1Entries.forEach(([k,v]) => items.push(f1Item(k,v)));
+  f2Entries.forEach(([k,v]) => items.push(f2Item(k,v)));
+
+  return items;
+}
+
+// ── RELATOR: frases automáticas según lo que va pasando ──────────────
+// (variables declaradas más arriba, antes de la primera llamada a renderTV())
+
+// ── LOGROS EN VIVO ───────────────────────────────────────────────────
+// Se detectan sobre el estado y se muestran en el TV apenas se desbloquean.
+// Cada uno tiene un id único: si ya se mostró, no vuelve a saltar.
+// (variables declaradas más arriba, antes de la primera llamada a renderTV())
+function markLogro(id) {
+  _logrosShown[id] = 1;
+  try { localStorage.setItem('ndj_logros_tv', JSON.stringify(_logrosShown)); } catch(e) {}
+}
+
+// computeLogros hace todo el trabajo: detecta los logros de la noche Y, de
+// paso, anota en qué "paso" de cada curva del gráfico de evolución se
+// disparó cada uno (stars.f1 / stars.f2 / stars.total — steps[i-1] en
+// buildEvoSeries corresponde a stars[*][j].step === i). Así el feed de
+// logros y las estrellitas de la curva salen siempre de la misma cuenta.
+function computeLogros(state, PLAYERS, TEAMS) {
+  const found = [];
+  const starsF1 = [], starsF2 = [], starsTotal = [];
+  const add = (id, emoji, title, who, desc) => { const l = { id: id, emoji: emoji, title: title, who: who, desc: desc }; found.push(l); return l; };
+
+  const f1Entries = phaseChronoEntries(F1_FIXTURE, state.f1 || {});
+  const f2Entries = phaseChronoEntries(F2_FIXTURE, state.f2 || {});
+  const totalEntries = combinedChronoEntries(state);
+  const totalIndexOf = {};
+  totalEntries.forEach((e, i) => { totalIndexOf[e.type + '-' + e.key] = i + 1; }); // +1: points[0] es el punto inicial en 0
+
+  const mark = (starsArr, step, l) => { if (step >= 1) starsArr.push({ step: step, logro: l }); };
+  const markTotal = (typePrefix, key, l) => { const ti = totalIndexOf[typePrefix + '-' + key]; if (ti) starsTotal.push({ step: ti, logro: l }); };
+
+  // "Primera sangre" — el primer ganador de la noche
+  const firstF1Idx = f1Entries.findIndex(x => x.res.winner !== 'empate');
+  if (firstF1Idx >= 0) {
+    const x = f1Entries[firstF1Idx];
+    const w = PLAYERS[x.res.winner];
+    if (w) {
+      const l = add('primera-sangre', '💥', 'Primera Sangre', w, 'Ganó el primer duelo de la noche');
+      mark(starsF1, firstF1Idx + 1, l);
+      markTotal('f1', x.key, l);
+    }
+  }
+
+  // Rachas F1: doblete, triplete, imparable, con estilo
+  const streaks = {};
+  f1Entries.forEach((x, idx) => {
+    const step = idx + 1;
+    if (x.res.winner === 'empate') { streaks[PLAYERS[x.a]] = 0; streaks[PLAYERS[x.b]] = 0; return; }
+    const w = PLAYERS[x.res.winner];
+    const l2 = PLAYERS[x.res.winner === x.a ? x.b : x.a];
+    streaks[w] = (streaks[w] || 0) + 1;
+    streaks[l2] = 0;
+    if (streaks[w] === 2) { const l = add('doblete-' + w, '⚡', 'Doblete', w, 'Dos victorias al hilo'); mark(starsF1, step, l); markTotal('f1', x.key, l); }
+    if (streaks[w] === 3) { const l = add('triplete-' + w, '🔥', 'Triplete', w, 'Tres victorias seguidas'); mark(starsF1, step, l); markTotal('f1', x.key, l); }
+    if (streaks[w] === 4) { const l = add('imparable-' + w, '🚀', 'Imparable', w, 'Cuatro victorias sin perder'); mark(starsF1, step, l); markTotal('f1', x.key, l); }
+    if (x.res.bonus) { const l = add('bonus-' + x.key, '⭐', 'Con Estilo', w, 'Ganó con bonus incluido'); mark(starsF1, step, l); markTotal('f1', x.key, l); }
+  });
+
+  // "Superviviente" — ganó un duelo estando último en la tabla
+  try {
+    const pts = getPoints('f1', state, PLAYERS, TEAMS) || [];
+    if (pts.length) {
+      const sorted = PLAYERS.map((n, i) => ({ n: n, t: pts[i] ? pts[i].total : 0 })).sort((a, b) => a.t - b.t);
+      const lastName = sorted.length ? sorted[0].n : null;
+      let lastWinIdx = -1;
+      f1Entries.forEach((x, idx) => { if (x.res.winner !== 'empate' && PLAYERS[x.res.winner] === lastName) lastWinIdx = idx; });
+      if (lastName && lastWinIdx >= 0) {
+        const x = f1Entries[lastWinIdx];
+        const l = add('superviviente-' + x.key, '🧟', 'Superviviente', lastName, 'Ganó estando último en la tabla');
+        mark(starsF1, lastWinIdx + 1, l);
+        markTotal('f1', x.key, l);
+      }
+    }
+  } catch(e) {}
+
+  // Impostor (no tiene curva asociada; solo va al feed)
+  try {
+    const rounds = (state.impostor && state.impostor.rounds) || [];
+    rounds.forEach((rd, i) => {
+      if (!rd || !rd.impostorName) return;
+      if (rd.mode === 'noDescubierto')
+        add('villano-' + i, '😈', 'El Villano', rd.impostorName, 'Fue impostor y nadie lo descubrió');
+      else
+        add('cazador-' + i, '🔍', 'Cazado', rd.impostorName, 'Lo descubrieron como impostor');
+    });
+  } catch(e) {}
+
+  // Rachas F2: dupla encendida / imparable
+  const tstreaks = {};
+  f2Entries.forEach((x, idx) => {
+    const step = idx + 1;
+    if (x.res.winner === 'empate') { tstreaks[TEAMS[x.a]] = 0; tstreaks[TEAMS[x.b]] = 0; return; }
+    const w = TEAMS[x.res.winner];
+    const l2 = TEAMS[x.res.winner === x.a ? x.b : x.a];
+    tstreaks[w] = (tstreaks[w] || 0) + 1;
+    tstreaks[l2] = 0;
+    if (tstreaks[w] === 2) { const l = add('duo-doblete-' + w, '🤝', 'Dupla Encendida', w, 'Dos victorias seguidas en equipo'); mark(starsF2, step, l); markTotal('f2', x.key, l); }
+    if (tstreaks[w] === 3) { const l = add('duo-triplete-' + w, '🏆', 'Dupla Imparable', w, 'Tres victorias al hilo'); mark(starsF2, step, l); markTotal('f2', x.key, l); }
+  });
+
+  // Comodines (no tienen curva asociada; solo van al feed)
+  try {
+    (state.comodines || []).forEach(c => {
+      if (c.status !== 'done') return;
+      if (c.key === 'robo')  add('ladron-' + c.id, '🥷', 'Ladrón', c.player, c.note || 'Le robó un punto a otro');
+      if (c.key === 'peaje') add('peaje-' + c.id, '💸', 'Mala Racha', c.player, 'La ruleta le sacó un punto');
+    });
+    (state.comodinesF2 || []).forEach(c => {
+      if (c.status !== 'done') return;
+      if (c.key === 'robo')  add('ladron-eq-' + c.id, '🥷', 'Ladrón', c.player, c.note || 'Le robó un punto a otro equipo');
+      if (c.key === 'peaje') add('peaje-eq-' + c.id, '💸', 'Mala Racha', c.player, 'La ruleta le sacó un punto');
+    });
+  } catch(e) {}
+
+  // "Rayo" / "Se Hizo Desear" — ritmo real entre resultados consecutivos de
+  // toda la noche (F1 + F2 mezclados, tal cual se fueron cargando). Solo se
+  // evalúa entre dos resultados que ambos tengan hora real: sin eso no hay
+  // forma honesta de medir cuánto tardó la mesa.
+  for (let i = 1; i < totalEntries.length; i++) {
+    const prev = totalEntries[i - 1], cur = totalEntries[i];
+    if (prev.t == null || cur.t == null) continue;
+    const gapMin = (cur.t - prev.t) / 60000;
+    if (cur.res.winner === 'empate') continue;
+    const names = cur.type === 'f1' ? PLAYERS : TEAMS;
+    const w = names[cur.res.winner];
+    if (!w) continue;
+    let l = null;
+    if (gapMin < 1) {
+      l = add('rayo-' + cur.type + '-' + cur.key, '⚡', 'Rayo', w, 'Resultado cargado a menos de un minuto del anterior — la mesa voló');
+    } else if (gapMin > 20) {
+      l = add('desear-' + cur.type + '-' + cur.key, '🐌', 'Se Hizo Desear', w, 'Pasaron ' + Math.round(gapMin) + ' minutos desde el resultado anterior');
+    }
+    if (l) {
+      mark(starsTotal, i + 1, l);
+      const phaseEntries = cur.type === 'f1' ? f1Entries : f2Entries;
+      const phaseStars = cur.type === 'f1' ? starsF1 : starsF2;
+      const si = phaseEntries.findIndex(x => x.key === cur.key);
+      if (si >= 0) mark(phaseStars, si + 1, l);
+    }
+  }
+
+  return { found: found, stars: { f1: starsF1, f2: starsF2, total: starsTotal } };
+}
+
+// Mantiene la firma vieja: el resto del código (ticker, feed de logros del
+// TV, participante.html) sigue llamando detectLogros(state, PLAYERS, TEAMS).
+function detectLogros(state, PLAYERS, TEAMS) {
+  return computeLogros(state, PLAYERS, TEAMS).found;
+}
+
+function pushLogro(l) {
+  if (_logrosShown[l.id]) return;
+  markLogro(l.id);
+  _logroQueue.push(l);
+  drainLogros();
+}
+function drainLogros() {
+  if (_logroBusy) return;
+  const l = _logroQueue.shift();
+  if (!l) return;
+  const box = document.getElementById('tv-logro');
+  if (!box) return;
+  _logroBusy = true;
+  box.innerHTML =
+    '<div class="tv-logro-emoji">' + l.emoji + '</div>'
+    + '<div class="tv-logro-body">'
+    + '  <div class="tv-logro-lbl">Logro desbloqueado</div>'
+    + '  <div class="tv-logro-title">' + l.title + '</div>'
+    + (l.who ? '<div class="tv-logro-who">' + l.who + '</div>' : '')
+    + (l.desc ? '<div class="tv-logro-desc">' + l.desc + '</div>' : '')
+    + '</div>';
+  box.classList.add('show');
+  try { logroSound(); } catch(e) {}
+  setTimeout(() => {
+    box.classList.remove('show');
+    setTimeout(() => { _logroBusy = false; drainLogros(); }, 700);
+  }, 5200);
+}
+function logroSound() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  if (!window._tvAC) window._tvAC = new AC();
+  const ctx = window._tvAC;
+  if (ctx.state === 'suspended') ctx.resume();
+  const t = ctx.currentTime;
+  [1046.5, 1318.5, 1568, 2093].forEach((f, i) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(f, t + i * 0.06);
+    g.gain.setValueAtTime(0.0, t + i * 0.06);
+    g.gain.linearRampToValueAtTime(0.12, t + i * 0.06 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.06 + 0.55);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t + i * 0.06); o.stop(t + i * 0.06 + 0.6);
+  });
+}
+function scanLogros(state, PLAYERS, TEAMS) {
+  try {
+    const found = detectLogros(state, PLAYERS, TEAMS);
+    // Primer scan de la sesión: marcar todo lo viejo como visto sin mostrarlo
+    if (!window._logrosPrimed) {
+      window._logrosPrimed = true;
+      const isFresh = Object.keys(_logrosShown).length === 0;
+      found.forEach(l => { if (!isFresh) markLogro(l.id); });
+      if (!isFresh) return;
+    }
+    found.forEach(pushLogro);
+  } catch(e) {}
+}
+
+// ── PANTALLA "MIENTRAS TANTO" ────────────────────────────────────────
+// Si pasan varios minutos sin cargar un resultado, el TV pasa a un modo de
+// datos curiosos para no quedarse mostrando siempre lo mismo.
+// (variables declaradas más arriba, antes de la primera llamada a renderTV())
+
+function buildIdleFacts(state, PLAYERS, TEAMS) {
+  const facts = [];
+  const short = n => String(n || '').split('/')[0].trim().split(' ')[0];
+  let ppts = [], tpts = [];
+  try { ppts = getPoints('f1', state, PLAYERS, TEAMS) || []; } catch(e) {}
+  try { tpts = getPoints('f2', state, PLAYERS, TEAMS) || []; } catch(e) {}
+
+  // Porcentaje de victorias
+  try {
+    const rec = {};
+    F1_FIXTURE.forEach(m => {
+      const res = state.f1[m[0] + '-' + m[1] + '-' + m[2]];
+      if (!res) return;
+      [m[1], m[2]].forEach(i => { rec[PLAYERS[i]] = rec[PLAYERS[i]] || { w: 0, p: 0 }; rec[PLAYERS[i]].p++; });
+      if (res.winner !== 'empate') { const w = PLAYERS[res.winner]; if (rec[w]) rec[w].w++; }
+    });
+    const elig = Object.keys(rec).filter(n => rec[n].p >= 2);
+    if (elig.length) {
+      const best = elig.sort((a, b) => (rec[b].w / rec[b].p) - (rec[a].w / rec[a].p))[0];
+      const pct = Math.round((rec[best].w / rec[best].p) * 100);
+      if (pct > 0) facts.push({ big: pct + '%', lbl: 'de victorias', sub: short(best) + ' — ' + rec[best].w + ' de ' + rec[best].p + ' duelos' });
+      const worst = elig.sort((a, b) => (rec[a].w / rec[a].p) - (rec[b].w / rec[b].p))[0];
+      const wpct = Math.round((rec[worst].w / rec[worst].p) * 100);
+      if (worst !== best) facts.push({ big: wpct + '%', lbl: 'de victorias', sub: short(worst) + ' la está sufriendo' });
+    }
+  } catch(e) {}
+
+  // Progreso
+  try {
+    const f1Done = F1_FIXTURE.filter(m => state.f1[m[0] + '-' + m[1] + '-' + m[2]]).length;
+    const f2Done = F2_FIXTURE.filter(m => state.f2[m[0] + '-' + m[1] + '-' + m[2]]).length;
+    if (f1Done < F1_FIXTURE.length) facts.push({ big: String(F1_FIXTURE.length - f1Done), lbl: 'duelos restantes', sub: 'para cerrar la Fase Individual' });
+    if (f2Done < F2_FIXTURE.length) facts.push({ big: String(F2_FIXTURE.length - f2Done), lbl: 'duelos restantes', sub: 'para cerrar la Fase Grupal' });
+    const totalDone = f1Done + f2Done, totalAll = F1_FIXTURE.length + F2_FIXTURE.length;
+    if (totalAll) facts.push({ big: Math.round((totalDone / totalAll) * 100) + '%', lbl: 'de la noche jugada', sub: totalDone + ' de ' + totalAll + ' duelos' });
+  } catch(e) {}
+
+  // Líderes
+  try {
+    if (ppts.length) {
+      const s = PLAYERS.map((n, i) => ({ n: n, t: ppts[i] ? ppts[i].total : 0 })).sort((a, b) => b.t - a.t);
+      if (s[0] && s[0].t > 0) facts.push({ big: String(s[0].t), lbl: 'puntos', sub: short(s[0].n) + ' lidera la Fase Individual' });
+      if (s.length >= 2 && s[0].t > 0) facts.push({ big: String(s[0].t - s[1].t), lbl: 'puntos de ventaja', sub: 'entre ' + short(s[0].n) + ' y ' + short(s[1].n) });
+    }
+    if (tpts.length && TEAMS.length) {
+      const s2 = TEAMS.map((n, i) => ({ n: n, t: tpts[i] ? tpts[i].total : 0 })).sort((a, b) => b.t - a.t);
+      if (s2[0] && s2[0].t > 0) facts.push({ big: String(s2[0].t), lbl: 'puntos', sub: s2[0].n + ' lidera la Fase Grupal' });
+    }
+  } catch(e) {}
+
+  // Bonus conseguidos
+  try {
+    const bonusCount = Object.values(state.f1 || {}).filter(r => r && r.bonus).length
+                     + Object.values(state.f2 || {}).filter(r => r && r.bonus).length;
+    if (bonusCount) facts.push({ big: String(bonusCount), lbl: 'bonus conseguidos', sub: 'en toda la noche' });
+  } catch(e) {}
+
+  // Impostor
+  try {
+    const rounds = (state.impostor && state.impostor.rounds) || [];
+    if (rounds.length) {
+      const escaped = rounds.filter(r => r.mode === 'noDescubierto').length;
+      facts.push({ big: escaped + '/' + rounds.length, lbl: 'impostores impunes', sub: escaped ? 'se salieron con la suya' : 'los agarraron a todos' });
+    }
+  } catch(e) {}
+
+  // Próximo partido
+  try {
+    const nxt = F1_FIXTURE.find(m => !state.f1[m[0] + '-' + m[1] + '-' + m[2]]);
+    if (nxt) facts.push({ big: '🎮', lbl: 'Próximo duelo', sub: short(PLAYERS[nxt[1]]) + '  vs  ' + short(PLAYERS[nxt[2]]) });
+    else {
+      const nxt2 = F2_FIXTURE.find(m => !state.f2[m[0] + '-' + m[1] + '-' + m[2]]);
+      if (nxt2) facts.push({ big: '🎮', lbl: 'Próximo duelo', sub: (TEAMS[nxt2[1]] || '?') + '  vs  ' + (TEAMS[nxt2[2]] || '?') });
+    }
+  } catch(e) {}
+
+  // Fotos del muro
+  try { if (_tvWall && _tvWall.length) facts.push({ big: String(_tvWall.length), lbl: 'fotos en el muro', sub: 'la noche va quedando registrada' }); } catch(e) {}
+
+  return facts;
+}
+
+// Cada tick de "mientras tanto" alterna entre un dato curioso (tv-idle) y el
+// gráfico de evolución de la noche (tv-evo), para no repetir siempre lo mismo.
+// Rotación automática del TV: en vez de quedarse fijo, va alternando entre
+// las tres cosas que valen la pena mirar mientras se acomodan las mesas.
+// El orden salta solo lo que no tenga contenido (ej. sin fotos cargadas).
+function showIdleFact() {
+  const box = document.getElementById('tv-idle');
+  const evoBox = document.getElementById('tv-evo');
+  const wallBox = document.getElementById('tv-wall');
+  if (!box || !evoBox) return;
+  const st = window._tvLastState;
+  if (!st) return;
+  const facts = buildIdleFacts(st, window._tvLastPlayers || [], window._tvLastTeams || []);
+
+  // Qué vistas hay disponibles en este momento
+  const vistas = [];
+  if (facts.length) vistas.push('datos');
+  vistas.push('grafico');
+  if (_tvWall && _tvWall.length) vistas.push('fotos');
+  if (!vistas.length) { box.classList.remove('show'); evoBox.classList.remove('show'); return; }
+
+  _idleIdx++;
+  const vista = vistas[_idleIdx % vistas.length];
+
+  // Apagamos todo antes de encender la que toca
+  box.classList.remove('show');
+  evoBox.classList.remove('show');
+  if (wallBox && vista !== 'fotos') wallBox.classList.remove('show');
+
+  if (vista === 'grafico') {
+    setTimeout(() => { renderEvoChart(); evoBox.classList.add('show'); }, 500);
+    return;
+  }
+
+  if (vista === 'fotos') {
+    // El muro ya rota solo; acá solo nos aseguramos de que esté visible
+    setTimeout(() => { try { tickWall(); } catch (e) {} }, 500);
+    return;
+  }
+
+  // Dato curioso
+  setTimeout(() => {
+    const f = facts[Math.floor(_idleIdx / vistas.length) % facts.length];
+    box.innerHTML =
+      '<div class="tv-idle-lbl">Mientras tanto…</div>'
+      + '<div class="tv-idle-big">' + f.big + '</div>'
+      + '<div class="tv-idle-mid">' + f.lbl + '</div>'
+      + '<div class="tv-idle-sub">' + f.sub + '</div>';
+    box.classList.add('show');
+  }, 500);
+}
+function idleTick() {
+  const box = document.getElementById('tv-idle');
+  const evoBox = document.getElementById('tv-evo');
+  if (!box) return;
+  const idle = (Date.now() - _idleLastChange) > IDLE_AFTER_MS;
+  if (idle) { _idleOn = true; showIdleFact(); }
+  else if (_idleOn) { _idleOn = false; box.classList.remove('show'); if (evoBox) evoBox.classList.remove('show'); }
+}
+function startIdle() {
+  if (_idleTimer) clearInterval(_idleTimer);
+  _idleTimer = setInterval(idleTick, 30000);   // una vista cada 30 s
+}
+
+// ── ELEMENTOS ARRASTRABLES DEL TV (QR y cronómetro) ──────────────────
+// El conductor los acomoda donde le quede cómodo según cómo esté puesta la TV,
+// y puede agrandarlos o achicarlos con los botones +/- o la rueda del mouse.
+// (TV_SCALE_MIN/MAX/STEP quedaron declaradas más arriba, junto a las demás
+// variables que initDraggables() necesita antes del primer renderTV() — ver
+// el comentario ahí.)
+
+function initDraggables() {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('ndj_tv_pos') || '{}'); } catch(e) { saved = {}; }
+  const persist = () => { try { localStorage.setItem('ndj_tv_pos', JSON.stringify(saved)); } catch(e) {} };
+
+  // Reubica un widget a su posición y tamaño original. La usan tanto el
+  // doble-click como el botoncito "↺" de la esquina.
+  const resetPos = (el, id) => {
+    el.style.left = ''; el.style.top = ''; el.style.right = ''; el.style.bottom = '';
+    el.style.transform = '';
+    delete saved[id];
+    persist();
+  };
+
+  const applyScale = (el, id, s) => {
+    s = Math.max(TV_SCALE_MIN, Math.min(TV_SCALE_MAX, s));
+    el.style.transform = (s === 1) ? '' : ('scale(' + s.toFixed(2) + ')');
+    saved[id] = Object.assign({}, saved[id], { s: s });
+    persist();
+  };
+
+  document.querySelectorAll('.tv-drag').forEach(el => {
+    const id = el.id;
+    if (!id) return;
+
+    // Restaurar posición guardada
+    const p = saved[id];
+    if (p && typeof p.x === 'number') {
+      el.style.left = p.x + 'px';
+      el.style.top = p.y + 'px';
+      el.style.right = 'auto';
+      el.style.bottom = 'auto';
+    }
+    // Restaurar tamaño guardado
+    if (p && typeof p.s === 'number' && p.s !== 1) {
+      el.style.transform = 'scale(' + p.s.toFixed(2) + ')';
+    }
+
+    const resizable = el.classList.contains('tv-resizable');
+
+    // Pista visual del doble-click (antes no había ninguna: si alguien
+    // lo arrastraba sin querer y no sabía del doble-click, quedaba mal
+    // ubicado el resto de la noche). Botón discreto + tooltip.
+    if (!el.title || el.title === 'Arrastrame') {
+      el.title = resizable
+        ? 'Arrastrame · rueda o +/- para el tamaño · doble-click para reubicar'
+        : 'Arrastrame · doble-click para reubicar';
+    }
+    if (!el.querySelector(':scope > .tv-drag-reset')) {
+      const resetBtn = document.createElement('div');
+      resetBtn.className = 'tv-drag-reset';
+      resetBtn.textContent = '↺';
+      resetBtn.title = 'Volver a la posición y tamaño original';
+      resetBtn.addEventListener('mousedown', ev => ev.stopPropagation());
+      resetBtn.addEventListener('touchstart', ev => ev.stopPropagation(), { passive: true });
+      resetBtn.addEventListener('click', ev => { ev.stopPropagation(); resetPos(el, id); });
+      el.appendChild(resetBtn);
+    }
+
+    // Botones +/- para agrandar o achicar (solo QR y cronómetro)
+    if (resizable && !el.querySelector(':scope > .tv-resize-controls')) {
+      const wrap = document.createElement('div');
+      wrap.className = 'tv-resize-controls';
+      const mkBtn = (txt, lbl, delta) => {
+        const b = document.createElement('div');
+        b.className = 'tv-resize-btn';
+        b.textContent = txt;
+        b.title = lbl;
+        b.addEventListener('mousedown', ev => ev.stopPropagation());
+        b.addEventListener('touchstart', ev => ev.stopPropagation(), { passive: true });
+        b.addEventListener('click', ev => {
+          ev.stopPropagation();
+          const cur = (saved[id] && typeof saved[id].s === 'number') ? saved[id].s : 1;
+          applyScale(el, id, cur + delta);
+        });
+        return b;
+      };
+      wrap.appendChild(mkBtn('－', 'Achicar', -TV_SCALE_STEP));
+      wrap.appendChild(mkBtn('＋', 'Agrandar', TV_SCALE_STEP));
+      el.appendChild(wrap);
+
+      // Rueda del mouse sobre el widget: agranda/achica
+      el.addEventListener('wheel', ev => {
+        ev.preventDefault();
+        const cur = (saved[id] && typeof saved[id].s === 'number') ? saved[id].s : 1;
+        const delta = ev.deltaY < 0 ? TV_SCALE_STEP : -TV_SCALE_STEP;
+        applyScale(el, id, cur + delta);
+      }, { passive: false });
+    }
+
+    let sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
+
+    const onDown = ev => {
+      // Ignorar clicks en botones internos
+      if (ev.target.closest('button, a, input')) return;
+      const pt = ev.touches ? ev.touches[0] : ev;
+      const r = el.getBoundingClientRect();
+      // Pasar a coordenadas absolutas antes de mover
+      el.style.left = r.left + 'px';
+      el.style.top = r.top + 'px';
+      el.style.right = 'auto';
+      el.style.bottom = 'auto';
+      sx = pt.clientX; sy = pt.clientY;
+      ox = r.left; oy = r.top;
+      moved = false;
+      el.classList.add('dragging');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('mouseup', onUp);
+      document.addEventListener('touchend', onUp);
+      ev.preventDefault();
+    };
+
+    const onMove = ev => {
+      const pt = ev.touches ? ev.touches[0] : ev;
+      const dx = pt.clientX - sx, dy = pt.clientY - sy;
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) moved = true;
+      const r = el.getBoundingClientRect();
+      // No dejar que se escape de la pantalla
+      const nx = Math.max(0, Math.min(window.innerWidth  - r.width,  ox + dx));
+      const ny = Math.max(0, Math.min(window.innerHeight - r.height, oy + dy));
+      el.style.left = nx + 'px';
+      el.style.top = ny + 'px';
+      ev.preventDefault();
+    };
+
+    const onUp = () => {
+      el.classList.remove('dragging');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchend', onUp);
+      if (moved) {
+        const r = el.getBoundingClientRect();
+        saved[id] = Object.assign({}, saved[id], { x: Math.round(r.left), y: Math.round(r.top) });
+        persist();
+      }
+    };
+
+    el.addEventListener('mousedown', onDown);
+    el.addEventListener('touchstart', onDown, { passive: false });
+
+    // Doble click: volver al lugar original
+    el.addEventListener('dblclick', ev => {
+      if (ev.target.closest('button, a, input')) return;
+      resetPos(el, id);
+    });
+  });
+}
+// Enganchar apenas carga el TV, sin esperar al primer dato del torneo
+(function bootDrag() {
+  if (window._dragBooted) return;
+  const go = () => {
+    if (window._dragBooted) return;
+    if (!document.querySelectorAll('.tv-drag').length) return;
+    window._dragBooted = true;
+    try { initDraggables(); } catch (e) { console.warn('drag:', e); }
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
+  else go();
+  setTimeout(go, 500);
+})();
+
+// ── RULETA DE COMODINES en el TV ─────────────────────────────────────
+// El conductor gira la ruleta desde su pantalla y acá se replica la misma
+// animación (mismo ganador, misma duración) para que los invitados vean
+// caer la aguja en vivo. Ojo: TODO lo que arma HTML/SVG acá abajo usa
+// concatenación con "+" y nunca comillas invertidas — este bloque entero
+// vive adentro del template literal gigante que arma la ventana del TV
+// (la variable "html" de openTVMode), así que una comilla invertida suelta
+// cerraría ese template en el lugar equivocado y rompería todo el script.
+let _tvRuletaBusy = false;
+const TV_RULETA_SPIN_MS = 3700;
+
+function tvBuildRuletaWheelSVG(names) {
+  const n = names.length;
+  const cx = 100, cy = 100, r = 96;
+  const seg = 360 / n;
+  const palette = ['#263249', '#3b2e4a', '#273b50', '#382e48'];
+  const baseFontSize = n > 12 ? 9 : n > 9 ? 10.5 : n > 7 ? 11.5 : n > 5 ? 13 : 15;
+  const textR = 71;
+  const pt = function (radius, angleDeg) {
+    const rad = angleDeg * Math.PI / 180;
+    return { x: cx + radius * Math.sin(rad), y: cy - radius * Math.cos(rad) };
+  };
+  const esc = function (s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  };
+  let paths = '', texts = '';
+  for (let i = 0; i < n; i++) {
+    const start = i * seg, end = (i + 1) * seg, mid = start + seg / 2;
+    const p1 = pt(r, start), p2 = pt(r, end);
+    const largeArc = (end - start) > 180 ? 1 : 0;
+    const fill = palette[i % palette.length];
+    paths += '<path d="M ' + cx + ' ' + cy + ' L ' + p1.x.toFixed(2) + ' ' + p1.y.toFixed(2)
+      + ' A ' + r + ' ' + r + ' 0 ' + largeArc + ' 1 ' + p2.x.toFixed(2) + ' ' + p2.y.toFixed(2)
+      + ' Z" fill="' + fill + '" stroke="rgba(231,206,150,0.55)" stroke-width="0.75"/>';
+    const tp = pt(textR, mid);
+    const label = String(names[i]).trim().split(/\s+/)[0];
+    const fontSize = Math.min(baseFontSize, 43 / Math.max(1, [...label].length * 0.62));
+    const short = esc(label);
+    texts += '<text x="' + tp.x.toFixed(2) + '" y="' + tp.y.toFixed(2) + '" transform="rotate(' + (mid > 90 && mid < 270 ? mid + 180 : mid).toFixed(2)
+      + ' ' + tp.x.toFixed(2) + ' ' + tp.y.toFixed(2) + ')" text-anchor="middle" dominant-baseline="middle" '
+      + 'style="font-size:' + fontSize + 'px;font-weight:850;fill:#fff8e8;paint-order:stroke;stroke:rgba(6,11,24,0.55);stroke-width:0.75px;stroke-linejoin:round;letter-spacing:0px">' + short + '</text>';
+  }
+  return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="none" stroke="rgba(246,218,152,0.7)" stroke-width="1"/>'
+    + paths + texts;
+}
+
+function tvRuletaReset() {
+  const ov = document.getElementById('tv-ruleta-overlay');
+  const svg = document.getElementById('tv-ruleta-wheel-svg');
+  const nameEl = document.getElementById('tv-ruleta-result-name');
+  const cardEl = document.getElementById('tv-ruleta-card');
+  if (ov) ov.classList.remove('open');
+  if (svg) { svg.style.transition = 'none'; svg.style.transform = 'rotate(0deg)'; }
+  if (nameEl) { nameEl.classList.remove('show'); nameEl.innerHTML = '&nbsp;'; }
+  if (cardEl) { cardEl.className = 'tv-ruleta-card'; cardEl.innerHTML = ''; }
+  _tvRuletaBusy = false;
+}
+
+function tvShowRuleta(payload) {
+  try {
+    const roster = payload.roster || [];
+    const idx = payload.idx;
+    if (!roster.length || idx == null) return;
+    _tvRuletaBusy = true;
+    const ov = document.getElementById('tv-ruleta-overlay');
+    const svg = document.getElementById('tv-ruleta-wheel-svg');
+    const nameEl = document.getElementById('tv-ruleta-result-name');
+    const cardEl = document.getElementById('tv-ruleta-card');
+    if (!ov || !svg) return;
+
+    svg.style.transition = 'none';
+    svg.style.transform = 'rotate(0deg)';
+    svg.innerHTML = tvBuildRuletaWheelSVG(roster);
+    nameEl.classList.remove('show'); nameEl.innerHTML = '&nbsp;';
+    cardEl.className = 'tv-ruleta-card'; cardEl.innerHTML = '';
+    ov.classList.add('open');
+
+    const n = roster.length;
+    const seg = 360 / n;
+    const mid = idx * seg + seg / 2;
+    const targetMod = ((360 - mid) % 360 + 360) % 360;
+    const extraSpins = 5;
+    const rot = targetMod + 360 * extraSpins;
+
+    // Como todo esto pasa en el mismo instante (el giro llega por mensaje,
+    // no por un clic del usuario), el navegador puede agrupar el "volver a
+    // 0" y el "animar al resultado" en un solo frame y saltar directo al
+    // final sin mostrar el giro. Forzamos dos vueltas de rAF (más
+    // confiable que leer offsetWidth en un <svg>) para garantizar que el
+    // ángulo 0 se pinte antes de arrancar la animación.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        svg.style.transition = 'transform ' + (TV_RULETA_SPIN_MS / 1000) + 's cubic-bezier(0.13,0.85,0.18,1)';
+        svg.style.transform = 'rotate(' + rot + 'deg)';
+      });
+    });
+
+    setTimeout(function () {
+      nameEl.textContent = String(roster[idx]);
+      nameEl.classList.add('show');
+      if (payload.como) {
+        setTimeout(function () { tvShowRuletaCard(payload.como); }, 550);
+      }
+    }, TV_RULETA_SPIN_MS);
+  } catch (e) { console.warn('tvShowRuleta:', e); }
+}
+
+function tvShowRuletaCard(cm) {
+  const cardEl = document.getElementById('tv-ruleta-card');
+  if (!cardEl) return;
+  const kindLabel = cm.kind === 'bueno' ? 'Comodín a favor' : 'Comodín en contra';
+  cardEl.className = 'tv-ruleta-card show ' + (cm.kind === 'bueno' ? 'good' : 'bad');
+  cardEl.innerHTML = '<div class="rc-emoji">' + (cm.emoji || '🎰') + '</div>'
+    + '<div class="rc-kind">' + kindLabel + '</div>'
+    + '<div class="rc-name">' + (cm.name || '') + '</div>'
+    + '<div class="rc-desc">' + (cm.desc || '') + '</div>';
+}
+
+// ── MOTES DE LA NOCHE en el TV ──────────────────────────────────────
+// Espeja el sobre del conductor (mismo sobre cerrado → volteo → cierre)
+// para que los participantes vean lo mismo en la pantalla grande, con
+// el resto de la pantalla difuminado/oscurecido para que se concentren
+// en el mote (el propio overlay trae el blur, ver CSS .tv-mote-overlay).
+function tvShowMote(payload) {
+  try {
+    const ov     = document.getElementById('tv-mote-overlay');
+    const env    = document.getElementById('tv-mote-envelope');
+    const progEl = document.getElementById('tv-mote-progress');
+    const backEl = document.getElementById('tv-mote-env-back');
+    if (!ov || !env || !backEl) return;
+    const m = payload.mote || {};
+    const typeLabel = m.type === 'honor' ? '🏆 Honor' : m.type === 'shame' ? '😬 Vergüenza' : m.type === 'impostor' ? '🕵️ Impostor' : '🎲 Especial';
+    if (progEl) progEl.textContent = (payload.idx + 1) + ' de ' + payload.total;
+    backEl.innerHTML =
+      '<div class="tv-mote-reveal-type ' + (m.type || '') + '">' + typeLabel + '</div>' +
+      '<div class="tv-mote-reveal-emoji">' + (m.emoji || '') + '</div>' +
+      '<div class="tv-mote-reveal-title">' + (m.title || '') + '</div>' +
+      '<div class="tv-mote-reveal-player ' + (m.type || '') + '">' + (m.player || '') + '</div>' +
+      '<div class="tv-mote-reveal-reason">' + (m.reason || '') + '</div>';
+    env.classList.remove('flipped');
+    ov.classList.add('open');
+  } catch (e) { console.warn('tvShowMote:', e); }
+}
+function tvFlipMote() {
+  const env = document.getElementById('tv-mote-envelope');
+  if (env) env.classList.add('flipped');
+}
+function tvCloseMoteOverlay() {
+  const ov  = document.getElementById('tv-mote-overlay');
+  const env = document.getElementById('tv-mote-envelope');
+  if (ov)  ov.classList.remove('open');
+  if (env) env.classList.remove('flipped');
+}
+
+// Replica en la TV el anuncio de "próxima ronda" que ve el conductor (mismas
+// clases .round-intro/.ri-* — ver broadcastRoundIntro en la ventana principal).
+// OJO: esta función vive dentro del template gigante de openTVMode(), que ya
+// está entre backticks — por eso acá abajo se arma el HTML a mano con '+' y
+// comillas simples en vez de template literals (backticks anidados cerrarían
+// el string de afuera antes de tiempo).
+function tvShowRoundIntro(payload) {
+  try {
+    var ov = document.getElementById('tv-round-intro');
+    if (!ov) {
+      ov = document.createElement('div');
+      ov.id = 'tv-round-intro';
+      ov.className = 'round-intro';
+      document.body.appendChild(ov);
+    }
+    var cardsHtml = (payload.cards || []).map(function(c, k) {
+      return '<div class="ri-card' + (c.done ? ' done' : '') + '" style="animation-delay:' + (k * 90) + 'ms">' +
+        '<div class="ri-station">' + c.station + '</div>' +
+        '<div class="ri-game">' + c.gameIcon + ' ' + c.gameName + '</div>' +
+        '<div class="ri-vs"><span>' + c.nameA + '</span><em>vs</em><span>' + c.nameB + '</span></div>' +
+        (c.done ? '<div class="ri-done">✓ ya jugado</div>' : '') +
+      '</div>';
+    }).join('');
+    var restHtml = (payload.resting && payload.resting.length)
+      ? '<div class="ri-rest">😴 Descansa: <b>' + payload.resting.join(', ') + '</b></div>'
+      : '';
+    ov.innerHTML =
+      '<div class="ri-head">' +
+        '<div class="ri-eyebrow">' + (payload.phase === 'f1' ? 'Fase 1 · Individual' : 'Fase 2 · Equipos') + '</div>' +
+        '<div class="ri-title">Ronda ' + payload.round + '</div>' +
+        '<div class="ri-sub">Cada uno a su mesa</div>' +
+      '</div>' +
+      '<div class="ri-grid">' + cardsHtml + '</div>' +
+      restHtml;
+    ov.classList.remove('show');
+    requestAnimationFrame(function() { ov.classList.add('show'); });
+  } catch (e) { console.warn('tvShowRoundIntro:', e); }
+}
+function tvCloseRoundIntro() {
+  var ov = document.getElementById('tv-round-intro');
+  if (ov) { ov.classList.remove('show'); setTimeout(function() { if (ov.parentNode) ov.remove(); }, 350); }
+}
+
+
+// ── REACCIÓN A LOS CAMBIOS DE PUNTAJE ────────────────────────────────
+// El TV se actualizaba en silencio; ahora marca visualmente quién sumó y
+// avisa cuando cambia el puntero, que es el momento que más ruido genera.
+// (_prevPts / _prevLeader se declaran más arriba, junto a las demás
+// variables que renderTV() necesita desde su primera ejecución — ver nota
+// de TDZ en ese bloque.)
+
+function reactToScoreChanges(phase, sorted) {
+  const now = {};
+  sorted.forEach(e => { now[e.n] = e.pts.total; });
+  const before = _prevPts[phase];
+  _prevPts[phase] = now;
+
+  const leaderNow = sorted.length && sorted[0].pts.total > 0 ? sorted[0].n : null;
+  const leaderBefore = _prevLeader[phase];
+  _prevLeader[phase] = leaderNow;
+
+  if (!before) return;   // primer render: nada que comparar
+
+  // El avatar del que sumó pega un saltito en el podio
+  Object.keys(now).forEach(name => {
+    if (before[name] === undefined || now[name] <= before[name]) return;
+    document.querySelectorAll('.podium-slot').forEach(slot => {
+      const nm = slot.querySelector('.podium-name');
+      if (!nm) return;
+      const txt = nm.textContent.replace(/[🔥🤡]/g, '').trim();
+      const target = String(name).split('/')[0].trim();
+      if (txt && (txt === name || txt === target || txt.startsWith(target.split(' ')[0]))) {
+        const wrap = slot.querySelector('.podium-avatar-wrap');
+        if (wrap) { wrap.classList.remove('bump'); void wrap.offsetWidth; wrap.classList.add('bump'); }
+      }
+    });
+  });
+
+  // Flash + conteo en las filas que cambiaron
+  Object.keys(now).forEach(name => {
+    if (before[name] === undefined || now[name] === before[name]) return;
+    const up = now[name] > before[name];
+    const row = document.querySelector('.tv-rank-row[data-ent="' + CSS.escape(name).replace(/\\/g,'') + '"]')
+             || [...document.querySelectorAll('.tv-rank-row')].find(r => r.dataset.ent === name);
+    if (row) {
+      row.classList.remove('pts-up','pts-down');
+      void row.offsetWidth;
+      row.classList.add(up ? 'pts-up' : 'pts-down');
+      const el = row.querySelector('.tv-rank-pts');
+      if (el) countUpPts(el, before[name], now[name]);
+      setTimeout(() => row.classList.remove('pts-up','pts-down'), 1800);
+    }
+  });
+
+  // Cambio de puntero
+  if (leaderNow && leaderBefore && leaderNow !== leaderBefore) {
+    announceLeaderChange(leaderNow, leaderBefore, phase);
+  }
+}
+
+// El número sube de a poco en vez de saltar de golpe
+function countUpPts(el, from, to) {
+  const dur = 700, t0 = performance.now();
+  const suffix = ' pts';
+  function step(t) {
+    const k = Math.min(1, (t - t0) / dur);
+    const eased = 1 - Math.pow(1 - k, 3);
+    const val = from + (to - from) * eased;
+    el.textContent = (Math.abs(val % 1) > 0.01 ? val.toFixed(1) : Math.round(val)) + suffix;
+    if (k < 1) requestAnimationFrame(step);
+    else el.textContent = to + suffix;
+  }
+  requestAnimationFrame(step);
+}
+
+// Cartel a pantalla ancha cuando alguien destrona al puntero
+function announceLeaderChange(nuevo, anterior, phase) {
+  let el = document.getElementById('tv-leader-change');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'tv-leader-change';
+    el.className = 'tv-leader-change';
+    document.body.appendChild(el);
+  }
+  const color = phase === 'f1' ? 'var(--accent)' : 'var(--info)';
+  el.style.setProperty('--lc', color);
+  el.innerHTML =
+    '<div class="lc-lbl">🔥 Cambio de líder · ' + (phase === 'f1' ? 'Fase 1' : 'Fase 2') + '</div>' +
+    '<div class="lc-new">' + nuevo + '</div>' +
+    '<div class="lc-old">destrona a ' + anterior + '</div>';
+  el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+  try { leaderChangeSound(); } catch(e) {}
+  setTimeout(() => el.classList.remove('show'), 5200);
+}
+
+function leaderChangeSound() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  if (!window._tvAC) window._tvAC = new AC();
+  const ctx = window._tvAC;
+  if (ctx.state === 'suspended') ctx.resume();
+  const t = ctx.currentTime;
+  [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(f, t + i * 0.075);
+    g.gain.setValueAtTime(0, t + i * 0.075);
+    g.gain.linearRampToValueAtTime(0.13, t + i * 0.075 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.075 + 0.5);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t + i * 0.075); o.stop(t + i * 0.075 + 0.55);
+  });
+}
+
+// ── MURO DE FOTOS en el TV: rota una foto cada tanto ─────────────────
+// (variables declaradas más arriba, antes de la primera llamada a renderTV())
+function loadTVWall() {
+  try {
+    let raw = null;
+    if (window._tvCachedWall) raw = window._tvCachedWall;
+    else if (window.opener && window.opener._ndjWall) raw = window.opener._ndjWall;
+    else raw = localStorage.getItem('ndj_wall');
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) _tvWall = arr;
+    }
+  } catch(e) {}
+}
+function showWallAt(idx) {
+  const box = document.getElementById('tv-wall');
+  const img = document.getElementById('tv-wall-img');
+  const tag = document.getElementById('tv-wall-tag');
+  if (!box || !img) return;
+  if (!_tvWall.length) { box.classList.remove('show'); return; }
+  box.classList.remove('show');
+  setTimeout(() => {
+    _tvWallIdx = ((idx % _tvWall.length) + _tvWall.length) % _tvWall.length;
+    const p = _tvWall[_tvWallIdx];
+    if (!p) return;
+    img.src = p.src;
+    if (tag) tag.textContent = p.by ? ('📸 ' + p.by) : '📸 La Velada';
+    box.classList.add('show');
+  }, 650);
+}
+function tickWall() {
+  loadTVWall();
+  if (!_tvWall.length) { const box = document.getElementById('tv-wall'); if (box) box.classList.remove('show'); return; }
+  showWallAt(_tvWallIdx + 1);
+}
+function startWall() {
+  if (_tvWallTimer) clearInterval(_tvWallTimer);
+  setTimeout(tickWall, 2500);
+  _tvWallTimer = setInterval(tickWall, 11000);
+}
+
+function buildRelatorLines(state, PLAYERS, TEAMS) {
+  const out = [];
+  const push = (id, emoji, html) => { out.push({ id: id, emoji: emoji, html: html }); };
+  const short = n => String(n || '').split('/')[0].trim().split(' ')[0];
+
+  let ppts = [], tpts = [];
+  try { ppts = getPoints('f1', state, PLAYERS, TEAMS) || []; } catch(e) {}
+  try { tpts = getPoints('f2', state, PLAYERS, TEAMS) || []; } catch(e) {}
+
+  // Rachas de victorias / derrotas en Fase 1
+  if (ppts.length) {
+    PLAYERS.forEach((n, i) => {
+      if (!ppts[i]) return;
+      const played = (ppts[i].rounds || []).filter(v => typeof v === 'number');
+      let streak = 0;
+      for (let k = played.length - 1; k >= 0; k--) { if (played[k] >= 3) streak++; else break; }
+      if (streak >= 3) push('streak-' + n + '-' + streak, '🔥',
+        '<b>' + short(n) + '</b> lleva ' + streak + ' victorias seguidas');
+      let lstreak = 0;
+      for (let k = played.length - 1; k >= 0; k--) { if (played[k] === 0) lstreak++; else break; }
+      if (lstreak >= 3) push('lstreak-' + n + '-' + lstreak, '🥶',
+        '<b>' + short(n) + '</b> encadena ' + lstreak + ' derrotas al hilo');
+    });
+
+    const sortedP = PLAYERS.map((n, i) => ({ n: n, t: ppts[i] ? ppts[i].total : 0 })).sort((a, b) => b.t - a.t);
+    if (sortedP.length >= 2 && sortedP[0].t > 0) {
+      const gap = sortedP[0].t - sortedP[1].t;
+      if (gap === 0) push('tie-f1-' + sortedP[0].t, '⚖️',
+        '<b>' + short(sortedP[0].n) + '</b> y <b>' + short(sortedP[1].n) + '</b> empatados en la punta con ' + sortedP[0].t);
+      else if (gap >= 5) push('lead-f1-' + sortedP[0].n + '-' + gap, '👑',
+        '<b>' + short(sortedP[0].n) + '</b> se escapa: ' + gap + ' puntos de ventaja');
+      else push('close-f1-' + sortedP[0].n + '-' + gap, '🎯',
+        '<b>' + short(sortedP[0].n) + '</b> puntero por ' + gap + ' — ' + short(sortedP[1].n) + ' lo persigue');
+    }
+  }
+
+  // Fase 2
+  if (tpts.length && TEAMS.length) {
+    const sortedT = TEAMS.map((n, i) => ({ n: n, t: tpts[i] ? tpts[i].total : 0 })).sort((a, b) => b.t - a.t);
+    if (sortedT.length && sortedT[0].t > 0) {
+      push('lead-f2-' + sortedT[0].n + '-' + sortedT[0].t, '🏆',
+        '<b>' + sortedT[0].n + '</b> manda en la Fase Grupal con ' + sortedT[0].t + ' puntos');
+      if (sortedT.length >= 2 && sortedT[0].t - sortedT[1].t <= 1)
+        push('close-f2-' + sortedT[1].n, '🔥',
+          '<b>' + sortedT[1].n + '</b> a un suspiro de la punta');
+    }
+  }
+
+  // Progreso de fases
+  try {
+    const f1Done = F1_FIXTURE.filter(m => state.f1[m[0] + '-' + m[1] + '-' + m[2]]).length;
+    const f2Done = F2_FIXTURE.filter(m => state.f2[m[0] + '-' + m[1] + '-' + m[2]]).length;
+    if (f1Done && f1Done === F1_FIXTURE.length) push('f1-done', '✅', 'Fase Individual completa — se viene el Impostor');
+    else if (f1Done && F1_FIXTURE.length - f1Done <= 2) push('f1-almost-' + f1Done, '⏳',
+      'Quedan ' + (F1_FIXTURE.length - f1Done) + ' duelos para cerrar la Fase Individual');
+    if (f2Done && f2Done === F2_FIXTURE.length) push('f2-done', '✅', 'Fase Grupal completa — a la gran final');
+    else if (f2Done && F2_FIXTURE.length - f2Done <= 2) push('f2-almost-' + f2Done, '⏳',
+      'Quedan ' + (F2_FIXTURE.length - f2Done) + ' duelos de Fase Grupal');
+  } catch(e) {}
+
+  // Impostor
+  try {
+    const rounds = (state.impostor && state.impostor.rounds) || [];
+    if (rounds.length) {
+      const last = rounds[rounds.length - 1];
+      if (last && last.impostorName) {
+        push('imp-' + rounds.length, last.mode === 'noDescubierto' ? '🕵️' : '🎭',
+          last.mode === 'noDescubierto'
+            ? '<b>' + short(last.impostorName) + '</b> fue impostor y nadie se dio cuenta'
+            : 'Descubrieron a <b>' + short(last.impostorName) + '</b> como impostor');
+      }
+    }
+  } catch(e) {}
+
+  // Comodines de la ruleta
+  try {
+    const comos = (state.comodines || []).filter(c => c.status === 'done');
+    if (comos.length) {
+      const last = comos[comos.length - 1];
+      const d = last.delta || 0;
+      push('como-' + last.id, d >= 0 ? '🍀' : '💀',
+        '<b>' + short(last.player) + '</b>: ' + (last.note || 'comodín aplicado') + ' (' + (d > 0 ? '+' : '') + d + ')');
+    }
+    const comosF2 = (state.comodinesF2 || []).filter(c => c.status === 'done');
+    if (comosF2.length) {
+      const last = comosF2[comosF2.length - 1];
+      const d = last.delta || 0;
+      push('como-eq-' + last.id, d >= 0 ? '🍀' : '💀',
+        '<b>' + short(last.player) + '</b>: ' + (last.note || 'comodín aplicado') + ' (' + (d > 0 ? '+' : '') + d + ')');
+    }
+  } catch(e) {}
+
+  return out;
+}
+
+function tickRelator(state, PLAYERS, TEAMS) {
+  const el = document.getElementById('tv-relator');
+  const txt = document.getElementById('tv-relator-text');
+  if (!el || !txt) return;
+  const lines = buildRelatorLines(state, PLAYERS, TEAMS);
+  if (!lines.length) return;
+
+  const fresh = lines.filter(l => !_relatorSeen[l.id]);
+  const pool = fresh.length ? fresh : lines;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  _relatorSeen[pick.id] = true;
+  const keys = Object.keys(_relatorSeen);
+  if (keys.length > 80) keys.slice(0, 40).forEach(k => delete _relatorSeen[k]);
+
+  txt.innerHTML = '<span class="rl-emoji">' + pick.emoji + '</span>' + pick.html;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 7000);
+}
+
+function startRelator() {
+  if (_relatorTimer) clearInterval(_relatorTimer);
+  const run = () => {
+    try {
+      const st = window._tvLastState;
+      if (!st) return;
+      tickRelator(st, window._tvLastPlayers || [], window._tvLastTeams || []);
+    } catch(e) {}
+  };
+  setTimeout(run, 4000);
+  _relatorTimer = setInterval(run, 16000);
+}
+
+function renderTicker(state, PLAYERS, TEAMS) {
+  const inner = document.getElementById('tv-ticker-inner');
+  const track = document.getElementById('tv-ticker-track');
+  if (!inner) return;
+
+  // Reset any previous animation before touching the DOM.
+  // _tickerGen invalida cualquier loop anterior que siga vivo (evita que se
+  // acumulen varios loops corriendo en paralelo y multiplicando la velocidad).
+  _tickerGen++;
+  const myGen = _tickerGen;
+  if (_tickerAnim) { cancelAnimationFrame(_tickerAnim); _tickerAnim = null; }
+  _tickerPos = 0;
+  inner.style.transform = 'translateX(0)';
+
+  const items = buildTickerItems(state, PLAYERS, TEAMS);
+  if (!items.length) {
+    inner.innerHTML = '<span class="tv-ticker-item" style="color:var(--muted);font-style:italic">Esperando resultados...</span>';
+    return;
+  }
+
+  // Render a single copy first. Only duplicate it (for the seamless
+  // scroll-loop trick) if the content actually overflows the track —
+  // otherwise, with few results, both copies fit on screen at once and
+  // every result visibly appears "duplicated".
+  inner.innerHTML = items.join('');
+  if (!track) return;
+
+  requestAnimationFrame(() => {
+    if (myGen !== _tickerGen) return; // renderTicker volvió a correr: abortar
+    const singleWidth = inner.scrollWidth;
+    const trackWidth  = track.clientWidth;
+
+    if (singleWidth <= trackWidth) return; // fits — show once, no scroll needed
+
+    // Doesn't fit — duplicate exactly once so the loop is seamless
+    inner.innerHTML = items.join('') + items.join('');
+
+    requestAnimationFrame(() => {
+      if (myGen !== _tickerGen) return; // abortar si ya hay un render más nuevo
+      _tickerWidth = inner.scrollWidth / 2; // half-width (one copy of items)
+      if (_tickerWidth <= 0) return;
+      let last = null;
+      function step(ts) {
+        if (myGen !== _tickerGen) return; // loop viejo: morir, no acumular velocidad
+        if (last === null) last = ts;
+        const dt = (ts - last) / 1000;
+        last = ts;
+        _tickerPos += _tickerSpeed * dt;
+        if (_tickerPos >= _tickerWidth) _tickerPos -= _tickerWidth;
+        inner.style.transform = 'translateX(-' + _tickerPos + 'px)';
+        _tickerAnim = requestAnimationFrame(step);
+      }
+      _tickerAnim = requestAnimationFrame(step);
+    });
+  });
+}
+
+// ── Live sync ───────────────────────────────────────────────
+// Mecanismos en orden de prioridad:
+// 1. BroadcastChannel: INSTANTÁNEO, funciona en misma PC (misma ventana que escribe).
+//    El evento 'storage' NO se dispara en la ventana que escribe, pero BroadcastChannel sí.
+// 2. storage event: backup para otras pestañas/ventanas del mismo origen.
+// 3. Firebase onSnapshot: para celular → TV (distinto dispositivo).
+// 4. Polling cada 2s: último recurso si Firebase no conecta.
+(function startSync() {
+  let fbActive = false;
+  let pollId = null;
+
+  function startPolling() {
+    if (pollId) return;
+    pollId = setInterval(renderTV, 2000);
+  }
+  function stopPolling() {
+    if (pollId) { clearInterval(pollId); pollId = null; }
+  }
+
+  // ── 0. postMessage directo (misma PC, MÁS CONFIABLE) ─────
+  // La ventana principal tiene referencia a esta ventana y le manda
+  // los datos directamente. No depende de localStorage ni de eventos.
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'ndj_state') {
+      _tvCachedState = e.data.data; // string JSON, renderTV lo parsea
+      renderTV();
+    }
+    if (e.data && e.data.type === 'ndj_wall') {
+      window._tvCachedWall = e.data.data;
+      try { localStorage.setItem('ndj_wall', e.data.data); } catch(err) {}
+    }
+    if (e.data && e.data.type === 'ndj_miis') {
+      try { localStorage.setItem('ndj_miis', e.data.data); } catch(err) {}
+      renderTV();
+    }
+    if (e.data && e.data.type === 'ndj_ruleta') {
+      if (e.data.data && e.data.data.type === 'spin') tvShowRuleta(e.data.data);
+      else if (e.data.data && e.data.data.type === 'close') tvRuletaReset();
+    }
+    if (e.data && e.data.type === 'ndj_mote') {
+      const d = e.data.data;
+      if (d && d.type === 'show') tvShowMote(d);
+      else if (d && d.type === 'flip') tvFlipMote();
+      else if (d && d.type === 'close') tvCloseMoteOverlay();
+    }
+    if (e.data && e.data.type === 'ndj_roundintro') {
+      const d = e.data.data;
+      if (d && d.type === 'show') tvShowRoundIntro(d);
+      else if (d && d.type === 'close') tvCloseRoundIntro();
+    }
+  });
+
+  // ── 0b. Pull desde window.opener (solo si el origin lo permite) ──
+  // window.opener sobrevive recargas de la principal (a diferencia de _tvWin).
+  // PERO con file:// cada archivo es un origin opaco único y el acceso a
+  // opener lanza SecurityError, así que primero sondeamos una vez y solo
+  // montamos el intervalo si funciona (típicamente al servir por http).
+  let _openerReadable = false;
+  try { void (window.opener && window.opener._ndjState); _openerReadable = !!window.opener; } catch (e) { _openerReadable = false; }
+  if (_openerReadable) {
+    let _lastOpenerState = null;
+    setInterval(() => {
+      try {
+        const op = window.opener;
+        if (!op || op.closed) return;
+        const s = op._ndjState;
+        if (s && s !== _lastOpenerState) {
+          _lastOpenerState = s;
+          _tvCachedState = s;
+          renderTV();
+        }
+        const w = op._ndjWall;
+        if (w && w !== window._tvCachedWall) {
+          window._tvCachedWall = w;
+          try { localStorage.setItem('ndj_wall', w); } catch(e) {}
+        }
+      } catch (e) { /* opener cerrado o sin acceso: ignorar */ }
+    }, 400);
+  }
+
+  // ── 1. BroadcastChannel (misma PC, instantáneo) ──────────
+  try {
+    const bc = new BroadcastChannel('ndj_sync');
+    bc.onmessage = (e) => {
+      if (e.data && e.data.key === 'ndj_state') {
+        try { localStorage.setItem('ndj_state', e.data.data); } catch(err) {}
+        _tvCachedState = e.data.data; // que gane el dato más reciente
+        renderTV();
+      }
+      if (e.data && e.data.key === 'ndj_wall') {
+        window._tvCachedWall = e.data.data;
+        try { localStorage.setItem('ndj_wall', e.data.data); } catch(err) {}
+      }
+      if (e.data && e.data.key === 'ndj_miis') {
+        try { localStorage.setItem('ndj_miis', e.data.data); } catch(err) {}
+        renderTV();
+      }
+      if (e.data && e.data.key === 'ndj_ruleta') {
+        if (e.data.data && e.data.data.type === 'spin') tvShowRuleta(e.data.data);
+        else if (e.data.data && e.data.data.type === 'close') tvRuletaReset();
+      }
+      if (e.data && e.data.key === 'ndj_mote') {
+        const d = e.data.data;
+        if (d && d.type === 'show') tvShowMote(d);
+        else if (d && d.type === 'flip') tvFlipMote();
+        else if (d && d.type === 'close') tvCloseMoteOverlay();
+      }
+      if (e.data && e.data.key === 'ndj_roundintro') {
+        const d = e.data.data;
+        if (d && d.type === 'show') tvShowRoundIntro(d);
+        else if (d && d.type === 'close') tvCloseRoundIntro();
+      }
+    };
+  } catch(e) { console.warn('BroadcastChannel no disponible:', e); }
+
+  // ── 2. storage event (otras pestañas, mismo origen) ──────
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'ndj_wall') { window._tvCachedWall = e.newValue; return; }
+    if (!e.key || e.key === 'ndj_state' || e.key === 'ndj_rules' || e.key === 'ndj_photos') {
+      renderTV();
+    }
+  });
+
+  // Safety net: if any timer got throttled while this window was hidden
+  // or unfocused, force a fresh render the moment it's visible again.
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) renderTV(); });
+  window.addEventListener('focus', renderTV);
+  window.addEventListener('pageshow', renderTV);
+
+  try {
+    // Dynamically import Firebase (same CDN, no bundler needed)
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({initializeApp}) => {
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').then(({getFirestore, doc, onSnapshot}) => {
+        const app = initializeApp({
+          apiKey: "AIzaSyB-1B426OH2ZYKHT1n8VVzmv0h_10186Zo",
+          authDomain: "cumple-598e7.firebaseapp.com",
+          projectId: "cumple-598e7",
+          storageBucket: "cumple-598e7.firebasestorage.app",
+          messagingSenderId: "92890914103",
+          appId: "1:92890914103:web:ab78f983eee410e6eb8eb2"
+        }, 'tv');
+        const db = getFirestore(app);
+
+        onSnapshot(doc(db, 'ndj', 'state'), (snap) => {
+          if (!snap.exists()) return;
+          const raw = snap.data().data;
+          if (raw) {
+            try { localStorage.setItem('ndj_state', raw); } catch(e) {}
+            _tvCachedState = raw; // CLAVE cross-device: el dato de la nube gana
+          }
+          stopPolling();
+          renderTV();
+        }, (err) => {
+          console.warn('Firebase onSnapshot error, falling back to polling:', err);
+          fbActive = false;
+          startPolling();
+        });
+
+        // Muro de fotos: lo escriben los invitados desde el celular
+        onSnapshot(doc(db, 'ndj', 'wall'), (snap) => {
+          if (!snap.exists()) return;
+          const raw = snap.data().data;
+          if (!raw) return;
+          try { localStorage.setItem('ndj_wall', raw); } catch(e) {}
+          window._tvCachedWall = raw;
+          try {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) {
+              const was = _tvWall.length;
+              _tvWall = arr;
+              // Foto nueva (o primera de la noche): mostrarla enseguida en vez de
+              // esperar a que la rotación normal (una cada 11s) le llegue el turno.
+              if (arr.length > was) {
+                if (_tvWallTimer) clearInterval(_tvWallTimer);
+                showWallAt(arr.length - 1);
+                _tvWallTimer = setInterval(tickWall, 11000);
+              }
+            }
+          } catch(e) {}
+        }, () => {});
+
+        // Personalización de figuras (color / pose / accesorio)
+        onSnapshot(doc(db, 'ndj', 'miis'), (snap) => {
+          if (!snap.exists()) return;
+          const raw = snap.data().data;
+          if (!raw) return;
+          try { localStorage.setItem('ndj_miis', raw); } catch(e) {}
+          try { MIIS_INIT = JSON.parse(raw) || MIIS_INIT; } catch(e) {}
+          renderTV();
+        }, () => {});
+
+        // Apuestas: para que el TV pueda mostrar quién acertó
+        onSnapshot(doc(db, 'ndj', 'bets'), (snap) => {
+          if (!snap.exists()) return;
+          try { window._tvBets = JSON.parse(snap.data().data) || {}; } catch(e) {}
+        }, () => {});
+
+        fbActive = true;
+        stopPolling();
+        document.getElementById('tv-footer').textContent = '🔴 En vivo · esperando datos...';
+      });
+    }).catch(err => {
+      console.warn('Firebase load failed, using polling:', err);
+      startPolling();
+    });
+  } catch(e) {
+    console.warn('Firebase import failed, using polling:', e);
+    startPolling();
+  }
+
+  // Fallback: if Firebase doesn't connect in 5s, start polling anyway
+  setTimeout(() => { if (!fbActive) startPolling(); }, 5000);
+})();
+</script>
+<script>
+// ── Pantalla siempre encendida ─────────────────────────────────────────
+// Evita que el celular (o la notebook del TV) apague la pantalla mientras
+// la página está abierta. Si el navegador no lo soporta, no pasa nada.
+(function mantenerPantallaEncendida() {
+  if (!('wakeLock' in navigator)) return;
+  let lock = null;
+  async function pedir() {
+    if (document.visibilityState !== 'visible' || lock) return;
+    try {
+      lock = await navigator.wakeLock.request('screen');
+      lock.addEventListener('release', () => { lock = null; });
+    } catch (e) { lock = null; }
+  }
+  pedir();
+  document.addEventListener('visibilitychange', pedir);
+  // Algunos navegadores (Safari) solo lo dan después de un toque
+  ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
+})();
+</script>
 <button id="tv-audio-unlock" type="button" style="position:fixed;right:1rem;bottom:4.2rem;z-index:99999;display:none;padding:.55rem 1rem;border-radius:99px;border:1px solid rgba(255,200,80,.6);background:rgba(30,22,5,.92);color:#ffd27a;font:700 14px system-ui,sans-serif;cursor:pointer">🔇 Tocá acá para activar el sonido</button>
-<script>/* TV rendered by velada-tv.js with the original figures */</script>
-<script src="velada-figures.js"></script><script src="velada-tv.js"></script><script src="velada-presentation.js"></script></body>
+<script>
+// ── Desbloqueo de sonido del TV ────────────────────────────────────────
+// El navegador no deja sonar nada hasta que alguien toca ESTA ventana
+// (también después de un F5). Si el audio está bloqueado, se muestra un
+// botón; con cualquier clic o tecla se habilita y el botón desaparece.
+(function desbloquearSonidoTV() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  if (!window._tvAC) { try { window._tvAC = new AC(); } catch (e) { return; } }
+  const ctx = window._tvAC;
+  const btn = document.getElementById('tv-audio-unlock');
+  const refrescar = () => { btn.style.display = ctx.state === 'running' ? 'none' : 'block'; };
+  const activar = () => {
+    ctx.resume().then(() => {
+      // Un sonido silencioso para "despertar" la salida de audio
+      try { const o = ctx.createOscillator(), g = ctx.createGain(); g.gain.value = 0; o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.05); } catch (e) {}
+      refrescar();
+    }).catch(refrescar);
+  };
+  ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, activar, { passive: true }));
+  ctx.addEventListener('statechange', refrescar);
+  setTimeout(refrescar, 800);
+})();
+</script>
+</body>
 </html>
