@@ -1,0 +1,37 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');const root=path.resolve(__dirname,'..'),read=f=>fs.readFileSync(path.join(root,f),'utf8');
+const c={console,Math,Date,JSON,Set,Array};c.window=c;vm.createContext(c);for(const f of ['teg-map.js','teg-engine.js','puntos.js','team-maps.js'])vm.runInContext(read(f),c);const E=c.TegEngine,M=c.TegMap;
+let seed=42;const rng=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+function begin(n=6){return E.apply(E.create(Array.from({length:n},(_,i)=>'Equipo '+i+' / Integrante '+i),1000,rng),{type:'start'},1000,rng).state;}
+function command(s,type,x={},now=2000,random=rng){return E.apply(s,{type,team:s.current,rev:s.rev,turnId:s.turnId,...x},now,random);}
+assert.equal(M.territories.length,50);for(const p of M.territories){assert(p.neighbors.length);for(const q of p.neighbors)assert(M.territories[q].neighbors.includes(p.id),'Simetría '+p.name);}
+const reach=new Set([0]);for(let i=0;i<50;i++)for(const p of [...reach])M.territories[p].neighbors.forEach(q=>reach.add(q));assert.equal(reach.size,50);
+for(const n of [2,3,4,5,6,8,10,12,20,50])for(let i=0;i<10;i++){
+ const s=begin(n),st=E.stats(s);assert.equal(s.board.length,50);assert(st.every(x=>x.troops===st[0].troops));assert(Math.max(...st.map(x=>x.countries))-Math.min(...st.map(x=>x.countries))<=1);assert(s.board.every(p=>p.troops>=1));assert(s.goals.every((g,t)=>E.goalProgress(s,t).value<g.target));assert.equal(s.deadline,901000);assert(s.reinforceMs<=60000);assert((s.reinforceMs+s.actionMs)*n<=900000);
+ const out=E.publicState(s);assert(!('goals'in out));assert(!('clients'in out));assert(!('processed'in out));assert(!JSON.stringify(out).includes('Ofensiva relámpago'));
+}
+let s=begin();const country=s.board.find(p=>p.owner===s.current).id;
+let r=command(s,'draft',{country,delta:1});assert(r.ok);s=r.state;assert.equal(s.draft[country],1);const same=command(s,'draft',{country,delta:1,rev:s.rev-1});assert(!same.ok);assert.equal(same.state.draft[country],1);
+assert(!command(s,'draft',{country:s.board.find(p=>p.owner!==s.current).id,delta:1}).ok);
+r=command(s,'deploy');assert(r.ok);s=r.state;assert.equal(s.phase,'attack');assert.equal(s.board.reduce((a,p)=>a+p.troops,0),begin().board.reduce((a,p)=>a+p.troops,0)+s.budget.total);
+// Combat: known comparisons, defender wins ties, conquest transfer 1–3, no zero country.
+s=begin(2);s.goals=s.goals.map(()=>({type:'capture',target:999}));s.phase='attack';s.attacks=0;const from=0,to=M.territories[0].neighbors[0];s.board[from]={id:from,owner:s.current,troops:5};s.board[to]={id:to,owner:1-s.current,troops:1};
+r=command(s,'attack',{from,to},3000,()=>.99);assert(r.ok);assert.equal(r.state.battle.lostA,1);assert.equal(r.state.battle.lostD,0);assert(!r.state.battle.conquered);assert(!command(r.state,'attack',{from,to},3100).ok);
+const rolls=[.99,.8,.5,0];r=command(s,'attack',{from,to},3000,()=>rolls.shift());assert(r.ok);s=r.state;assert(s.battle.conquered);assert.equal(s.board[to].troops,1);assert.equal(s.pendingMove.max,2);assert(!command(s,'advance',{amount:3},6000).ok);r=command(s,'advance',{amount:2},6000);assert(r.ok);s=r.state;assert.equal(s.board[to].troops,3);assert.equal(s.board[from].troops,2);
+// Re-group cannot relay troops that arrived in the same turn.
+r=command(s,'regroup',{},6100);assert(r.ok);s=r.state;const initial=s.movable[to];r=command(s,'move',{from,to,amount:1},6200);assert(r.ok);s=r.state;assert.equal(s.movable[to],initial);assert(!command(s,'attack',{from,to},6500).ok);
+// Timer ends placement and fills remaining troops, then advances exactly one turn.
+s=begin();const original=s.current;E.tick(s,s.phaseDeadline);assert.equal(s.phase,'attack');assert.equal(Object.keys(s.draft).length,0);E.tick(s,s.phaseDeadline);assert.notEqual(s.current,original);assert.equal(s.phase,'reinforce');
+// Pause/resume preserve global, phase and animation durations.
+s=begin();r=E.apply(s,{type:'pause'},11000);assert(r.ok);s=r.state;const remaining=s.remainingMs,phase=s.phaseRemaining;E.tick(s,999000);assert.equal(s.status,'paused');r=E.apply(s,{type:'resume'},999000);s=r.state;assert.equal(s.deadline-999000,remaining);assert.equal(s.phaseDeadline-999000,phase);
+// Winning objective ends immediately and blocks all later actions.
+s=begin(2);s.phase='attack';s.goals[s.current]={type:'capture',target:1,title:'Misión',detail:'Conquistá 1'};s.board[0]={id:0,owner:s.current,troops:4};s.board[to]={id:to,owner:1-s.current,troops:1};const win=[.9,.9,.9,0];r=command(s,'attack',{from:0,to},4000,()=>win.shift());assert(r.ok);s=r.state;assert.equal(s.status,'finished');assert.equal(s.reason,'objective');assert(!command(s,'end').ok);assert.equal(E.result(s).byTeam[s.teams[s.current].name],3);assert(E.publicState(s).reveal.length);
+// Global end and exact ties share victory; default conquest advance never empties origin.
+s=begin(2);s.goals=s.goals.map(()=>({type:'capture',target:999}));s.pendingMove={from:0,to, max:0};s.board[0].troops=1;E.tick(s,s.deadline);assert.equal(s.board[0].troops,1);assert.equal(s.status,'finished');
+s=begin(2);s.board.forEach((p,i)=>{p.owner=i%2;p.troops=2;});E.tick(s,s.deadline);assert.equal(s.winners.length,2);
+// Continent bonuses can only be placed in their continent.
+s=begin(2);const t=s.current;M.territories.filter(p=>p.continent==='Oceanía').forEach(p=>s.board[p.id].owner=t);s.budget=E.budget(s,t);assert.equal(s.budget.continents['Oceanía'],2);const outside=s.board.find(p=>p.owner===t&&M.territories[p.id].continent!=='Oceanía').id;assert(!E.validDraft(s,{[outside]:s.budget.base+1}));
+// Fixture identity, common result and ranking: a replacement never adds twice.
+const games=['Mario Party','TEG Express'],fix=[[1,0,1,0]],state={f2:{},tegRound:{byTeam:{A:3,B:0}},roundOrder:['teg','duel:1','impostor','qld']};assert(c.RoundPlan.ids(fix,games).includes('teg'));const points=()=>c.Puntos.equipos({state,teams:['A','B'],players:[],f2Fixture:fix,games});assert.equal(points()[0].total,3);state.tegRound={byTeam:{A:0,B:3}};assert.equal(points()[0].total,0);assert.equal(points()[1].total,3);
+const wire=c.FirebaseTeamMaps.toWire({byTeam:{'A / B':3}});assert(!Object.keys(wire.byTeam).some(k=>k.includes('/')));assert.equal(c.FirebaseTeamMaps.fromWire(wire).byTeam['A / B'],3);
+assert(read('index.html').includes('href="teg.html"'));assert(read('teg.html').includes('teg-cloud.js'));assert(!read('teg-config.js').includes('guessmovie'));assert(!read('teg-config.js').includes('cumple-'));assert(read('teg-server/functions/index.js').includes('setCustomUserClaims'));
+console.log('OK: TEG 2–50 equipos; mapa conectado; reparto equilibrado; objetivos iniciales incumplidos; dados/empates/bajas/conquista; refuerzos continentales; movimientos sin relevos; versiones; pausas; vencimientos; final automático; secretos fuera de TV; resultado idempotente y enlaces.');

@@ -36,6 +36,7 @@
       await db.ref().update(updates);
       // El panel del participante solo avisa «te toca ahora» por cruces
       // realmente activados por el conductor, no por inferencia del fixture.
+      state.activeCommonRound = null;
       state.activeMatches = filtered.map(m => ({ phase, key: m[0]+'-'+m[1]+'-'+m[2] }));
       saveState();
       showToast('🔔','Ronda '+commonRoundNumber('duel:'+filtered[0][0])+' publicada. Los celulares ya pueden elegir su nombre.',false);
@@ -83,7 +84,7 @@
         if(game==='movies'||game==='argentinos'){updates[p+'/state']='locked';updates[p+'/winner']=null;}
       });
       await db.ref().update(updates);
-      state.activeMatches=[];saveState();
+      state.activeMatches=[];state.activeCommonRound={id:'argentinos',round};saveState();
       showToast('🎤','Ronda '+round+' lista: abrí 100 Argentinos y armá los grupos de juego.',false);
     }catch(e){showToast('⚠️','No se pudo activar: '+e.message,false);}
     finally{if(button)button.disabled=false;}
@@ -134,7 +135,7 @@
         if(game==='argentinos'){updates[p+'/state']='locked';updates[p+'/winner']=null;}
       });
       await db.ref().update(updates);
-      state.activeMatches=[];saveState();
+      state.activeMatches=[];state.activeCommonRound={id:'guess',round};saveState();
       showToast('🎬','Ronda '+round+' publicada. Los celulares ya pueden elegir su nombre y el buzzer queda listo.',false);
     }catch(e){showToast('⚠️','No se pudo activar: '+e.message,false);}
     finally{if(button)button.disabled=false;}

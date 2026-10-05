@@ -7,7 +7,7 @@ for(const f of fs.readdirSync(root)){
 const s=read('velada.html'),ctx={console,confirm:()=>true,setTimeout:()=>{},clearTimeout:()=>{},Math,Date,JSON};ctx.window=ctx;
 vm.createContext(ctx);for(const f of ['puntos.js','buzzer-rounds.js','common-rounds.js'])vm.runInContext(read(f),ctx);
 vm.runInContext(s.slice(s.indexOf('const RULES_DEFAULT ='),s.indexOf('function _applyRulesParsed'))+'\nthis.defaults=RULES_DEFAULT;',ctx);
-for(const count of [5,6]){const old=JSON.parse(JSON.stringify(ctx.defaults));old.f2=old.f2.slice(0,count);old.f2[0].pts_win=9;const fixed=ctx.migrateRulesCatalog(old);assert.equal(fixed.f2.length,10);assert.equal(fixed.f2[0].pts_win,9);assert.equal(old.f2.length,count);fixed.f2.splice(6,1);assert.equal(ctx.migrateRulesCatalog(fixed).f2.length,9);}
+for(const count of [5,6]){const old=JSON.parse(JSON.stringify(ctx.defaults));old.f2=old.f2.slice(0,count);old.f2[0].pts_win=9;const fixed=ctx.migrateRulesCatalog(old);assert.equal(fixed.f2.length,11);assert.equal(fixed.f2[0].pts_win,9);assert.equal(old.f2.length,count);fixed.f2.splice(6,1);assert.equal(ctx.migrateRulesCatalog(fixed).f2.length,10);}
 ctx.state={f1:{},f2:{'1-0-1':{winner:0,bonus:false}},impostor:{rounds:[{mode:'noDescubierto',players:['A','B'],impostorName:'A'}]},argentinosRound:{byTeam:{A:3,B:0}},guessRound:{byTeam:{A:1,B:3}},qldTeamPoints:{0:3,1:1}};
 ctx.F2_FIXTURE=[[1,0,1,0],[2,0,1,0]];ctx.F2_BYES={};ctx.TEAMS=['A','B'];ctx.PLAYERS=['A','B'];ctx.FULL_NAMES={};ctx.GAMES_F2=['Mario Party','Guess Movie/Song','100 Argentinos Dicen'];ctx.saveState=()=>{};
 const order=ctx.ensureCommonRoundOrder();assert.equal(new Set(order).size,6);assert.equal(order.length,6);assert.equal(JSON.stringify(order),JSON.stringify(ctx.ensureCommonRoundOrder()));assert(order.indexOf('duel:1')<order.indexOf('duel:2'));
@@ -36,5 +36,5 @@ let updates;ctx._rtdb={ref:()=>({update:async u=>{updates=u;}})};ctx.showToast=(
  // Game-group assignment preserves original participants and remaps buzzer slots.
  ctx.gm={cur:{a:0,b:1},teams:[{name:'Rojo',origs:[0]},{name:'Azul',origs:[1]}],origs:[{members:['A']},{members:['B']}]};ctx.currentFixtureMatch=()=>arg.fixture;let pub;ctx.fbRef={transaction:async fn=>{pub=fn(arg);}};
  vm.runInContext(read('argentinos-rounds.js'),ctx);ctx.publishArgentinosGroupFixture();assert.equal(pub.fixture.players[0].name,'A');assert.equal(pub.fixture.players[0].teamLabel,'Rojo');assert.equal(pub.names.b,'Azul');assert.equal(pub.fixture.id,arg.fixture.id);
- console.log('OK: sintaxis de todos los archivos; migración de 5/6 a 10 juegos; orden persistente; puntajes comunes sin duplicación; Impostor solo individual; revisión automática; fixture completo; activación de Argentinos y Guess; asignación de integrantes a grupos.');
+ console.log('OK: sintaxis de todos los archivos; migración de 5/6 a 11 juegos; orden persistente; puntajes comunes sin duplicación; Impostor solo individual; revisión automática; fixture completo; activación de Argentinos y Guess; asignación de integrantes a grupos.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -25,6 +25,7 @@
       const ids=Array.from(new Set((fixture||[]).map(m=>'duel:'+m[0]))).sort((a,b)=>Number(a.slice(5))-Number(b.slice(5)));
       if((games||[]).includes('Guess Movie/Song'))ids.push('guess');
       if((games||[]).includes('100 Argentinos Dicen'))ids.push('argentinos');
+      if((games||[]).includes('TEG Express'))ids.push('teg');
       return ids.concat(['impostor','qld']);
     },
     order: function(state,fixture,games) {
