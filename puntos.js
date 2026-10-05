@@ -7,6 +7,14 @@
 (function (root) {
   'use strict';
 
+  root.InterfaceCopy = {
+    clean: function(value){
+      if(typeof value==='string')return value.replace(/\bfase[ ]+2\b(?:[ ]*[·—-][ ]*(?:Equipos|Grupal))?/gi,'Fase grupal').replace(/\bfase[ ]+1\b(?:[ ]*[·—-][ ]*(?:Individual|Clasificación individual))?/gi,'Impostor').replace(/fase individual/gi,'Impostor');
+      if(Array.isArray(value))return value.map(v=>this.clean(v));
+      if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,this.clean(v)]));
+      return value;
+    }
+  };
   root.RoundPlan = {
     ids: function(fixture,games) {
       const ids=Array.from(new Set((fixture||[]).map(m=>'duel:'+m[0]))).sort((a,b)=>Number(a.slice(5))-Number(b.slice(5)));

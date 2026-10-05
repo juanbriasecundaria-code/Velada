@@ -17,3 +17,11 @@ Subir todos los archivos de `Velada-main`, incluyendo `common-rounds.js` y los J
 ## Pruebas
 
 Ejecutar `node tests/rondas.cjs`. Comprueba sintaxis, migración de catálogo, estabilidad del orden, puntajes, revisión de resultados, filas del fixture, columnas del ranking y publicaciones del buzzer con una conexión simulada. La conexión con Firebase y la experiencia simultánea entre conductor y celulares deben comprobarse en la web publicada.
+
+## Panel de participantes y Guess
+
+Guess carga el listado completo de equipos desde el fixture, independientemente del último estado de cartas. El marcador muestra las fotos de todos los integrantes, incluidos los equipos de tres, y se actualiza al cambiar el roster o los puntajes.
+
+El panel de participantes tiene una única sección de Apuestas, correspondiente a la fase grupal. El resumen usa los puntos y el puesto del equipo. La tarjeta de Impostor aparece cuando existen resultados propios y no suma al ranking grupal. Se retiraron las tarjetas, apuestas y duelos de la antigua clasificación individual; los datos anteriores se conservan para compatibilidad. La interfaz y los textos guardados usan “Fase grupal”.
+
+Prueba adicional: `node tests/participantes.cjs`.

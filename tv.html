@@ -69,7 +69,7 @@
       radial-gradient(ellipse 44% 46% at 74% 38%, rgba(96,180,240,0.14), transparent 70%);
   }
   /* Con pestañas activas mostramos una sola fase, así que el glow sigue a la
-     fase visible (verde para Fase 1, azul para Fase 2) en vez del split. */
+     fase visible (verde para Impostor, azul para Fase grupal) en vez del split. */
   body.phase-both[data-tv-view="f1"] .tv-bg-glow {
     background: radial-gradient(ellipse 60% 46% at 50% 38%, rgba(200,240,96,0.16), rgba(200,240,96,0.05) 55%, transparent 74%);
   }
@@ -117,7 +117,7 @@
     font-weight: 600;
   }
 
-  /* Pestañas Fase 1 / Fase 2 — solo en modo 'both' (abierto desde Reglas).
+  /* Pestañas Impostor / Fase grupal — solo en modo 'both' (abierto desde Reglas).
      En modo de una sola fase se ocultan (ya se ve solo esa fase). */
   .tv-phase-tabs { display: none; justify-content: center; gap: clamp(8px, 1vw, 14px);
     margin-top: clamp(10px, 1.8vh, 20px); }
@@ -1175,20 +1175,20 @@
   <div class="tv-title">🎮 La Velada del Año</div>
   <div class="tv-subtitle"><span class="live-dot"></span>Podio en vivo<span id="tv-sub-fase"></span></div>
   <div class="tv-phase-tabs" id="tv-phase-tabs">
-    <button class="tv-phase-tab active" data-view="f1" onclick="setTVBothView('f1')"><span class="dot f1"></span>Fase 1 · Individual</button>
-    <button class="tv-phase-tab" data-view="f2" onclick="setTVBothView('f2')"><span class="dot f2"></span>Fase 2 · Grupal</button>
+    <button class="tv-phase-tab active" data-view="f1" onclick="setTVBothView('f1')"><span class="dot f1"></span>Impostor</button>
+    <button class="tv-phase-tab" data-view="f2" onclick="setTVBothView('f2')"><span class="dot f2"></span>Fase grupal</button>
   </div>
 </div>
 
 <div class="tv-podiums" id="tv-podiums">
   <div class="tv-phase" id="tv-f1">
-    <div class="tv-phase-label"><span class="dot f1"></span>Fase 1 — Individual</div>
+    <div class="tv-phase-label"><span class="dot f1"></span>Impostor</div>
     <div class="podium-wrap" id="tv-podium-f1"></div>
     <div class="tv-rank-list" id="tv-rank-f1"></div>
   </div>
   <div class="tv-divider" id="tv-divider"></div>
   <div class="tv-phase" id="tv-f2">
-    <div class="tv-phase-label"><span class="dot f2"></span>Fase 2 — Grupal</div>
+    <div class="tv-phase-label"><span class="dot f2"></span>Fase grupal</div>
     <div class="podium-wrap" id="tv-podium-f2"></div>
     <div class="tv-rank-list" id="tv-rank-f2"></div>
   </div>
@@ -1196,7 +1196,7 @@
 
 <div class="tv-estado" id="tv-estado">
   <div class="tv-estado-phase f1" id="tv-estado-f1">
-    <div class="tv-estado-label f1"><span class="dot f1"></span>Fase 1 — Individual</div>
+    <div class="tv-estado-label f1"><span class="dot f1"></span>Impostor</div>
     <div class="tv-estado-info">
       <span class="tv-estado-count" id="tv-estado-f1-count">0/30 partidos</span>
       <span class="tv-estado-pct f1" id="tv-estado-f1-pct">0%</span>
@@ -1212,7 +1212,7 @@
     <div class="tv-estado-bar-wrap"><div class="tv-estado-bar" id="tv-estado-imp-bar" style="width:0%"></div></div>
   </div>
   <div class="tv-estado-phase f2" id="tv-estado-f2">
-    <div class="tv-estado-label f2"><span class="dot f2"></span>Fase 2 — Grupal</div>
+    <div class="tv-estado-label f2"><span class="dot f2"></span>Fase grupal</div>
     <div class="tv-estado-info">
       <span class="tv-estado-count" id="tv-estado-f2-count">0/18 partidos</span>
       <span class="tv-estado-pct f2" id="tv-estado-f2-pct">0%</span>
@@ -1287,7 +1287,7 @@
   </div>
 </div>
 
-<script src="puntos.js?v=2"></script>
+<script src="puntos.js?v=3"></script>
 <script>
 // ── SEMILLA DEL MODO TV ─────────────────────────────────────────────
 // velada.html la manda en la URL (#s=...) y además la deja en localStorage.
@@ -1329,7 +1329,7 @@ var __SEED = (function () {
       if (st.playersSnapshot && st.playersSnapshot.length) seed.players = st.playersSnapshot;
       if (st.teamsSnapshot && st.teamsSnapshot.length) seed.teams = st.teamsSnapshot;
       if (st.f1FixtureSnapshot && st.f1FixtureSnapshot.fixture) {
-        seed.f1Fixture = st.f1FixtureSnapshot.fixture;
+        seed.f1Fixture = [];
         seed.f1Byes = __byesDe(seed.f1Fixture, (seed.players || []).length);
       }
       if (st.f2FixtureSnapshot && st.f2FixtureSnapshot.fixture) seed.f2Fixture = st.f2FixtureSnapshot.fixture;
@@ -1476,15 +1476,15 @@ timerUpdateUI();
 // ---- Data seeded from parent at open time, refreshed from localStorage ----
 const PLAYERS_INIT = (__SEED.players || []);
 const TEAMS_INIT   = (__SEED.teams || []);
-let   F1_FIXTURE   = (__SEED.f1Fixture || []);
+let   F1_FIXTURE   = [];
 let   F1_BYES      = (__SEED.f1Byes || {});
 let   F2_FIXTURE   = (__SEED.f2Fixture || []);
 const TV_PHASE     = __TV_PHASE; // 'fase1' | 'fase2' | 'both'
-try { document.getElementById('tv-sub-fase').textContent = TV_PHASE === 'fase1' ? ' — Fase 1 Individual' : TV_PHASE === 'fase2' ? ' — Fase 2 Grupal' : ''; } catch (e) {}
+try { document.getElementById('tv-sub-fase').textContent = TV_PHASE === 'fase1' ? ' — Impostor Individual' : TV_PHASE === 'fase2' ? ' — Fase grupal Grupal' : ''; } catch (e) {}
 const FULL_NAMES_TV = (__SEED.fullNames || {});
 // En modo 'both' (abierto desde Reglas) el TV muestra una fase por vez con
-// pestañas; esta variable recuerda cuál se está viendo (arranca en Fase 1).
-let _tvBothView = 'f1';
+// pestañas; esta variable recuerda cuál se está viendo (arranca en Impostor).
+let _tvBothView = 'f2';
 try { const _v = localStorage.getItem('ndj_tv_both_view'); if (_v === 'f1' || _v === 'f2') _tvBothView = _v; } catch (e) {}
 const RULES_INIT   = (__SEED.rules || null);    // reglas sembradas desde el padre (clave en file://)
 const ENTITY_COLORS_INIT = (__SEED.colors || {}); // colores custom por jugador/equipo
@@ -1515,13 +1515,13 @@ const GUEST_URL    = new URL('participante.html', location.href).href; // link a
 // Reglas en el TV: prioriza localStorage (updates en vivo si el origin lo comparte),
 // y si no hay (caso file://), usa lo sembrado al abrir. Nunca cae a hardcode.
 function getTVRules() {
-  try { const s = localStorage.getItem('ndj_rules'); if (s) return JSON.parse(s); } catch(e) {}
+  try { const s = localStorage.getItem('ndj_rules'); if (s) return InterfaceCopy.clean(JSON.parse(s)); } catch(e) {}
   return RULES_INIT;
 }
 
 // Colores custom: prioriza localStorage, sino usa los sembrados al abrir
 function getTVEntityColors() {
-  try { const s = localStorage.getItem('ndj_colors'); if (s) return JSON.parse(s); } catch(e) {}
+  try { const s = localStorage.getItem('ndj_colors'); if (s) return InterfaceCopy.clean(JSON.parse(s)); } catch(e) {}
   return ENTITY_COLORS_INIT || {};
 }
 
@@ -1608,7 +1608,7 @@ function tvAvatarHtml(name, idx, photos) {
     f2El.style.width = '100%';
   } else {
     // 'both': en vez de apilar las dos fases (queda larguísimo), se muestran
-    // en pestañas Fase 1 / Fase 2 — se arranca en Fase 1 y se alterna con los
+    // en pestañas Impostor / Fase grupal — se arranca en Impostor y se alterna con los
     // botones del header. Cada pestaña se ve igual que abrir esa fase directo.
     setTVBothView(_tvBothView);
   }
@@ -1933,7 +1933,7 @@ function buildEvoSeries(mode, state, PLAYERS, TEAMS) {
 }
 
 function evoModeLabel(mode) {
-  return mode === 'f2' ? 'Fase Grupal' : (mode === 'total' ? 'Total de la noche' : 'Fase Individual');
+  return mode === 'f2' ? 'Fase Grupal' : (mode === 'total' ? 'Total de la noche' : 'Impostor');
 }
 
 function renderEvoSVG(series, maxSteps, stars, viewMode) {
@@ -2164,14 +2164,14 @@ function renderTV() {
   try{
     // Prioridad: estado recibido por postMessage > localStorage
     const s = _tvCachedState || localStorage.getItem('ndj_state');
-    if(s) state=Object.assign({f1:{},f2:{},impostor:{rounds:[]}},JSON.parse(s));
+    if(s) state=Object.assign({f1:{},f2:{},impostor:{rounds:[]}},InterfaceCopy.clean(JSON.parse(s)));
     const p=localStorage.getItem('ndj_photos');
     if(p) photos=JSON.parse(p);
     // Restore roster if saved
     if(state.playersSnapshot) PLAYERS=state.playersSnapshot.slice();
     if(state.teamsSnapshot)   TEAMS=state.teamsSnapshot.slice();
     // Fixture en vivo: si el organizador lo regenera, la TV lo toma sin recargar
-    if(state.f1FixtureSnapshot&&Array.isArray(state.f1FixtureSnapshot.fixture)){ F1_FIXTURE=state.f1FixtureSnapshot.fixture; F1_BYES=__byesDe(F1_FIXTURE, PLAYERS.length); }
+    if(state.f1FixtureSnapshot&&Array.isArray(state.f1FixtureSnapshot.fixture)){ F1_FIXTURE=[]; F1_BYES=__byesDe(F1_FIXTURE, PLAYERS.length); }
     if(state.f2FixtureSnapshot&&Array.isArray(state.f2FixtureSnapshot.fixture)){ F2_FIXTURE=state.f2FixtureSnapshot.fixture; }
   }catch(e){}
 
@@ -2672,7 +2672,7 @@ function buildIdleFacts(state, PLAYERS, TEAMS) {
   try {
     const f1Done = F1_FIXTURE.filter(m => state.f1[m[0] + '-' + m[1] + '-' + m[2]]).length;
     const f2Done = F2_FIXTURE.filter(m => state.f2[m[0] + '-' + m[1] + '-' + m[2]]).length;
-    if (f1Done < F1_FIXTURE.length) facts.push({ big: String(F1_FIXTURE.length - f1Done), lbl: 'duelos restantes', sub: 'para cerrar la Fase Individual' });
+    if (f1Done < F1_FIXTURE.length) facts.push({ big: String(F1_FIXTURE.length - f1Done), lbl: 'duelos restantes', sub: 'para cerrar la Impostor' });
     if (f2Done < F2_FIXTURE.length) facts.push({ big: String(F2_FIXTURE.length - f2Done), lbl: 'duelos restantes', sub: 'para cerrar la Fase Grupal' });
     const totalDone = f1Done + f2Done, totalAll = F1_FIXTURE.length + F2_FIXTURE.length;
     if (totalAll) facts.push({ big: Math.round((totalDone / totalAll) * 100) + '%', lbl: 'de la noche jugada', sub: totalDone + ' de ' + totalAll + ' duelos' });
@@ -2682,7 +2682,7 @@ function buildIdleFacts(state, PLAYERS, TEAMS) {
   try {
     if (ppts.length) {
       const s = PLAYERS.map((n, i) => ({ n: n, t: ppts[i] ? ppts[i].total : 0 })).sort((a, b) => b.t - a.t);
-      if (s[0] && s[0].t > 0) facts.push({ big: String(s[0].t), lbl: 'puntos', sub: short(s[0].n) + ' lidera la Fase Individual' });
+      if (s[0] && s[0].t > 0) facts.push({ big: String(s[0].t), lbl: 'puntos', sub: short(s[0].n) + ' lidera la Impostor' });
       if (s.length >= 2 && s[0].t > 0) facts.push({ big: String(s[0].t - s[1].t), lbl: 'puntos de ventaja', sub: 'entre ' + short(s[0].n) + ' y ' + short(s[1].n) });
     }
     if (tpts.length && TEAMS.length) {
@@ -3139,7 +3139,7 @@ function tvShowRoundIntro(payload) {
       : '';
     ov.innerHTML =
       '<div class="ri-head">' +
-        '<div class="ri-eyebrow">' + (payload.phase === 'f1' ? 'Fase 1 · Individual' : 'Fase 2 · Equipos') + '</div>' +
+        '<div class="ri-eyebrow">' + (payload.phase === 'f1' ? 'Impostor' : 'Fase grupal') + '</div>' +
         '<div class="ri-title">Ronda ' + payload.round + '</div>' +
         '<div class="ri-sub">Cada uno a su mesa</div>' +
       '</div>' +
@@ -3238,7 +3238,7 @@ function announceLeaderChange(nuevo, anterior, phase) {
   const color = phase === 'f1' ? 'var(--accent)' : 'var(--info)';
   el.style.setProperty('--lc', color);
   el.innerHTML =
-    '<div class="lc-lbl">🔥 Cambio de líder · ' + (phase === 'f1' ? 'Fase 1' : 'Fase 2') + '</div>' +
+    '<div class="lc-lbl">🔥 Cambio de líder · ' + (phase === 'f1' ? 'Impostor' : 'Fase grupal') + '</div>' +
     '<div class="lc-new">' + nuevo + '</div>' +
     '<div class="lc-old">destrona a ' + anterior + '</div>';
   el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
@@ -3314,7 +3314,7 @@ function buildRelatorLines(state, PLAYERS, TEAMS) {
   try { ppts = getPoints('f1', state, PLAYERS, TEAMS) || []; } catch(e) {}
   try { tpts = getPoints('f2', state, PLAYERS, TEAMS) || []; } catch(e) {}
 
-  // Rachas de victorias / derrotas en Fase 1
+  // Rachas de victorias / derrotas en Impostor
   if (ppts.length) {
     PLAYERS.forEach((n, i) => {
       if (!ppts[i]) return;
@@ -3341,7 +3341,7 @@ function buildRelatorLines(state, PLAYERS, TEAMS) {
     }
   }
 
-  // Fase 2
+  // Fase grupal
   if (tpts.length && TEAMS.length) {
     const sortedT = TEAMS.map((n, i) => ({ n: n, t: tpts[i] ? tpts[i].total : 0 })).sort((a, b) => b.t - a.t);
     if (sortedT.length && sortedT[0].t > 0) {
@@ -3357,9 +3357,9 @@ function buildRelatorLines(state, PLAYERS, TEAMS) {
   try {
     const f1Done = F1_FIXTURE.filter(m => state.f1[m[0] + '-' + m[1] + '-' + m[2]]).length;
     const f2Done = F2_FIXTURE.filter(m => state.f2[m[0] + '-' + m[1] + '-' + m[2]]).length;
-    if (f1Done && f1Done === F1_FIXTURE.length) push('f1-done', '✅', 'Fase Individual completa — se viene el Impostor');
+    if (f1Done && f1Done === F1_FIXTURE.length) push('f1-done', '✅', 'Impostor completa — se viene el Impostor');
     else if (f1Done && F1_FIXTURE.length - f1Done <= 2) push('f1-almost-' + f1Done, '⏳',
-      'Quedan ' + (F1_FIXTURE.length - f1Done) + ' duelos para cerrar la Fase Individual');
+      'Quedan ' + (F1_FIXTURE.length - f1Done) + ' duelos para cerrar la Impostor');
     if (f2Done && f2Done === F2_FIXTURE.length) push('f2-done', '✅', 'Fase Grupal completa — a la gran final');
     else if (f2Done && F2_FIXTURE.length - f2Done <= 2) push('f2-almost-' + f2Done, '⏳',
       'Quedan ' + (F2_FIXTURE.length - f2Done) + ' duelos de Fase Grupal');

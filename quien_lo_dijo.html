@@ -998,7 +998,7 @@ body { animation: appEnter .32s ease-out both; }
 <div class="overlay" id="pl-overlay">
   <div class="ed-panel" style="max-width:420px">
     <div class="ed-head">
-      <div class="ed-title">Equipos (Fase 2)</div>
+      <div class="ed-title">Equipos (Fase grupal)</div>
       <button class="ed-close" onclick="closePlayers()">×</button>
     </div>
     <div class="ed-body">
@@ -2099,12 +2099,12 @@ function finalizeRound(){
   if(!confirm(`¿Cerrar la ronda con este resultado?\n\n${preview}`)) return;
   roundResult = { standings, finishedAt: Date.now() };
   if(fbResultRef) qldResultWrite(fbResultRef.set(roundResult));
-  toast('🏁 Ronda finalizada — puntos aplicados al ranking de Fase 2');
+  toast('🏁 Ronda finalizada — puntos aplicados al ranking de Fase grupal');
   renderRoundStatus();
 }
 function reopenRound(){
   if(!roundResult){ toast('La ronda no está finalizada'); return; }
-  if(!confirm('¿Reabrir la ronda?\nEsto borra el resultado ya aplicado al ranking de Fase 2 (los puntos del mazo/buzzer no se tocan, podés seguir jugando).')) return;
+  if(!confirm('¿Reabrir la ronda?\nEsto borra el resultado ya aplicado al ranking de Fase grupal (los puntos del mazo/buzzer no se tocan, podés seguir jugando).')) return;
   roundResult = null;
   if(fbResultRef) qldResultWrite(fbResultRef.remove());
   toast('↺ Ronda reabierta');

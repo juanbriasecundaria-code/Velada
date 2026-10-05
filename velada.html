@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>La Velada del Año</title>
-<script src="puntos.js?v=2"></script>
+<script src="puntos.js?v=3"></script>
 <!-- Tipografía con serifas para la portada del diario. Si no carga, Georgia
      (que está en todos los sistemas) cumple el mismo rol. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -247,7 +247,7 @@
   .round-pts.pending { color: var(--border2); }
   .round-pts.bye { color: var(--muted); opacity: 0.5; font-size: 13px; }
 
-  /* Fase 2 usa identidad celeste en vez de lima, para diferenciarse de Fase 1 */
+  /* Fase grupal usa identidad celeste en vez de lima, para diferenciarse de Impostor */
   #page-fase2 .ranking tr.classifica td { background: rgba(96,180,240,0.10); }
   #page-fase2 .ranking tr.classifica td:first-child { box-shadow: inset 3px 0 0 0 var(--info); }
   #page-fase2 .classifica-tag { background: rgba(96,180,240,0.14); color: var(--info); border-color: rgba(96,180,240,0.45); }
@@ -333,7 +333,7 @@
     width: 100%;
     max-width: 480px;
   }
-  /* Cuando el modal se abre desde Fase 2, se tiñe celeste para mantener la identidad de fase */
+  /* Cuando el modal se abre desde Fase grupal, se tiñe celeste para mantener la identidad de fase */
   .modal.f2 { --accent: var(--info); --accent-dim: rgba(96,180,240,0.12); }
   .modal-title { font-size: 15px; font-weight: 600; margin-bottom: 0.25rem; }
   .modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 1.25rem; }
@@ -1992,7 +1992,7 @@
   .sd-result-text { font-size: 12px; color: var(--muted); margin-left: auto; }
   .sd-result-text.set { color: var(--success); }
 
-  /* Fase 2 Sudden Death usa identidad celeste, igual que el resto de esa fase */
+  /* Fase grupal Sudden Death usa identidad celeste, igual que el resto de esa fase */
   #page-fase2 .sd-card { background: linear-gradient(135deg, rgba(96,180,240,0.08), rgba(255,95,95,0.06)); border-color: rgba(96,180,240,0.35); animation: sdPulseBlue 2.5s ease-in-out infinite; }
   @keyframes sdPulseBlue {
     0%,100% { box-shadow: 0 0 0 0 rgba(96,180,240,0); }
@@ -4099,7 +4099,7 @@ body.solo-impostor #tv-btn{ opacity:.42 }
   <div id="my-next-f2" style="margin-bottom:0.75rem"></div>
   <div class="stats-grid" id="stats-fase2"></div>
 
-  <!-- ── CONFIGURACIÓN DE FASE 2 (se carga una vez, al principio) ── -->
+  <!-- ── CONFIGURACIÓN DE Fase grupal (se carga una vez, al principio) ── -->
   <details class="control-panel" id="f2-config-panel" style="margin-bottom:1.25rem">
     <summary>
       <span class="control-panel-title">🎛️ Configuración de la fase grupal
@@ -4250,7 +4250,8 @@ function migrateRulesCatalog(parsed) {
 }
 
 function _applyRulesParsed(parsed) {
-  parsed = migrateRulesCatalog(parsed);
+  parsed = migrateRulesCatalog(InterfaceCopy.clean(parsed));
+  parsed.f1=[];
   RULES_CONFIG = JSON.parse(JSON.stringify(RULES_DEFAULT));
   if (parsed.general) Object.assign(RULES_CONFIG.general, parsed.general);
   if (/dos rondas especiales/.test(RULES_CONFIG.general.intro)) RULES_CONFIG.general.intro = RULES_DEFAULT.general.intro;
@@ -4279,7 +4280,7 @@ function loadRulesConfig() {
   try {
     const s = localStorage.getItem('ndj_rules');
     if (s) {
-      _applyRulesParsed(JSON.parse(s));
+      _applyRulesParsed(InterfaceCopy.clean(JSON.parse(s)));
     } else {
       RULES_CONFIG = JSON.parse(JSON.stringify(RULES_DEFAULT));
     }
@@ -4672,7 +4673,7 @@ function renderReglas() {
       </summary>
       <div class="control-panel-body">
         <div class="card" style="text-align:center;border-color:rgba(245,200,66,0.3)">
-          <div style="font-size:13px;color:var(--muted);margin-bottom:0.9rem">La apertura completa, de corrido: placa de clasificación, los concursantes de la Fase 1 y después los equipos de la Fase 2.</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:0.9rem">La apertura completa, de corrido: placa de clasificación, los participantes y después los equipos de la Fase grupal.</div>
           <button class="final-end-btn" onclick="openVelada()">🎬 Abrir la velada</button>
           <div style="margin-top:0.9rem;display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">
             <button onclick="openPlayerCeremony()" style="padding:0.4rem 0.8rem;border-radius:99px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:11.5px;font-family:inherit;cursor:pointer">ensayar concursantes</button>
@@ -4846,7 +4847,7 @@ function renderReglas() {
       ${impEditBody}
     </details>
 
-    <!-- FASE 2 -->
+    <!-- Fase grupal -->
     <div class="section-header anchor-target" id="reglas-fase2" style="margin-top:2rem">
       <span class="section-title"><span class="dot-indicator fase2"></span>Fase grupal</span>
     </div>
@@ -4860,10 +4861,10 @@ function renderReglas() {
           <input id="f2-station-input" type="text" placeholder="Nombre de la nueva estación..." style="flex:1;padding:0.55rem 0.75rem;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px" onkeydown="if(event.key==='Enter')addStation('f2')">
           <button class="btn" style="padding:0.55rem 1rem;white-space:nowrap;background:var(--accent-dim);border-color:var(--accent);color:var(--accent);font-weight:800" onclick="addStation('f2')">+ Estación</button>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:0.5rem">Agregar o eliminar una estación rearma el fixture de Fase 2. La nueva estación se crea con valores por defecto, editables abajo.</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:0.5rem">Agregar o eliminar una estación rearma el fixture de Fase grupal. La nueva estación se crea con valores por defecto, editables abajo.</div>
       </div>` : `
       <div class="card" style="margin-top:0.75rem;opacity:0.85">
-        <div style="font-size:12px;color:var(--muted)">🔒 Las estaciones de Fase 2 quedaron fijas: ya hay resultados cargados en esta fase. Para modificarlas, primero usá "Reiniciar toda la noche".</div>
+        <div style="font-size:12px;color:var(--muted)">🔒 Las estaciones de Fase grupal quedaron fijas: ya hay resultados cargados en esta fase. Para modificarlas, primero usá "Reiniciar toda la noche".</div>
       </div>`) : ''}
 
     <!-- RONDA ESPECIAL — QUIÉN LO DIJO -->
@@ -4873,7 +4874,7 @@ function renderReglas() {
     <details class="rule-card" id="quien-rule-card">
       <summary><span class="rule-name"><span class="rule-icon-badge quien">🗣️</span>¿Quién lo dijo?</span><span class="rule-summary-right">${(window._qldTeamPoints && Object.keys(window._qldTeamPoints).length > 0) ? '<span class="station-badge done">✓ Jugada</span>' : ''}<span class="rule-chevron">▾</span></span></summary>
       <div class="rule-body">
-        <p class="rule-desc">Se muestran frases, memes, imágenes, audios o videos cortados de famosos, fútbol, películas, series y dibujitos. Hay que adivinar quién lo dijo y/o cómo termina la frase. El buzzer del celular es individual (cada uno presiona con su propio nombre), pero lo que acierte suma para la pareja de Fase 2 a la que pertenece. Se juega hasta que una pareja llegue a 10 puntos, o hasta que se terminen las cartas del mazo — en ese caso gana la que tenga más puntos.</p>
+        <p class="rule-desc">Se muestran frases, memes, imágenes, audios o videos cortados de famosos, fútbol, películas, series y dibujitos. Hay que adivinar quién lo dijo y/o cómo termina la frase. El buzzer del celular es individual (cada uno presiona con su propio nombre), pero lo que acierte suma para la pareja de Fase grupal a la que pertenece. Se juega hasta que una pareja llegue a 10 puntos, o hasta que se terminen las cartas del mazo — en ese caso gana la que tenga más puntos.</p>
         <div class="rule-footer">
           <span class="score-pill win">1° puesto · 3 pts</span>
           <span class="score-pill bonus">2° puesto · 2 pts</span>
@@ -4927,7 +4928,7 @@ function renderReglas() {
     <details class="rule-card${editing ? ' edit-mode' : ''}" id="ruleta-rule-card">
       <summary><span class="rule-name"><span class="rule-icon-badge ruleta">🎰</span>Todo lo que puede salir${editing?'<span class="rule-edited-badge">✏️ editable</span>':''}</span><span class="rule-summary-right"><span class="rule-chevron">▾</span></span></summary>
       <div class="rule-body">
-        <p class="rules-intro" style="margin-bottom:1rem">Esto es todo lo que puede salir al girar la ruleta en Fase 1 y Fase 2. Ninguno mueve más de ${Math.max(1, ...COMODINES.map(c => Math.abs(c.delta||1)))} punto${Math.max(1, ...COMODINES.map(c => Math.abs(c.delta||1))) === 1 ? '' : 's'} de diferencia por defecto, pero podés ajustarlo al agregar uno nuevo.</p>
+        <p class="rules-intro" style="margin-bottom:1rem">Esto es todo lo que puede salir al girar la ruleta en Impostor y Fase grupal. Ninguno mueve más de ${Math.max(1, ...COMODINES.map(c => Math.abs(c.delta||1)))} punto${Math.max(1, ...COMODINES.map(c => Math.abs(c.delta||1))) === 1 ? '' : 's'} de diferencia por defecto, pero podés ajustarlo al agregar uno nuevo.</p>
         <div style="display:flex;flex-direction:column;gap:0.5rem">
           ${COMODINES.map(c => `
             <div style="display:flex;align-items:center;gap:0.6rem;padding:0.6rem 0.7rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface2)">
@@ -5028,12 +5029,12 @@ function initReglasScrollSpy() {
 
 // ============================================================
 // Arranca vacío a propósito: no hay jugadores ni equipos cargados de fábrica.
-// Se cargan desde el panel (Fase 1 / Fase 2) y solo quedan guardados cuando
+// Se cargan desde el panel (Impostor / Fase grupal) y solo quedan guardados cuando
 // se toca el botón "💾 Guardar" de esa sección (ver saveF1Roster/saveF2Roster).
 const PLAYERS = [];
 
-// Los equipos usan los MISMOS apodos que la Fase 1, así las tablas de Fase 1,
-// Fase 2 y la presentación de la apertura dicen todas lo mismo.
+// Los equipos usan los MISMOS apodos que la Impostor, así las tablas de Impostor,
+// Fase grupal y la presentación de la apertura dicen todas lo mismo.
 const TEAMS = [];
 
 const GAMES_F1 = [];
@@ -5043,9 +5044,9 @@ const GAMES_F2 = ['Mario Party','Time\'s Up','Beer Pong','Guess Movie/Song','El 
 // Se completa por jugador desde el panel; si un apodo no está acá, se usa el apodo tal cual.
 const FULL_NAMES = {};
 
-// Devuelve el índice del equipo de Fase 2 al que pertenece un jugador (por su
-// apodo de Fase 1), usando FULL_NAMES para pasar de apodo a nombre completo.
-// Se usa para las apuestas de Fase 2: el punto de un acierto va al equipo del apostador.
+// Devuelve el índice del equipo de Fase grupal al que pertenece un jugador (por su
+// apodo de Impostor), usando FULL_NAMES para pasar de apodo a nombre completo.
+// Se usa para las apuestas de Fase grupal: el punto de un acierto va al equipo del apostador.
 function teamIndexForPlayer(playerName) {
   const nick = String(playerName || '').trim().toLowerCase();
   if (!nick) return -1;
@@ -5133,7 +5134,7 @@ function shuffleArr(a) {
 // ============================================================
 // GENERADOR GENÉRICO: garantiza que TODOS pasen por TODAS las estaciones
 // ============================================================
-// Usado por Fase 1 (jugadores, sin restricción de TV) y por Fase 2 (equipos,
+// Usado por Impostor (jugadores, sin restricción de TV) y por Fase grupal (equipos,
 // con la restricción de que Mario Party y Guess Movie/Song no coincidan).
 //
 // La cantidad de rondas NO es fija — se calcula dinámicamente hasta que
@@ -5322,9 +5323,9 @@ function computeGenericByes(fixture, numEntities) {
   return byes;
 }
 
-// Fixture individual (Fase 1): cada jugador tiene que pasar por las 6
-// estaciones. No hay restricción de TV entre juegos de Fase 1.
-// [nombre, última ronda en la que descansa] — Fase 1.
+// Fixture individual (Impostor): cada jugador tiene que pasar por las 6
+// estaciones. No hay restricción de TV entre juegos de Impostor.
+// [nombre, última ronda en la que descansa] — Impostor.
 const DESCANSO_INICIAL_F1 = [];
 
 // Palabras a Tiempo como bloque final: sus partidas van en las últimas rondas,
@@ -5332,14 +5333,14 @@ const DESCANSO_INICIAL_F1 = [];
 // Con un número impar de jugadores, el último vuelve a jugar Palabras
 // contra alguien que ya jugó (una revancha en la ronda siguiente).
 function generateF1Fixture(n) {
-  return { fixture: [], byes: {} }; // Ya no hay Fase 1
+  return { fixture: [], byes: {} }; // Ya no hay Impostor
 }
 
 function computeF2Byes(fixture, numTeams) {
   return computeGenericByes(fixture, numTeams);
 }
 
-// Fixture grupal (Fase 2): la cantidad de rondas NO es fija — se calcula
+// Fixture grupal (Fase grupal): la cantidad de rondas NO es fija — se calcula
 // dinámicamente en función de cuántos equipos haya. El objetivo siempre es el
 // mismo: TODOS los equipos tienen que pasar por las 6 estaciones, aunque para
 // lograrlo algún cruce entre los mismos dos equipos tenga que repetirse (o,
@@ -5350,7 +5351,7 @@ function computeF2Byes(fixture, numTeams) {
 // ORIGINAL_F2_FIXTURE con el que arranca la app), que ya cumple la condición
 // y además evita que "Guess Movie/Song" coincida en la misma ronda con "Mario
 // Party" (comparten TV/árbitro).
-// Estaciones que la Fase 2 reparte entre todos los equipos (cualquier cantidad).
+// Estaciones que la Fase grupal reparte entre todos los equipos (cualquier cantidad).
 // 100 Argentinos y Guess tienen ronda propia con todos juntos, así que no entran
 // en el fixture de a pares.
 function f2StationIndices() {
@@ -5472,15 +5473,11 @@ function restoreRosterAndFixtures() {
     TEAMS.length = 0;
     state.teamsSnapshot.forEach(n => TEAMS.push(n));
   }
-  if (state.f1FixtureSnapshot) {
-    F1_FIXTURE = state.f1FixtureSnapshot.fixture;
-    F1_BYES = computeF1Byes(F1_FIXTURE, PLAYERS.length);
-  } else {
-    // Todavía no se guardó ningún snapshot (nunca se tocó el roster ni las
-    // estaciones): igual rearmamos el fixture inicial por si la cantidad de
-    // estaciones cambió respecto al default con el que arrancó la página.
-    regenerateF1Fixture();
-  }
+  // La clasificación individual anterior queda archivada; Impostor tiene
+  // su propio historial y no usa duelos individuales.
+  if(state.f1FixtureSnapshot?.fixture?.length && !state.retiredIndividualFixture)
+    state.retiredIndividualFixture=state.f1FixtureSnapshot;
+  F1_FIXTURE=[];F1_BYES={};
   const _f2HasResults = Object.keys(state.f2 || {}).length > 0;
   const _f2SnapOk = state.f2FixtureSnapshot && (_f2HasResults || TEAMS.length < 2 ||
     f2FixtureIsValid(state.f2FixtureSnapshot.fixture, TEAMS.length, GAMES_F2.length));
@@ -5532,7 +5529,7 @@ function resetRosterAndFixtures() {
   saveRulesConfig();
 }
 
-// ---- FASE 1: agregar jugador ----
+// ---- Impostor: agregar jugador ----
 function canAddF1Player() {
   return Object.keys(state.f1).length === 0;
 }
@@ -5653,7 +5650,7 @@ function renderF1RosterAdmin() {
   } else {
     el.innerHTML = `
       <div class="card" style="margin-bottom:1.25rem;opacity:0.85">
-        <div style="font-size:12px;color:var(--muted)">🔒 El roster de Fase 1 (${PLAYERS.length} jugadores) quedó fijo: ya hay resultados cargados en esta fase. Para modificarlo, primero usá "Reiniciar toda la noche" en Reglas.</div>
+        <div style="font-size:12px;color:var(--muted)">🔒 El roster de Impostor (${PLAYERS.length} jugadores) quedó fijo: ya hay resultados cargados en esta fase. Para modificarlo, primero usá "Reiniciar toda la noche" en Reglas.</div>
       </div>
     `;
   }
@@ -5673,7 +5670,7 @@ function saveRosterNow() {
   showToast('💾', 'Jugadores y equipos guardados', false);
 }
 
-// ---- FASE 2: agregar equipo / agregar persona a un equipo ----
+// ---- Fase grupal: agregar equipo / agregar persona a un equipo ----
 function canEditF2() {
   return Object.keys(state.f2).length === 0;
 }
@@ -5699,7 +5696,7 @@ function addF2Team() {
 
 // Editar el nombre de un equipo existente (guarda al salir del campo).
 // A diferencia de agregar/eliminar equipos, renombrar NO toca el fixture ni
-// los resultados, así que se permite siempre — incluso con la Fase 2 ya
+// los resultados, así que se permite siempre — incluso con la Fase grupal ya
 // arrancada y con resultados cargados.
 function saveF2TeamName(idx) {
   const inp = document.getElementById('f2-name-' + idx);
@@ -5789,7 +5786,7 @@ function renderF2RosterAdmin() {
   `;}).join('');
 
   const addSection = locked
-    ? `<div style="font-size:12px;color:var(--muted);margin-top:0.75rem;padding-top:0.75rem;border-top:0.5px solid var(--border)">🔒 Ya hay resultados de Fase 2 cargados: no se pueden agregar ni eliminar equipos (rearmaría el fixture). Los nombres sí se pueden seguir editando y se guardan solos.</div>`
+    ? `<div style="font-size:12px;color:var(--muted);margin-top:0.75rem;padding-top:0.75rem;border-top:0.5px solid var(--border)">🔒 Ya hay resultados de Fase grupal cargados: no se pueden agregar ni eliminar equipos (rearmaría el fixture). Los nombres sí se pueden seguir editando y se guardan solos.</div>`
     : `<div style="display:flex;gap:0.5rem;margin-top:0.75rem;padding-top:0.75rem;border-top:0.5px solid var(--border)">
         <input id="f2-new-team-input" type="text" placeholder="Nombre del equipo nuevo..." style="flex:1;padding:0.55rem 0.75rem;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px" onkeydown="if(event.key==='Enter')addF2Team()">
         <button class="btn" style="padding:0.55rem 1rem;white-space:nowrap;background:var(--accent-dim);border-color:var(--accent);color:var(--accent);font-weight:800" onclick="addF2Team()">+ Equipo</button>
@@ -5917,7 +5914,7 @@ const BONUS_F2 = {
 };
 const EMPATE_ALLOWED_F2 = ['Mario Party',"Time's Up",'Beer Pong','Guess Movie/Song','El Erudito','Jenga','Curling','100 Argentinos Dicen','Palabras a Tiempo','Carrera de Mentes'];
 
-// Fixture fase 1: [ronda, jugadorA(idx), jugadorB(idx), juegoIdx]
+// Fixture Impostor: [ronda, jugadorA(idx), jugadorB(idx), juegoIdx]
 // Se genera dinámicamente (en vez de estar fijo a mano) para garantizar que
 // TODOS los jugadores pasen por las 6 estaciones — con 11 jugadores y 6
 // rondas, el fixture fijo anterior dejaba a 5 de los 11 en 5/6 estaciones,
@@ -5935,7 +5932,7 @@ function computeF1Byes(fixture, numPlayers) {
 }
 let F1_BYES = computeF1Byes(F1_FIXTURE, PLAYERS.length);
 
-// Fixture fase 2
+// Fixture Fase grupal
 // 6 equipos, 6 rondas, 3 partidos por ronda (todos juegan siempre).
 // Cada equipo pasa por los 6 juegos exactamente una vez.
 // Ningún cruce de equipos se repite.
@@ -5982,16 +5979,16 @@ let state = {
   lastTab: null, // last tab viewed, restored on reload
   bonusManual: {}, // key: playerName => {pts: number, label: string}
   vsJC: {}, // key: playerName => 'win'|'lose'|null  (resultado del jugador vs Juan Cruz)
-  comodines: [], // [{id, player, key, status:'pending'|'done', delta, note, ts}] — Fase 1 (jugadores)
-  comodinesF2: [], // idem, pero para Fase 2 (equipos)
+  comodines: [], // [{id, player, key, status:'pending'|'done', delta, note, ts}] — Impostor (jugadores)
+  comodinesF2: [], // idem, pero para Fase grupal (equipos)
   bets: {},      // key "r-a-b" (F1_FIXTURE) => { nombreApostador: idxGanadorApostado }
   betsOverride: {}, // override manual del total de apuestas de un jugador: nombre => pts
   betsF2: {},    // key "r-a-b" (F2_FIXTURE) => { nombreApostador: idxEquipoGanadorApostado }
-  betsOverrideF2: {}, // override manual del total de apuestas de un equipo (Fase 2): nombre => pts
+  betsOverrideF2: {}, // override manual del total de apuestas de un equipo (Fase grupal): nombre => pts
   adjust: { f1: [], f2: [] }, // ajustes manuales: [{id, name, pts, label, ts}]
   autoResultadosAplicados: {}, // matchId => JSON del resultado de Firebase ya volcado a state.f1/f2 (evita duplicar puntos si se re-corre el botón)
-  betWindow: { open: false, round: 0 }, // ventana de apuestas de Fase 1: qué ronda está abierta
-  betWindowF2: { open: false, round: 0 }, // ventana de apuestas de Fase 2: qué ronda está abierta
+  betWindow: { open: false, round: 0 }, // ventana de apuestas de Impostor: qué ronda está abierta
+  betWindowF2: { open: false, round: 0 }, // ventana de apuestas de Fase grupal: qué ronda está abierta
   cellPts: { f1: {}, f2: {} }, // override manual de una celda: "nombre||ronda" => pts
   qldOverride: {}, // override manual de los puntos de ¿Quién lo dijo? por equipo: idxEquipo => pts
 };
@@ -6039,7 +6036,7 @@ function loadComodinesConfig() {
   try {
     const s = localStorage.getItem('ndj_comodines');
     if (s) {
-      const parsed = JSON.parse(s);
+      const parsed = InterfaceCopy.clean(JSON.parse(s));
       if (Array.isArray(parsed) && parsed.length) COMODINES = parsed;
     }
   } catch(e) {}
@@ -6109,7 +6106,7 @@ function loadState() {
   try {
     const s = localStorage.getItem('ndj_state');
     if (s) {
-      const loaded = JSON.parse(s);
+      const loaded = InterfaceCopy.clean(JSON.parse(s));
       state = Object.assign({}, state, loaded);
       // Migration: old single-object impostor shape -> rounds array
       if (!state.impostor || !Array.isArray(state.impostor.rounds)) {
@@ -6357,7 +6354,7 @@ function markLocalTs(key, ts) {
 
 
 
-      // Publicamos el roster de equipos de Fase 2 (con apodos) para que "¿Quién lo dijo?"
+      // Publicamos el roster de equipos de Fase grupal (con apodos) para que "¿Quién lo dijo?"
       // siempre juegue con los equipos actuales — se resincroniza cada vez que se abre esta página.
       function pushQldTeams(){
         try{
@@ -6367,7 +6364,7 @@ function markLocalTs(key, ts) {
               const nick = Object.keys(FULL_NAMES).find(k => FULL_NAMES[k] === full);
               return nick || full;
             });
-            // membersFull viaja aparte porque las fotos de Fase 2 se guardan con el
+            // membersFull viaja aparte porque las fotos de Fase grupal se guardan con el
             // nombre completo (ej. "Martín H."), mientras que "members" usa el apodo
             // corto (ej. "Martin") — así "¿Quién lo dijo?" puede probar ambas claves.
             return { index: idx, label, members, membersFull: fullNames };
@@ -6406,7 +6403,7 @@ function markLocalTs(key, ts) {
         const d = snap.val() || {};
         const standings = Array.isArray(d.standings) ? d.standings : [];
         window._qldTeamPoints = state.qldTeamPoints || {};
-        // Re-renderizar la Fase 2 si está activa
+        // Re-renderizar la Fase grupal si está activa
         if(typeof renderFase2 === 'function' && document.getElementById('page-fase2') && document.getElementById('page-fase2').classList.contains('active')){
           try{ renderFase2(); }catch(e){}
         }
@@ -6424,7 +6421,7 @@ function markLocalTs(key, ts) {
 // Manda una orden por Firebase a los dos juegos que usan buzzer con nombres
 // (Guess Movies & Songs y 100 Argentinos Dicen). Cada conductor la recibe en
 // vivo y pone los nombres en "Equipo 1 / Equipo 2" y el marcador en 0.
-// ¿Quién lo dijo? no se toca: usa el roster de equipos de la Fase 2.
+// ¿Quién lo dijo? no se toca: usa el roster de equipos de la Fase grupal.
 function resetBuzzers(){
   const db = window._qldDb;
   if(!db){ showToast('⚠️', 'Todavía no hay conexión con los buzzers — probá en unos segundos', false); return; }
@@ -6522,6 +6519,7 @@ function pedirClave(destino) {
 }
 
 function activateTab(tab) {
+  if(tab==='fase1')tab='impostor';
   // En modo solo-Impostor, cualquier otra pestaña pide la clave primero
   if (_soloMode && tab !== 'impostor') { pedirClave(tab); return; }
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -6561,7 +6559,7 @@ function renderMiniBoard() {
     document.body.appendChild(el);
   }
 
-  // Solo en la pestaña Impostor. En Fase 1 y Fase 2 la tabla completa ya está
+  // Solo en la pestaña Impostor. En Impostor y Fase grupal la tabla completa ya está
   // en pantalla y esto la duplicaba en chiquito, tapando una esquina sin
   // aportar nada. En el Impostor, en cambio, no hay tabla y la ronda es larga:
   // ahí sí sirve tener a mano cómo viene el reparto.
@@ -6575,7 +6573,7 @@ function renderMiniBoard() {
     return;
   }
 
-  // Siempre Fase 1: el Impostor reparte puntos individuales, no de equipo
+  // Siempre Impostor: el Impostor reparte puntos individuales, no de equipo
   const isF1 = true;
   let pts = [], ents = [];
   try {
@@ -6641,7 +6639,7 @@ function goTab(tab) {
 // ============================================================
 // La cuenta vive en puntos.js (compartida con el Modo TV y los celulares)
 function getPlayerPoints() {
-  // Sin Fase 1 no hay clasificación individual: la Final y las ceremonias ya no la usan.
+  // Sin Impostor no hay clasificación individual: la Final y las ceremonias ya no la usan.
   return PLAYERS.map(() => ({ rounds: [], special: 0, total: 0 }));
 }
 // Ranking individual del Impostor: aparte de todo lo demás, solo vale en esa ronda.
@@ -6692,7 +6690,7 @@ function getTeamPoints() {
 }
 
 // ============================================================
-// BONUS MANUAL FASE 1 (Kahoot u otras actividades previas)
+// BONUS MANUAL Impostor (Kahoot u otras actividades previas)
 // ============================================================
 let _bonusManualEditMode = false;
 
@@ -6795,10 +6793,10 @@ function setVsJC(playerName, value) {
 }
 
 // ============================================================
-// RENDER FASE 1
+// RENDER Impostor
 // ============================================================
 function renderFase1() {
-  // Ya no existe la Fase 1: solo queda la carga de participantes (base de los equipos y del Impostor).
+  // Ya no existe la Impostor: solo queda la carga de participantes (base de los equipos y del Impostor).
   renderF1RosterAdmin();
 }
 
@@ -6925,7 +6923,7 @@ function renderFixtureF1() {
 
 
 // ============================================================
-// SUDDEN DEATH — Fase 1
+// SUDDEN DEATH — Impostor
 // ============================================================
 // State for SD matches stored in state.sd: { 'sd-0': {winner, bonus}, ... }
 // The SD fixture is a dynamic best-of-3 series between the tied top-2 players.
@@ -7025,12 +7023,12 @@ function renderSuddenDeathF1() {
     <span style="font-size:13px;color:var(--muted);margin:0 0.4rem">–</span>
     <span style="font-size:22px;font-weight:800;color:var(--gold)">${winsB}</span>`;
 
-  const winnerBanner = winner ? `<div style="margin-top:1rem;padding:0.875rem 1rem;border-radius:var(--radius);background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.4);text-align:center;font-size:14px;font-weight:700;color:var(--gold)">🏆 ${winner.split(' ')[0]} clasifica como 1° de Fase 1</div>` : '';
+  const winnerBanner = winner ? `<div style="margin-top:1rem;padding:0.875rem 1rem;border-radius:var(--radius);background:rgba(245,200,66,0.12);border:1px solid rgba(245,200,66,0.4);text-align:center;font-size:14px;font-weight:700;color:var(--gold)">🏆 ${winner.split(' ')[0]} clasifica como 1° de Impostor</div>` : '';
 
   root.innerHTML = `
     <div class="sd-card" style="margin-top:1.5rem">
       <div class="sd-title">⚡ Sudden Death — Desempate</div>
-      <div class="sd-sub">Fase 1 terminó con empate en el 1° puesto (${tie.pts} pts). Se juega una serie al mejor de 3 con juegos distintos para definir quién clasifica primero.</div>
+      <div class="sd-sub">Impostor terminó con empate en el 1° puesto (${tie.pts} pts). Se juega una serie al mejor de 3 con juegos distintos para definir quién clasifica primero.</div>
       <div class="sd-players">
         <div class="sd-player">
           <div class="sd-player-name">${tie.nameA.split(' ')[0]}</div>
@@ -7108,7 +7106,7 @@ function deleteSuddenDeathResult() {
 }
 
 // ============================================================
-// SUDDEN DEATH — Fase 2 (mismo sistema que Fase 1, para equipos)
+// SUDDEN DEATH — Fase grupal (mismo sistema que Impostor, para equipos)
 // ============================================================
 // State for SD matches stored in state.sd2: { 'sd2-0': {winner, bonus}, ... }
 
@@ -7186,12 +7184,12 @@ function renderSuddenDeathF2() {
     <span style="font-size:13px;color:var(--muted);margin:0 0.4rem">–</span>
     <span style="font-size:22px;font-weight:800;color:var(--info)">${winsB}</span>`;
 
-  const winnerBanner = winner ? `<div style="margin-top:1rem;padding:0.875rem 1rem;border-radius:var(--radius);background:rgba(96,180,240,0.12);border:1px solid rgba(96,180,240,0.4);text-align:center;font-size:14px;font-weight:700;color:var(--info)">🏆 ${winner.split('/')[0].trim()} clasifica como 1° de Fase 2</div>` : '';
+  const winnerBanner = winner ? `<div style="margin-top:1rem;padding:0.875rem 1rem;border-radius:var(--radius);background:rgba(96,180,240,0.12);border:1px solid rgba(96,180,240,0.4);text-align:center;font-size:14px;font-weight:700;color:var(--info)">🏆 ${winner.split('/')[0].trim()} clasifica como 1° de Fase grupal</div>` : '';
 
   root.innerHTML = `
     <div class="sd-card" style="margin-top:1.5rem">
       <div class="sd-title">⚡ Sudden Death — Desempate</div>
-      <div class="sd-sub">Fase 2 terminó con empate en el 1° puesto (${tie.pts} pts). Se juega una serie al mejor de 3 con juegos distintos para definir qué equipo clasifica primero.</div>
+      <div class="sd-sub">Fase grupal terminó con empate en el 1° puesto (${tie.pts} pts). Se juega una serie al mejor de 3 con juegos distintos para definir qué equipo clasifica primero.</div>
       <div class="sd-players">
         <div class="sd-player">
           <div class="sd-player-name">${tie.nameA.split('/')[0].trim()}</div>
@@ -7641,7 +7639,7 @@ function saveResult() {
     return;
   }
 
-  // ── Sudden Death save (Fase 1) ──────────────────────────────
+  // ── Sudden Death save (Impostor) ──────────────────────────────
   if (modalCtx.phase === 'sd') {
     if (!state.sd) state.sd = {};
     state.sd[modalCtx.key] = { winner: modalCtx.winner, bonus: modalCtx.bonus };
@@ -7659,7 +7657,7 @@ function saveResult() {
     return;
   }
 
-  // ── Sudden Death save (Fase 2) ──────────────────────────────
+  // ── Sudden Death save (Fase grupal) ──────────────────────────────
   if (modalCtx.phase === 'sd2') {
     if (!state.sd2) state.sd2 = {};
     state.sd2[modalCtx.key] = { winner: modalCtx.winner, bonus: modalCtx.bonus };
@@ -7716,7 +7714,7 @@ function saveResult() {
   updateNavProgress();
 }
 
-// Cuando se carga un resultado de Fase 1 o Fase 2, los comodines pendientes
+// Cuando se carga un resultado de Impostor o Fase grupal, los comodines pendientes
 // de los jugadores/equipos involucrados se resuelven solos y quedan
 // registrados con su delta.
 function resolvePendingComodines(phase, key, winner, bonus) {
@@ -7809,7 +7807,7 @@ function computeAutoResultadosRows() {
   const rows = commonAutoRows();
   const order=ensureCommonRoundOrder();
   const firstPending=order.findIndex(id=>!commonRoundDone(id));
-  ['f1', 'f2'].forEach(phase => {
+  ['f2'].forEach(phase => {
     const fixture = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
     const games = phase === 'f1' ? GAMES_F1 : GAMES_F2;
     const roster = phase === 'f1' ? PLAYERS : TEAMS;
@@ -8214,7 +8212,7 @@ function editBetsPts(name) {
   renderFase1();
 }
 
-// Puntos de apuestas de Fase 2 (columna 🃏): normalmente se calculan solos a
+// Puntos de apuestas de Fase grupal (columna 🃏): normalmente se calculan solos a
 // partir de lo que apuestan los invitados por los duelos de equipos, pero se
 // pueden pisar a mano por equipo.
 function editBetsPtsF2(name) {
@@ -8239,7 +8237,7 @@ function editBetsPtsF2(name) {
   renderFase2();
 }
 
-// Puntos de ¿Quién lo dijo? (columna 🗣️ QLD de Fase 2): normalmente llegan
+// Puntos de ¿Quién lo dijo? (columna 🗣️ QLD de Fase grupal): normalmente llegan
 // solos, sincronizados desde la app externa, pero se pueden pisar a mano.
 function editQldPts(teamIdx) {
   state.qldOverride = state.qldOverride || {};
@@ -8265,7 +8263,7 @@ function editQldPts(teamIdx) {
   renderFase2();
 }
 
-// Puntos de la ronda especial (columna 🕵️ IMP. de Fase 1): normalmente se
+// Puntos de la ronda especial (columna 🕵️ IMP. de Impostor): normalmente se
 // calculan solos a partir de las rondas de Impostor, pero se pueden pisar a mano.
 function editSpecialPtsF1(idx) {
   state.specialOverride = state.specialOverride || {};
@@ -8354,7 +8352,7 @@ function showRoundIntro(phase, round) {
   ov.className = 'round-intro';
   ov.innerHTML = `
     <div class="ri-head">
-      <div class="ri-eyebrow">${isF1 ? 'Fase 1 · Individual' : 'Fase 2 · Equipos'}</div>
+      <div class="ri-eyebrow">${isF1 ? 'Impostor' : 'Fase grupal'}</div>
       <div class="ri-title">Ronda ${round}</div>
       <div class="ri-sub">Cada uno a su mesa</div>
     </div>
@@ -8392,7 +8390,7 @@ function showNextRoundIntro(phase) {
   showRoundIntro(phase, r);
 }
 
-// Equivalente de firstPendingRound para Fase 2
+// Equivalente de firstPendingRound para Fase grupal
 function firstPendingRoundF2() {
   const rounds = [...new Set(F2_FIXTURE.map(m => m[0]))].sort((a, b) => a - b);
   for (const r of rounds) {
@@ -8416,7 +8414,7 @@ function roundProgress(r) {
 }
 function openBets() {
   const r = firstPendingRound();
-  if (!r) { showToast('🏁', 'No quedan rondas pendientes en Fase 1', false); return; }
+  if (!r) { showToast('🏁', 'No quedan rondas pendientes en Impostor', false); return; }
   state.betWindow = { open: true, round: r, ts: Date.now() };
   saveState(); renderFase1();
   showToast('🔓', 'Apuestas ABIERTAS · Ronda ' + r, true);
@@ -8465,7 +8463,7 @@ function renderBetControl() {
       </div>
       <button onclick="openBets()" style="width:100%;padding:0.8rem;border-radius:var(--radius);border:1.5px solid var(--success);background:rgba(78,203,126,0.12);color:var(--success);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer">🔓 Abrir apuestas · Ronda ${nextR}</button>`;
   } else {
-    body = `<div style="font-size:12px;color:var(--muted);margin-top:0.5rem">🏁 Fase 1 completa: no quedan rondas para apostar.</div>`;
+    body = `<div style="font-size:12px;color:var(--muted);margin-top:0.5rem">🏁 Impostor completa: no quedan rondas para apostar.</div>`;
   }
 
   el.innerHTML = `
@@ -8478,8 +8476,8 @@ function renderBetControl() {
     </div>`;
 }
 
-// ── VENTANA DE APUESTAS · FASE 2 (equipos) ───────────────────────────
-// Mismo mecanismo que en Fase 1, pero sobre F2_FIXTURE (duelos de equipos).
+// ── VENTANA DE APUESTAS · Fase grupal (equipos) ───────────────────────────
+// Mismo mecanismo que en Impostor, pero sobre F2_FIXTURE (duelos de equipos).
 function firstPendingRoundF2() {
   const rounds = [...new Set(F2_FIXTURE.map(m => m[0]))].sort((a, b) => a - b);
   for (const r of rounds) {
@@ -8495,7 +8493,7 @@ function roundProgressF2(r) {
 }
 function openBetsF2() {
   const r = firstPendingRoundF2();
-  if (!r) { showToast('🏁', 'No quedan rondas pendientes en Fase 2', false); return; }
+  if (!r) { showToast('🏁', 'No quedan rondas pendientes en Fase grupal', false); return; }
   state.betWindowF2 = { open: true, round: r, ts: Date.now() };
   saveState(); renderFase2();
   showToast('🔓', 'Apuestas ABIERTAS · Ronda ' + r, true);
@@ -8544,7 +8542,7 @@ function renderBetControlF2() {
       </div>
       <button onclick="openBetsF2()" style="width:100%;padding:0.8rem;border-radius:var(--radius);border:1.5px solid var(--success);background:rgba(78,203,126,0.12);color:var(--success);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer">🔓 Abrir apuestas · Ronda ${nextR}</button>`;
   } else {
-    body = `<div style="font-size:12px;color:var(--muted);margin-top:0.5rem">🏁 Fase 2 completa: no quedan rondas para apostar.</div>`;
+    body = `<div style="font-size:12px;color:var(--muted);margin-top:0.5rem">🏁 Fase grupal completa: no quedan rondas para apostar.</div>`;
   }
 
   el.innerHTML = `
@@ -8557,7 +8555,7 @@ function renderBetControlF2() {
     </div>`;
 }
 
-// ── COMODINES: panel en Fase 1 y Fase 2 ──────────────────────────────
+// ── COMODINES: panel en Impostor y Fase grupal ──────────────────────────────
 function renderComodinesPanel(phase) {
   phase = phase || 'f1';
   const el = document.getElementById(phase === 'f1' ? 'comodines-f1' : 'comodines-f2');
@@ -9191,7 +9189,7 @@ function resetEverything() {
     '¿Reiniciar los puntos de la noche?',
     'Pone en 0 los puntos de la velada y los marcadores de 100 Argentinos, Palabras a Tiempo, Guess Movie/Song y El Erudito. También borra los resultados automáticos de prueba. Conserva roster, fixtures, estaciones y reglas. No se puede deshacer.',
     () => {
-      // Resultados de partidos (de acá sale el puntaje de Fase 1 / Fase 2)
+      // Resultados de partidos (de acá sale el puntaje de Impostor / Fase grupal)
       state.f1 = {};
       state.f2 = {};
       state.activeMatches = [];
@@ -9200,7 +9198,7 @@ function resetEverything() {
       // Historial de rondas del Impostor (no tocamos impGame: si hay una ronda
       // en curso, sigue en curso; solo se borran las rondas ya puntuadas)
       state.impostor = { rounds: [] };
-      // Comodines de la ruleta (Fase 1 y Fase 2)
+      // Comodines de la ruleta (Impostor y Fase grupal)
       state.comodines = [];
       state.comodinesF2 = [];
       // Ajustes manuales de puntos
@@ -9235,13 +9233,13 @@ function resetEverything() {
   );
 }
 
-// Reinicia SOLO las apuestas (Fase 1 y Fase 2): borra lo que cargaron los
+// Reinicia SOLO las apuestas (Impostor y Fase grupal): borra lo que cargaron los
 // invitados, sus puntos de apuestas y cierra la ventana de apuestas abierta.
 // No toca resultados de partidos ni el resto de los puntajes de la noche.
 function resetBets() {
   showConfirmModal(
     '¿Reiniciar las apuestas?',
-    'Borra todas las apuestas cargadas por los invitados (Fase 1 y Fase 2), los puntos que sumaron por acertar y cierra la ventana de apuestas si estaba abierta. No toca los resultados de los partidos ni el resto de los puntajes. No se puede deshacer.',
+    'Borra todas las apuestas cargadas por los invitados (Impostor y Fase grupal), los puntos que sumaron por acertar y cierra la ventana de apuestas si estaba abierta. No toca los resultados de los partidos ni el resto de los puntajes. No se puede deshacer.',
     () => {
       state.bets = {};
       state.betsOverride = {};
@@ -9267,16 +9265,16 @@ function resetBets() {
   );
 }
 
-// Carga resultados aleatorios en Fase 1, Fase 2, Impostor y ¿Quién lo dijo?
+// Carga resultados aleatorios en Fase grupal, Impostor y ¿Quién lo dijo?
 // para poder previsualizar tablas, podio y pantallas sin tener que jugar
 // todo de verdad. Pisa cualquier resultado ya cargado; no toca roster,
 // fixtures, estaciones ni reglas configuradas. Pensado solo para pruebas.
 function simulateVelada() {
   showConfirmModal(
     '¿Simular toda la velada?',
-    'Carga resultados aleatorios en Fase 1, Fase 2, Impostor y ¿Quién lo dijo? para ver cómo quedarían los rankings, el podio y las pantallas. Pisa cualquier resultado que ya esté cargado (el roster, los fixtures, las estaciones y las reglas quedan intactos). Pensado para probar la app antes del evento — no se puede deshacer. Si ya tenés datos reales cargados, te conviene descargar un backup antes (arriba, en "Backup de la noche").',
+    'Carga resultados aleatorios en Fase grupal, Impostor y ¿Quién lo dijo? para ver cómo quedarían los rankings, el podio y las pantallas. Pisa cualquier resultado que ya esté cargado (el roster, los fixtures, las estaciones y las reglas quedan intactos). Pensado para probar la app antes del evento — no se puede deshacer. Si ya tenés datos reales cargados, te conviene descargar un backup antes (arriba, en "Backup de la noche").',
     () => {
-      // ── Fase 1: un resultado random por cada partido del fixture ──
+      // ── Impostor: un resultado random por cada partido del fixture ──
       F1_FIXTURE.forEach(([r, a, b, g]) => {
         const key = `${r}-${a}-${b}`;
         const gCfg = (RULES_CONFIG && RULES_CONFIG.f1 && RULES_CONFIG.f1[g]) ? RULES_CONFIG.f1[g] : null;
@@ -9288,14 +9286,14 @@ function simulateVelada() {
       });
 
       // Fijamos los snapshots de fixture para que TODAS las pantallas
-      // (Fase 2, Final, Wrapped, créditos) lean contra el mismo fixture
+      // (Fase grupal, Final, Wrapped, créditos) lean contra el mismo fixture
       // sobre el que la simulación carga los resultados.
       try {
         state.f1FixtureSnapshot = { fixture: F1_FIXTURE.map(m => m.slice()), byes: Object.assign({}, F1_BYES) };
         state.f2FixtureSnapshot = { fixture: F2_FIXTURE.map(m => m.slice()), byes: Object.assign({}, F2_BYES) };
       } catch (e) {}
 
-      // ── Fase 2: ídem, sobre los duelos de equipos ──
+      // ── Fase grupal: ídem, sobre los duelos de equipos ──
       F2_FIXTURE.forEach(([r, a, b, g]) => {
         const key = `${r}-${a}-${b}`;
         const gCfg = (RULES_CONFIG && RULES_CONFIG.f2 && RULES_CONFIG.f2[g]) ? RULES_CONFIG.f2[g] : null;
@@ -9331,7 +9329,7 @@ function simulateVelada() {
       // ── ¿Quién lo dijo?: podio random por equipo (3 / 2 / 1 puntos) ──
       // Escribimos la MISMA fuente que usa el resultado real (state.qldTeamPoints /
       // window._qldTeamPoints, keyed teamIndex => fase2Points). Así queda marcada
-      // como "jugada" y suma puntos en Fase 2, Final, Wrapped y créditos —
+      // como "jugada" y suma puntos en Fase grupal, Final, Wrapped y créditos —
       // no alcanza con qldOverride, que solo lo lee getTeamPoints de la pestaña.
       const teamOrder = TEAMS.map((_, idx) => idx).sort(() => Math.random() - 0.5);
       const qldPodiumPts = [3, 2, 1];
@@ -9348,7 +9346,7 @@ function simulateVelada() {
       renderReglas();
       if (typeof renderFase1 === 'function') renderFase1();
       if (typeof renderFase2 === 'function') renderFase2();
-      showToast('🎲', 'Velada simulada · Fase 1, Fase 2, Impostor y ¿Quién lo dijo? con datos random', true);
+      showToast('🎲', 'Velada simulada · Fase grupal, Impostor y ¿Quién lo dijo? con datos random', true);
     },
     null,
     'Simular'
@@ -9881,7 +9879,7 @@ function restoreImpGame() {
           .filter(Boolean);
       }
     }
-    // Los jugadores base siempre son los de PLAYERS (Fase 1), mas los invitados
+    // Los jugadores base siempre son los de PLAYERS (Impostor), mas los invitados
     // extra agregados manualmente (los que no figuran en PLAYERS).
     const extras = Array.isArray(impGame.players)
       ? impGame.players.filter(n => !PLAYERS.includes(n))
@@ -11317,7 +11315,7 @@ function entityColor(name, idx) {
   return getEntityColor(name) || teamColor(idx);
 }
 
-// Avatar chico para las tablas de ranking en vivo (Fase 1 / Fase 2): foto si
+// Avatar chico para las tablas de ranking en vivo (Impostor / Fase grupal): foto si
 // hay, sino un círculo de color con la inicial (mismo criterio que el podio).
 function playerAvatarHtml(name, idx) {
   const parts = entityMembers(name);
@@ -12068,7 +12066,7 @@ function playUndoSound() {
 
 // ── SONIDOS DE CEREMONIA (estilo "player card reveal" — pack opening) ──
 
-// Fase 1: la tarjeta entra — whoosh de aire suave + golpe cálido y redondo (sin click metálico)
+// Impostor: la tarjeta entra — whoosh de aire suave + golpe cálido y redondo (sin click metálico)
 function cerSndImpact() {
   try {
     const ctx = getAudioCtx(); const t = ctx.currentTime;
@@ -12196,7 +12194,7 @@ let _finalConfigPanelOpen = false;
 function loadFinalConfig() {
   try {
     const s = localStorage.getItem('ndj_final_config');
-    if (s) FINAL_CONFIG = Object.assign({}, FINAL_CONFIG_DEFAULT, JSON.parse(s));
+    if (s) FINAL_CONFIG = Object.assign({}, FINAL_CONFIG_DEFAULT, InterfaceCopy.clean(JSON.parse(s)));
     else FINAL_CONFIG = Object.assign({}, FINAL_CONFIG_DEFAULT);
   } catch(e) { FINAL_CONFIG = Object.assign({}, FINAL_CONFIG_DEFAULT); }
 }
@@ -12442,7 +12440,7 @@ let _tercerEditMode = false;
 function loadTercerConfig() {
   try {
     const s = localStorage.getItem('ndj_tercer_config');
-    if (s) TERCER_CONFIG = Object.assign({}, TERCER_CONFIG_DEFAULT, JSON.parse(s));
+    if (s) TERCER_CONFIG = Object.assign({}, TERCER_CONFIG_DEFAULT, InterfaceCopy.clean(JSON.parse(s)));
     else TERCER_CONFIG = Object.assign({}, TERCER_CONFIG_DEFAULT);
   } catch(e) { TERCER_CONFIG = Object.assign({}, TERCER_CONFIG_DEFAULT); }
   if (!Array.isArray(TERCER_CONFIG.opciones)) TERCER_CONFIG.opciones = [];
@@ -12695,7 +12693,7 @@ let SEGUNDO_CONFIG = null;
 function loadSegundoConfig() {
   try {
     const s = localStorage.getItem('ndj_segundo_config');
-    if (s) SEGUNDO_CONFIG = Object.assign({}, SEGUNDO_CONFIG_DEFAULT, JSON.parse(s));
+    if (s) SEGUNDO_CONFIG = Object.assign({}, SEGUNDO_CONFIG_DEFAULT, InterfaceCopy.clean(JSON.parse(s)));
     else SEGUNDO_CONFIG = Object.assign({}, SEGUNDO_CONFIG_DEFAULT);
   } catch(e) { SEGUNDO_CONFIG = Object.assign({}, SEGUNDO_CONFIG_DEFAULT); }
 }
@@ -12713,7 +12711,7 @@ let CUARTO_CONFIG = null;
 function loadCuartoConfig() {
   try {
     const s = localStorage.getItem('ndj_cuarto_config');
-    if (s) CUARTO_CONFIG = Object.assign({}, CUARTO_CONFIG_DEFAULT, JSON.parse(s));
+    if (s) CUARTO_CONFIG = Object.assign({}, CUARTO_CONFIG_DEFAULT, InterfaceCopy.clean(JSON.parse(s)));
     else CUARTO_CONFIG = Object.assign({}, CUARTO_CONFIG_DEFAULT);
   } catch(e) { CUARTO_CONFIG = Object.assign({}, CUARTO_CONFIG_DEFAULT); }
 }
@@ -12821,20 +12819,20 @@ async function saveCampeones() {
 }
 
 // ============================================================
-// ELENCO (nombres editables para los créditos; base = fase 1)
+// ELENCO (nombres editables para los créditos; base = Impostor)
 // ============================================================
 let ELENCO_CONFIG = null;   // { byNick: { 'Risu':'Risu nuevo', ... } }
 function loadElencoConfig() {
   try {
     const s = localStorage.getItem('ndj_elenco_config');
-    ELENCO_CONFIG = s ? JSON.parse(s) : { byNick: {} };
+    ELENCO_CONFIG = s ? InterfaceCopy.clean(JSON.parse(s)) : { byNick: {} };
     if (!ELENCO_CONFIG.byNick) ELENCO_CONFIG.byNick = {};
   } catch(e) { ELENCO_CONFIG = { byNick: {} }; }
 }
 function saveElencoConfig() {
   try { localStorage.setItem('ndj_elenco_config', JSON.stringify(ELENCO_CONFIG)); } catch(e){}
 }
-// Devuelve el nombre a mostrar para el elenco: el editado si existe, si no el de fase 1
+// Devuelve el nombre a mostrar para el elenco: el editado si existe, si no el de Impostor
 function elencoName(nick) {
   if (ELENCO_CONFIG && ELENCO_CONFIG.byNick && ELENCO_CONFIG.byNick[nick] != null && ELENCO_CONFIG.byNick[nick] !== '') {
     return ELENCO_CONFIG.byNick[nick];
@@ -12847,7 +12845,7 @@ function saveElencoEdits() {
     const inp = document.getElementById('elenco-edit-' + i);
     if (inp) {
       const v = (inp.value || '').trim();
-      // si lo dejan igual al de fase 1 (o vacío), no guardamos override
+      // si lo dejan igual al de Impostor (o vacío), no guardamos override
       if (v === '' || v === nick) delete ELENCO_CONFIG.byNick[nick];
       else ELENCO_CONFIG.byNick[nick] = v;
     }
@@ -12859,7 +12857,7 @@ function saveElencoEdits() {
 function resetElencoEdits() {
   ELENCO_CONFIG = { byNick: {} };
   saveElencoConfig();
-  showToast('↺', 'Elenco restaurado a la fase 1', false);
+  showToast('↺', 'Elenco restaurado a la Impostor', false);
   renderFinal();
 }
 
@@ -13054,8 +13052,8 @@ function updatePanicPreview() {
     <div class="pn-big">${p.k1 + p.k2} ronda${p.k1 + p.k2 === 1 ? '' : 's'}</div>
     <div class="pn-small">todo terminaría ~<b>${hh}</b> · ${totalMin} min en total</div>
     <div class="pn-rows">
-      <div><span>🎮 Fase 1</span><b>${p.k1} de ${p.f1.pendientes}</b>${corta1 > 0 ? `<em>−${corta1}</em>` : ''}</div>
-      <div><span>👥 Fase 2</span><b>${p.k2} de ${p.f2.pendientes}</b>${corta2 > 0 ? `<em>−${corta2}</em>` : ''}</div>
+      <div><span>🎮 Impostor</span><b>${p.k1} de ${p.f1.pendientes}</b>${corta1 > 0 ? `<em>−${corta1}</em>` : ''}</div>
+      <div><span>👥 Fase grupal</span><b>${p.k2} de ${p.f2.pendientes}</b>${corta2 > 0 ? `<em>−${corta2}</em>` : ''}</div>
       ${p.esp.map(x => `<div class="pn-esp-row"><span>${x.nom}</span><b>${x.min} min</b></div>`).join('')}
     </div>`;
 }
@@ -13069,7 +13067,7 @@ function renderPanicEstado() {
 
   if (!r) {
     el.innerHTML = `<div class="pn-est-linea">Todavía no hay suficientes rondas jugadas para medir el ritmo.</div>
-      <div class="pn-est-linea">🎮 Fase 1: ${f1.ultima} de ${f1.total} · 👥 Fase 2: ${f2.ultima} de ${f2.total}</div>`;
+      <div class="pn-est-linea">🎮 Impostor: ${f1.ultima} de ${f1.total} · 👥 Fase grupal: ${f2.ultima} de ${f2.total}</div>`;
     return;
   }
 
@@ -13078,7 +13076,7 @@ function renderPanicEstado() {
 
   el.innerHTML = `
     <div class="pn-est-linea">⏱️ Llevan jugando <b>${llevan}</b> · ${r.rondasCerradas} ronda${r.rondasCerradas === 1 ? '' : 's'} cerrada${r.rondasCerradas === 1 ? '' : 's'}</div>
-    <div class="pn-est-linea">🎮 Fase 1: <b>${f1.ultima}/${f1.total}</b> · 👥 Fase 2: <b>${f2.ultima}/${f2.total}</b></div>
+    <div class="pn-est-linea">🎮 Impostor: <b>${f1.ultima}/${f1.total}</b> · 👥 Fase grupal: <b>${f2.ultima}/${f2.total}</b></div>
     ${r.promedio ? `<div class="pn-est-linea destacada">📊 Ritmo real: <b>${r.promedio} min</b> por ronda
       <button class="pn-usar" onclick="usarRitmoReal(${r.promedio})">usar este valor</button></div>` : ''}
     ${r.desdeUltimaMin > 12 ? `<div class="pn-est-linea aviso">⚠️ Hace ${r.desdeUltimaMin} min que no se carga un resultado</div>` : ''}`;
@@ -13748,8 +13746,8 @@ function renderFinal() {
   const f2Pend = f2Total - f2Done;
 
   // Determine "classification status" per phase
-  // Fase 1: 1st place is locked when all f1 matches done
-  // Fase 2: 1st team is locked when all f2 matches done
+  // Impostor: 1st place is locked when all f1 matches done
+  // Fase grupal: 1st team is locked when all f2 matches done
   const f1Locked = f1Done === f1Total;
   const f2Locked = f2Done === f2Total && commonGroupRoundsDone();
 
@@ -13762,7 +13760,7 @@ function renderFinal() {
   let pendingHtml = '';
   if (pct < 100) {
     const pendItems = [];
-    if (f1Pend > 0) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator fase1"></span>Fase 1: faltan <b style="color:var(--text);margin:0 3px">${f1Pend}</b> partido${f1Pend>1?'s':''}</div>`);
+    if (f1Pend > 0) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator fase1"></span>Impostor: faltan <b style="color:var(--text);margin:0 3px">${f1Pend}</b> partido${f1Pend>1?'s':''}</div>`);
     if (!impDone) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator impostor"></span>Ronda Impostor: pendiente</div>`);
     if (f2Pend > 0) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator fase2"></span>Fase grupal: faltan <b style="color:var(--text);margin:0 3px">${f2Pend}</b> partido${f2Pend>1?'s':''}</div>`);
     groupExtras.filter(id=>!commonRoundDone(id)).forEach(id=>pendItems.push('<div class="final-pending-item">Ronda '+(id==='guess'?'Guess Movies/Songs':'100 Argentinos Dicen')+': pendiente</div>'));
@@ -13804,7 +13802,7 @@ function renderFinal() {
       ? `<span class="final-clasificado-tag">✓ Clasificado</span>`
       : `<span class="final-provisorio-tag">provisorio</span>`;
     const posClass = pos === 0 ? 'gold' : 'accent';
-    const label = phase === 'f1' ? 'Fase individual' : 'Fase grupal';
+    const label = phase === 'f1' ? 'Impostor' : 'Fase grupal';
     const badgeClass = phase === 'f1' ? 'badge' : 'badge group';
     return `<div class="final-player">
       <div class="pos-badge ${posClass}">${pos+1}</div>
@@ -14498,13 +14496,13 @@ function rollCredits() {
   const impPts = getImpostorPoints();
   const sortedI = PLAYERS.map((n, i) => ({ n, pts: impPts[i] ? impPts[i].total : 0 })).filter(e => e.pts > 0).sort((a, b) => b.pts - a.pts);
   const champT = sortedT[0];
-  const pName = (n) => esc(n);             // jugadores → tal cual los cargaste en la fase 1
+  const pName = (n) => esc(n);             // jugadores → tal cual los cargaste en la Impostor
   const tName = (n) => esc(n);             // equipos → tal cual
   const podium = (arr, nf) => arr.slice(0, 3)
     .map((e, i) => `<div class="cr-line${i === 0 ? ' cr-first' : ''}"><span class="cr-medal">${medal[i]}</span><span class="cr-av">${playerAvatarHtml(e.n, i)}</span>${nf(e.n)} <span class="cr-mini">· ${e.pts} pts</span></div>`).join('');
   const cast = (arr, nf) => arr.map((e, i) => `<div class="cr-line"><span class="cr-av">${playerAvatarHtml(e.n, i)}</span>${nf(e.n)}</div>`).join('');
 
-  // Todos los juegos: Fase 1 + Fase 2 + Impostor + ¿Quién lo dijo? (deduplicados),
+  // Todos los juegos: Impostor + Fase grupal + Impostor + ¿Quién lo dijo? (deduplicados),
   // cada uno con su ícono y su color de categoría (mismos tonos que Reglas).
   const gameMeta = {};
   if (typeof RULES_CONFIG !== 'undefined' && RULES_CONFIG) {
@@ -15200,7 +15198,7 @@ function _runCeremony(opts) {
       }
     }
     const parts = String(name).split('/').map(function(s) { return s.trim(); }).filter(Boolean);
-    // La apertura usa los apodos (los mismos que las tablas de Fase 1 y 2);
+    // La apertura usa los apodos (los mismos que las tablas de Impostor y 2);
     // los créditos siguen usando los nombres completos.
     const conApodos = (opts.nombres === 'nick');
     const nombreMostrado = (x) => (!conApodos && typeof FULL_NAMES !== 'undefined' && FULL_NAMES[x]) ? FULL_NAMES[x] : x;
@@ -15251,7 +15249,7 @@ function _runCeremony(opts) {
     // Mantener la tarjeta nueva a la vista cuando ya no entran todas
     rail.scrollLeft = rail.scrollWidth;
 
-    // Fase 1: haz de luz + la tarjeta entra con golpe
+    // Impostor: haz de luz + la tarjeta entra con golpe
     const beamEl = stage.querySelector('#op-beam-el');
     if (beamEl) { beamEl.classList.remove('sweep'); void beamEl.offsetWidth; beamEl.classList.add('sweep'); }
     void cardEl.offsetWidth;
@@ -15260,7 +15258,7 @@ function _runCeremony(opts) {
     if (burstEl && !reduce) { burstEl.classList.remove('go'); void burstEl.offsetWidth; burstEl.classList.add('go'); }
     if (!reduce && useSfx) cerSndImpact();
 
-    // Fase 2: figura entra
+    // Fase grupal: figura entra
     phaseTimers.push(setTimeout(function() {
       const el = cardEl.querySelector('#op-fig-el');
       if (el) el.classList.add('visible');
@@ -15627,12 +15625,12 @@ function buildTrailerPlan() {
 
   pasos.push({ t: 'title', big: 'LA VELADA', sub: (f1.length + f2.length) + ' juegos · una sola noche', beats: 4 });
   if (f1.length) {
-    pasos.push({ t: 'title', big: 'FASE 1', sub: 'Todos contra todos', beats: 3, fase: 1 });
+    pasos.push({ t: 'title', big: 'Impostor', sub: 'Todos contra todos', beats: 3, fase: 1 });
     const ritmo = [3, 3, 3, 2, 2, 2];
     f1.forEach((g, i) => pasos.push({ t: 'game', g, fase: 1, numero: i + 1, beats: ritmo[i] != null ? ritmo[i] : 2, plano: (variante++) % 3 }));
   }
   if (f2.length) {
-    pasos.push({ t: 'title', big: 'FASE 2', sub: 'En equipos', beats: 3, fase: 2 });
+    pasos.push({ t: 'title', big: 'Fase grupal', sub: 'En equipos', beats: 3, fase: 2 });
     const ritmo = [3, 2, 2, 2, 2, 2];
     f2.forEach((g, i) => pasos.push({ t: 'game', g, fase: 2, numero: i + 1, beats: ritmo[i] != null ? ritmo[i] : 2, plano: (variante++) % 3 }));
   }
@@ -15808,7 +15806,7 @@ function openVelada() {
     if (!orden.items.length) { stopCeremonyTrack(800); return; }
     _runCeremony({
       groups: [orden],
-      nombres: 'nick',   // mismos nombres que las tablas de Fase 1 y Fase 2
+      nombres: 'nick',   // mismos nombres que las tablas de Impostor y Fase grupal
       trailer: true,     // el montaje de los 12 juegos corre dentro de esta misma corrida
       totalMs: APERTURA_PRESENTACION_MS,
       finishTitle: '¡Que empiece<br>La Velada!',
@@ -15867,7 +15865,7 @@ function _ordenApertura() {
   return {
     items,
     title: 'Los concursantes',
-    eyebrow: 'Fase 1 individual · Fase 2 en parejas',
+    eyebrow: 'Impostor individual · Fase grupal en parejas',
     labelFn: (i, tot) => `Concursante ${i + 1} de ${tot || total}`,
     colorFn: (i) => entityColor(items[i], i),
     figFn: (name, color, i) => (typeof miiFigureSVG === 'function')
@@ -15932,13 +15930,13 @@ function openCeremony() {
   });
 }
 
-// ── PRESENTACIÓN DE CONCURSANTES (Fase 1) ──
+// ── PRESENTACIÓN DE CONCURSANTES (Impostor) ──
 function openPlayerCeremony() {
   if (!PLAYERS.length) return;
   _runCeremony({
     items: PLAYERS,
     title: 'Los concursantes',
-    eyebrow: 'Fase 1 · Clasificación individual',
+    eyebrow: 'Impostor',
     labelFn: (i, total) => `Concursante ${i + 1} de ${total}`,
     colorFn: (i) => entityColor(PLAYERS[i], i),
     figFn: (name, color, i) => {
@@ -16213,12 +16211,12 @@ function buildWrapped() {
     });
   } catch (e) { console.warn('[Wrapped] fallo en "Así fue la noche":', e); }
 
-  // Campeón de la Fase Individual — pantalla estelar, siempre presente.
+  // Campeón de la Impostor — pantalla estelar, siempre presente.
   try {
     if (sortedP.length && sortedP[0].pts > 0) {
       const c = sortedP[0];
       screens.push({
-        emoji: '🥇', color: '#c8f060', title: 'Campeón · Fase Individual',
+        emoji: '🥇', color: '#c8f060', title: 'Campeón · Impostor',
         stat: `${c.pts} pts`, name: escHtml(c.n),
         desc: sortedP.length > 1 ? `Le sacó ${Math.max(0, c.pts - sortedP[1].pts)} pts al segundo` : 'El más ganador de la fase'
       });
@@ -16237,11 +16235,11 @@ function buildWrapped() {
     }
   } catch (e) { console.warn('[Wrapped] fallo en "campeón grupal":', e); }
 
-  // MVP de la fase individual (más victorias) — dato que sale de computePhaseStats.
+  // MVP de la Impostor (más victorias) — dato que sale de computePhaseStats.
   try {
     if (statsIndiv.mvpName && statsIndiv.mvpWins > 0) {
       screens.push({
-        emoji: '⭐', color: '#ffd24a', title: 'El MVP de la fase individual',
+        emoji: '⭐', color: '#ffd24a', title: 'El MVP de la Impostor',
         stat: statsIndiv.mvpWins, name: escHtml(statsIndiv.mvpName),
         desc: `victoria${statsIndiv.mvpWins === 1 ? '' : 's'} en toda la fase`
       });
@@ -16293,7 +16291,7 @@ function buildWrapped() {
     });
   } catch (e) { console.warn('[Wrapped] fallo en "comodines":', e); }
 
-  // Ganador de ¿Quién lo dijo? (la ronda especial por parejas de Fase 2).
+  // Ganador de ¿Quién lo dijo? (la ronda especial por parejas de Fase grupal).
   try {
     const qld = (window._qldTeamPoints && Object.keys(window._qldTeamPoints).length) ? window._qldTeamPoints
               : (state.qldTeamPoints || {});
@@ -16472,7 +16470,7 @@ function podiumReveal(phaseKind, onContinue) {
     const ppts = (typeof getPlayerPoints === 'function') ? getPlayerPoints() : PLAYERS.map(() => ({ total: 0 }));
     sorted = PLAYERS.map((n, i) => ({ n, i, pts: (ppts[i] ? ppts[i].total : 0) }))
       .sort((a, b) => b.pts - a.pts);
-    eyebrow = 'Fase Individual · Podio final';
+    eyebrow = 'Impostor · Podio final';
   } else {
     const tpts = (typeof getTeamPoints === 'function') ? getTeamPoints() : TEAMS.map(() => ({ total: 0 }));
     sorted = TEAMS.map((n, i) => ({ n, i, pts: (tpts[i] ? tpts[i].total : 0) }))
@@ -16651,7 +16649,7 @@ function computeMotes() {
   const ppts   = getPlayerPoints();
   const impRounds = (state.impostor && state.impostor.rounds) || [];
 
-  // -- Per-player stats from Fase 1 --
+  // -- Per-player stats from Impostor --
   const stats = PLAYERS.map((name, idx) => {
     const rounds = ppts[idx].rounds; // array of 6: null | 'bye' | 0 | 1 | 3 | 4
     let wins = 0, losses = 0, draws = 0, bonusWins = 0, byeCount = 0;
@@ -16706,7 +16704,7 @@ function computeMotes() {
   if (machines.length === 1) motes.push({
     emoji: '⚙️', type: 'honor', title: 'La Máquina',
     player: machines[0].name,
-    reason: `${machines[0].wins} victorias en Fase 1. Imparable.`,
+    reason: `${machines[0].wins} victorias en Impostor. Imparable.`,
   });
 
   // "El Aplastador" — más victorias con bonus (2-0)
@@ -16747,7 +16745,7 @@ function computeMotes() {
   });
 
   // ── VERGÜENZA ─────────────────────────────────────────────────
-  // "El Teórico" — último lugar en Fase 1
+  // "El Teórico" — último lugar en Impostor
   const lastPlace = sortedByPts[sortedByPts.length - 1];
   // only if there are at least 3 players
   if (totalPlayers >= 3) motes.push({
@@ -16772,7 +16770,7 @@ function computeMotes() {
     reason: `${ghosts[0].byeCount} rondas de descanso. Descansó más que jugó.`,
   });
 
-  // "El Eterno Segundo" — 2° lugar exacto en Fase 1
+  // "El Eterno Segundo" — 2° lugar exacto en Impostor
   if (sortedByPts.length >= 2) {
     const silver = sortedByPts[1];
     // Only meaningful if gap to 1st is small
@@ -17017,7 +17015,7 @@ function computeMotes() {
     });
   })();
 
-  // ── FASE 2 (motes por equipo) ─────────────────────────────────
+  // ── Fase grupal (motes por equipo) ─────────────────────────────────
   const f2Done = F2_FIXTURE.filter(([r,a,b]) => state.f2[`${r}-${a}-${b}`]).length;
   if (f2Done >= 3 && TEAMS && TEAMS.length >= 2) {
     const tpts = getTeamPoints();
@@ -17038,28 +17036,28 @@ function computeMotes() {
       return teamStats2.filter(s => fn(s) === mx && mx > 0);
     }
 
-    // "El Dream Team" — más victorias en Fase 2
+    // "El Dream Team" — más victorias en Fase grupal
     const dreamTeams = teamLeader(s => s.wins2);
     if (dreamTeams.length === 1) motes.push({
       emoji: '👑', type: 'honor', title: 'El Dream Team',
       player: dreamTeams[0].name,
-      reason: `${dreamTeams[0].wins2} victorias en Fase 2. El mejor equipo de la noche.`,
+      reason: `${dreamTeams[0].wins2} victorias en Fase grupal. El mejor equipo de la noche.`,
     });
 
-    // "El Equipo Generoso" — más derrotas en Fase 2
+    // "El Equipo Generoso" — más derrotas en Fase grupal
     const generousTeams = teamLeader(s => s.losses2);
     if (generousTeams.length === 1 && generousTeams[0].losses2 >= 2) motes.push({
       emoji: '🎀', type: 'shame', title: 'El Equipo Generoso',
       player: generousTeams[0].name,
-      reason: `${generousTeams[0].losses2} derrotas en Fase 2. Donó puntos a todos por igual.`,
+      reason: `${generousTeams[0].losses2} derrotas en Fase grupal. Donó puntos a todos por igual.`,
     });
 
-    // "La Apisonadora" — más victorias con bonus en Fase 2
+    // "La Apisonadora" — más victorias con bonus en Fase grupal
     const rollers = teamLeader(s => s.bonusWins2);
     if (rollers.length === 1 && rollers[0].bonusWins2 >= 2) motes.push({
       emoji: '🚜', type: 'honor', title: 'La Apisonadora',
       player: rollers[0].name,
-      reason: `${rollers[0].bonusWins2} victorias con bonus en Fase 2. No dejó pelear a nadie.`,
+      reason: `${rollers[0].bonusWins2} victorias con bonus en Fase grupal. No dejó pelear a nadie.`,
     });
 
     // "El Bendecido / El Maldito" (equipos) — la ruleta de comodines lo trató bien o mal
@@ -17634,7 +17632,7 @@ window._ndjWall = JSON.stringify(_wall);
         }
       } catch(e) {}
     }).catch(() => {});
-    // Apuestas de Fase 2
+    // Apuestas de Fase grupal
     window._fbRead('betsF2').then(data => {
       if (!data) return;
       try {
@@ -17884,7 +17882,7 @@ function dismissSplash() {
   // Desde la pantalla del logo se entra a Reglas, salvo que el enlace pida otra
   // pestaña (ej. el acceso directo del HUB: velada.html#impostor).
   const pedida = (location.hash || '').replace('#', '').trim();
-  const validas = ['reglas', 'fase1', 'fase2', 'impostor', 'final'];
+  const validas = ['reglas', 'fase2', 'impostor', 'final'];
   const destino = validas.indexOf(pedida) !== -1 ? pedida : 'reglas';
   if (typeof activateTab === 'function') activateTab(destino);
   s.classList.add('splash-out');
@@ -18006,7 +18004,7 @@ document.addEventListener('keydown', function(e) {
 
   // Todos los juegos del torneo con sus emojis
   const GAMES = [
-    // Fase 1
+    // Impostor
     { emoji: '🥌', name: 'Curling'          },
     { emoji: '🎯', name: 'Dardos'           },
     { emoji: '🃏', name: 'UNO'              },
@@ -18015,7 +18013,7 @@ document.addEventListener('keydown', function(e) {
     { emoji: '🎴', name: 'Spot It'          },
     // Ronda especial
     { emoji: '🕵️', name: 'Impostor'         },
-    // Fase 2
+    // Fase grupal
     { emoji: '🎲', name: 'Mario Party'      },
     { emoji: '⌛', name: "Time's Up"        },
     { emoji: '🍺', name: 'Beer Pong'        },
