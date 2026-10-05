@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id), E=TegEngine,M=TegMap,params=new URLSearchParams(location.search),tv=params.get('mode')==='tv';
 let id=crypto.randomUUID?crypto.randomUUID():'c'+Date.now()+Math.random().toString(36).slice(2);
 let db=null,connected=false,offset=0,pub=null,session=null,activation=null,roster=null,player=null,myGoal=null,isHost=false,demo=false,selected=null,target=null,zoom=1,busy=false,lastBattle=null,battleTimer=null,toastTimer=null,queue=Promise.resolve(),seq=0,autoHostRequested=false;
-let draftAmount=1,lastProjection=null,lastResult=null,presence={},hostTickQueued=false;
+let draftAmount=1,lastProjection=null,lastResult=null,presence={},hostTickQueued=false,hostSessionRef=null;
 const now=()=>Date.now()+offset,esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clock=ms=>{let n=Math.max(0,Math.ceil(ms/1000));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0');};
 const members=team=>String(team).split('/').map(n=>n.trim()).filter(Boolean);
@@ -95,9 +95,11 @@ async function publish(s){
  await db.ref().update(u);lastProjection=signature;if(res)lastResult=JSON.stringify(res);
 }
 async function transact(mutator){
- const time=now();let response=null;
- const r=await db.ref('velada/teg/session').transaction(raw=>{
-  let s=normalize(raw);if(!s||s.hostId!==id||s.hostUntil<time)return;
+ const ref=hostSessionRef||db.ref('velada/teg/session');
+ await ref.once('value');let response=null;
+ const r=await ref.transaction(raw=>{
+  const time=now();let s=normalize(raw);if(!s||s.hostId!==id)return;
+  if(s.hostUntil<time&&s.status==='running')s=E.apply(s,{type:'pause'},s.hostUntil||time).state;
   response=mutator(s,time);s=response.state||s;s.hostId=id;s.hostUntil=time+6000;return s;
  },undefined,false);
  if(!r.committed)throw Error('Otro conductor tiene el control o venció la conexión. Volvé a entrar al modo conductor.');
@@ -107,8 +109,10 @@ function enqueue(fn){queue=queue.then(fn).catch(e=>toast(e.message));return queu
 async function claimHost(){
  if(demo){isHost=true;render();return;}
  if(!connected||!activation?.active)throw Error('Activá primero la ronda TEG Express desde el fixture y verificá la conexión.');
- const time=now(),r=await db.ref('velada/teg/session').transaction(raw=>{
-  let s=normalize(raw);if(s?.hostId&&s.hostId!==id&&s.hostUntil>time)return;
+ if(!hostSessionRef){hostSessionRef=db.ref('velada/teg/session');hostSessionRef.on('value',snap=>{session=normalize(snap.val());});}
+ await hostSessionRef.once('value');
+ const r=await hostSessionRef.transaction(raw=>{
+  const time=now();let s=normalize(raw);if(s?.hostId&&s.hostId!==id&&s.hostUntil>time)return;
   if(!s||s.activationId!==activation.id){s=E.create(activation.teams,time);s.activationId=activation.id;s.round=activation.round;}
   else if(s.status==='running'&&s.hostUntil<time){
    // Pause at the last acknowledged heartbeat; reconnecting does not consume an absent conductor's time.

@@ -84,3 +84,7 @@ Las reglas incluidas se prepararon a partir de las reglas enviadas por el organi
 ### Créditos del mapa
 
 SVG aportado: `margodth-TEG.svg`, autor declarado margodth, Openclipart. El archivo contiene declaración de dominio público y se conserva como `teg-map-original.svg`, con sus metadatos. La adaptación mantiene los contornos y puentes, reemplazando colores y etiquetas para la aplicación. TEG Express es una adaptación para la velada, sin afiliación declarada al juego comercial.
+
+## Corrección del control del conductor
+
+Se mantiene una lectura de la sesión mientras está abierta la pestaña del conductor y se espera su carga antes de las transacciones. Si su señal vence sin que otro conductor haya tomado el control, el mismo conductor puede renovarla; una partida en curso queda pausada en el último instante confirmado para preservar el tiempo. La sala previa permite iniciar después de un retraso. Las pruebas simulan caché vacía, retraso en sala y partida, conservación del tablero y rechazo de un segundo conductor activo. No se verificó esta corrección en el Firebase remoto.

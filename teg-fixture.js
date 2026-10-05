@@ -3,7 +3,6 @@
  window.tegRoundHtml=function(n){
   const done=commonRoundDone('teg');
   return '<div class="fixture-round"><div class="round-label">Ronda '+n+' <span class="bye-tag">🌍 TEG Express · todos contra todos · máximo 15 min</span><button class="fixture-edit-toggle" onclick="activateTegRound('+n+',this)">▶ Activar ronda '+n+'</button></div>'
-   +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0"><a class="fixture-edit-toggle" href="teg.html?mode=host" target="_blank" rel="noopener">🎙️ Abrir conductor</a><a class="fixture-edit-toggle" href="teg.html?mode=tv" target="_blank" rel="noopener">📺 Mapa en TV</a></div>'
    +'<div class="match-row '+(done?'done':'')+'" onclick="openCommonResultModal(\'teg\')"><span class="match-game-badge" style="color:#c8f060;background:#c8f06022">🌍 TEG Express</span><span class="match-players">'+TEAMS.map(commonEscape).join(' · ')+'</span><span class="match-result">'+(done?'✓ Cargado':(window._commonResults||{}).teg?'Resultado disponible':'Pendiente')+'</span></div></div>';
  };
  window.activateTegRound=async function(round,button){
