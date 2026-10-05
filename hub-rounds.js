@@ -102,7 +102,7 @@
       });
       listener=ref.on('value',snap=>{
         const next=(snap.val()||{}).fixture||null;
-        const changed=(match&&match.id)!==(next&&next.id) || !!(match&&match.active)!==!!(next&&next.active);
+        const changed=(match&&match.id)!==(next&&next.id) || !!(match&&match.active)!==!!(next&&next.active) || JSON.stringify(match&&match.players)!==JSON.stringify(next&&next.players);
         match=next;
         if(changed){
           hideTransient();

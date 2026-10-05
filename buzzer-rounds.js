@@ -28,20 +28,21 @@
   }
   // Ronda grupal (Guess Movies & Songs): juegan todos los equipos juntos.
   // En este modo `side` es el nombre del equipo (no 'a'/'b').
-  function buildGroup(round, ctx, id){
+  function buildGroup(round, ctx, id, game){
+    game=game||'movies';
     const labels=(ctx.teams||[]).filter(Boolean), players=[];
-    labels.forEach(label=>{
-      members(label,ctx.players,ctx.fullNames||{}).forEach(name=>players.push({name,side:label,teamLabel:label}));
+    labels.forEach((label,index)=>{
+      members(label,ctx.players,ctx.fullNames||{}).forEach(name=>players.push({name,side:game==='argentinos'?String.fromCharCode(97+index):label,teamLabel:label}));
     });
     if(labels.length<2 || !players.length || new Set(players.map(p=>p.name)).size!==players.length) throw new Error('Hay nombres repetidos o faltan equipos. Corregí los equipos antes de activar la ronda.');
-    return {id,phase:'f2',round,game:'movies',key:'guess-group',group:true,teams:labels,names:{},players,active:true};
+    return {id,phase:'f2',round,game,key:game==='argentinos'?'argentinos-group':'guess-group',group:true,teams:labels,names:{},players,active:true};
   }
   function allowed(match,name,side){
     return !!(match && match.active && Array.isArray(match.players) && match.players.some(p=>p.name===name && p.side===side));
   }
   function buzz(current,matchId,player,side,ms){
     if(!current || !current.fixture || current.fixture.id!==matchId || !allowed(current.fixture,player,side)) return;
-    if(current.fixture.group){
+    if(current.fixture.group && current.fixture.game==='movies'){
       // Cola de buzzer: cada equipo entra una sola vez, en el orden en que apretó.
       if(current.state!=='open') return;
       const queue=Array.isArray(current.queue)?current.queue.slice():[];

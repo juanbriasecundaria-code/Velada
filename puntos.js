@@ -7,6 +7,19 @@
 (function (root) {
   'use strict';
 
+  root.RoundPlan = {
+    ids: function(fixture,games) {
+      const ids=Array.from(new Set((fixture||[]).map(m=>'duel:'+m[0]))).sort((a,b)=>Number(a.slice(5))-Number(b.slice(5)));
+      if((games||[]).includes('Guess Movie/Song'))ids.push('guess');
+      if((games||[]).includes('100 Argentinos Dicen'))ids.push('argentinos');
+      return ids.concat(['impostor','qld']);
+    },
+    order: function(state,fixture,games) {
+      const ids=this.ids(fixture,games), saved=Array.isArray(state.roundOrder)?state.roundOrder:[];
+      return saved.filter((id,i)=>ids.includes(id)&&saved.indexOf(id)===i).concat(ids.filter(id=>!saved.includes(id)));
+    }
+  };
+
   function prep(ctx) {
     const st = Object.assign({ f1: {}, f2: {}, impostor: { rounds: [] } }, ctx.state || {});
     if (!st.f1) st.f1 = {};
@@ -176,6 +189,23 @@
     p.total = p.rounds.reduce((s,v) => s + (typeof v === 'number' ? v : 0), 0) + (p.qld || 0) + (p.betsF2 || 0) + (p.comodin || 0) + (p.adjust || 0);
   });
 
+  const games = RULES_CONFIG ? RULES_CONFIG.f2.map(g=>g.name) : (ctx.games || ['Guess Movie/Song','100 Argentinos Dicen']);
+  const order = root.RoundPlan.order(state,F2_FIXTURE,games);
+  pts.forEach((p,idx)=>{
+    const raw=p.rounds.slice();
+    p.roundKeys=order.slice();
+    p.rounds=order.map(id=>{
+      if(id.startsWith('duel:'))return raw[Number(id.slice(5))-1] ?? null;
+      if(id==='impostor')return null;
+      if(id==='qld')return p.qld || (Object.keys(QLD_POINTS).length ? 0 : null);
+      const byTeam=(state[id+'Round']||{}).byTeam||{};
+      return Number.isFinite(byTeam[TEAMS[idx]])?byTeam[TEAMS[idx]]:null;
+    });
+    const commonOv=state.commonCellPts||{};
+    order.forEach((id,i)=>{const key=TEAMS[idx]+'||'+id;if(Object.prototype.hasOwnProperty.call(commonOv,key))p.rounds[i]=Number(commonOv[key])||0;});
+    p.total=p.rounds.reduce((sum,v)=>sum+(typeof v==='number'?v:0),0)+(p.betsF2||0)+(p.comodin||0)+(p.adjust||0);
+  });
+
   // Victorias / derrotas (las usa el TV para los íconos 🔥 / 🤡)
   F2_FIXTURE.forEach(([r, a, b]) => {
     const res = state.f2[r + '-' + a + '-' + b];
@@ -187,5 +217,5 @@
   return pts;
   }
 
-  root.Puntos = { jugadores: jugadores, equipos: equipos, version: 1 };
+  root.Puntos = { jugadores: jugadores, equipos: equipos, version: 2 };
 })(typeof window !== 'undefined' ? window : globalThis);

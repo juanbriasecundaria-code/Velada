@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>La Velada del Año</title>
-<script src="puntos.js?v=1"></script>
+<script src="puntos.js?v=2"></script>
 <!-- Tipografía con serifas para la portada del diario. Si no carga, Georgia
      (que está en todos los sistemas) cumple el mismo rol. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -520,7 +520,8 @@
   }
 
   /* scrollable table wrapper */
-  .table-wrap { overflow-x: auto; }
+  .table-wrap { overflow-x: auto; scrollbar-width:none; -ms-overflow-style:none; }
+  .table-wrap::-webkit-scrollbar { display:none; width:0; height:0; }
 
   @media (max-width: 600px) {
     .stats-grid { grid-template-columns: repeat(2,1fr); }
@@ -3989,8 +3990,9 @@ body.solo-impostor #tv-btn{ opacity:.42 }
 .pr-del{ background:none; border:none; color:var(--danger); font-size:9px;
   cursor:pointer; font-family:inherit; padding:1px }
 </style>
-<style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style><script src="buzzer-rounds.js"></script>
-<script src="velada-rounds.js"></script>
+<style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style><script src="buzzer-rounds.js?v=2"></script>
+<script src="velada-rounds.js?v=2"></script>
+<script src="common-rounds.js?v=2"></script>
 </head>
 <body>
 <script>
@@ -4205,7 +4207,7 @@ body.solo-impostor #tv-btn{ opacity:.42 }
 
 const RULES_DEFAULT = {
   general: {
-    intro: 'La noche se juega en equipos: una fase grupal y una final. Además hay dos rondas especiales: el Impostor, con su propio ranking individual que solo vale ahí, y ¿Quién lo dijo?, que suma a la fase grupal.',
+    intro: 'La noche tiene rondas comunes en orden aleatorio y una final. Guess Movies/Songs, 100 Argentinos Dicen y ¿Quién lo dijo? se juegan con todos los equipos juntos y suman al ranking grupal. Impostor tiene su turno en el mismo fixture, se juega individualmente y solo suma a su ranking individual.',
     pointsIntro: 'Cada juego define su propio puntaje (con eventual bonus). Al final de la fase grupal se suman los puntos de todas las estaciones y el mejor equipo clasifica.',
     tiebreak: ['Resultado directo entre ellos.', 'Mayor cantidad de bonus obtenidos.', 'Mini-ronda relámpago definida por el organizador.'],
   },
@@ -4220,7 +4222,7 @@ const RULES_DEFAULT = {
     { name: 'Mario Party', icon: '🎲', desc: 'Minijuegos rápidos 2v2. Cada equipo compite en una tanda de minijuegos, gana el que acumule más victorias.', format: 'Primero en ganar 5 minijuegos', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Ganar por 3+ de diferencia (Por ej.: 5-2)', allow_draw: true, rules: ['Gana el primer equipo en llegar a 5 victorias de minijuego','Si se acaba el tiempo (15 min) antes, gana quien lleve más victorias','En caso de empate al acabar el tiempo, se juega un minijuego desempate','Puntaje máximo: 4pts'] },
     { name: "Time's Up", icon: '⏰', desc: 'Juego de adivinanza por pistas. El equipo intenta adivinar la mayor cantidad de personajes/famosos en 1 minuto.', format: 'Turnos de 1 min (hasta que terminen las demás mesas o se cansen)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Si duplican la cantidad de personajes/famosos adivinados del rival', allow_draw: true, rules: ['Si es una celebridad o famoso, NO se puede decir ni el nombre ni ninguna parte del mismo.','Turnos de 1 minuto por equipo.','Gana el equipo que más adivina en su minuto.','Puntaje máximo: 4pts'] },
     { name: 'Beer Pong', icon: '🍺', desc: 'Formato clásico adaptado. Cada equipo tiene 6 vasos de su lado.', format: 'Hasta vaciar los vasos o por tiempo (depende de las demás mesas)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: '3+ vasos en pie', allow_draw: true, rules: ['6 vasos por lado.','Cada jugador tira 1 vez por turno.','Si emboca, se retira el vaso.','Si un equipo emboca dos pelotas seguidas, puede cambiar la posición de un vaso propio o del rival.','Gana el equipo que elimine todos los vasos del rival.','Tiempo máximo: 7 minutos (o hasta que terminen las demás estaciones).','Puntaje máximo: 4pts','Puntaje mínimo (empate): 1pts'] },
-    { name: 'Guess Movie/Song', icon: '🎬', desc: 'Juego de cultura pop. Se muestra una imagen (película) o se reproduce un fragmento de audio (canción). Los equipos usan el multibuzzer del celular para responder.', format: 'Hasta que terminen las demás mesas o por tiempo (mayormente 10 minutos / 15 minutos)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: '5 o más adivinados de diferencia', allow_draw: true, rules: ['El primero en presionar el buzzer tiene derecho a responder.','Solo puede responder el equipo que presionó primero.','Si responde mal: pierde el turno y el otro equipo puede intentarlo.','1 punto por canción o película adivinada.','Tiempo máximo para adivinar: 15 segundos.','Puntaje máximo: 4pts'] },
+    { name: 'Guess Movie/Song', icon: '🎬', desc: 'Juego de cultura pop con todos los equipos juntos. Se muestra una imagen o se reproduce un fragmento de audio. Cada participante usa su nombre y foto; el buzzer ordena las respuestas por equipo.', format: 'Hasta que terminen las demás mesas o por tiempo (mayormente 10 minutos / 15 minutos)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: '5 o más adivinados de diferencia', allow_draw: true, rules: ['Ronda común en posición aleatoria del fixture: todos los equipos juntos.','El buzzer arma una cola: si el primero falla, responde el siguiente equipo.','Al finalizar: 1.º 3 pts, 2.º 1 pt y resto 0; con dos equipos: 3 y 0. Empates en aciertos comparten puesto.','Bonus de 1 pt al primero si supera por 5 o más aciertos a todos los demás.','1 punto por canción o película adivinada.','Tiempo máximo para adivinar: 15 segundos.','Puntaje máximo: 4pts'] },
     { name: 'El Erudito', icon: '🧠', desc: 'Versión rápida del Erudito, solo con preguntas de aproximación numérica.', format: 'Hasta 7 aciertos o por tiempo', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: '3+ respuestas de ventaja', allow_draw: true, rules: ['Se hacen preguntas de aproximación al mismo tiempo para ambos equipos.','1 minuto para pensar y anotar la respuesta.','Se respeta un ±5% de desvío.','Gana el equipo que acumule 7 respuestas correctas primero, o el que tenga más al terminar las demás estaciones.','1 minuto para pensar la respuesta','Puntaje máximo: 4pts','Puntaje mínimo (empate): 1pts'] },
     { name: 'Jenga', icon: '🪵', desc: 'Juego clásico de equilibrio. El primero que derrumba la torre pierde.', format: 'Mejor de 3 rondas (salvo que termine muy rápido y si los participantes quieren pueden seguir hasta que las demás mesas terminen)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Ganar sin haber perdido ninguna ronda o con marcador final con diferencia de 2 rondas (Por ej.: 4 a 2)', allow_draw: true, rules: ['Puntaje máximo: 4pts'] },
     { name: 'Curling', icon: '🥌', desc: 'Cada jugador lanza 5 piedras por ronda buscando quedar lo más cerca posible del centro. Se pueden desplazar las piedras del rival.', format: 'Mejor de 3 rondas (salvo que termine muy rápido y si los participantes quieren pueden seguir hasta que las demás mesas terminen)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Ganar sin haber perdido ninguna ronda o con marcador final con diferencia de 2 rondas (Por ej.: 4 a 2)', allow_draw: true, rules: ['Círculo azul → 1 pt','Círculo blanco intermedio → 2 pts','Círculo rojo → 3 pts','Círculo blanco pequeño → 5 pts','Se puede empujar las piedras del rival para hacerle perder puntos.','Puntaje máximo: 4pts'] },
@@ -4237,11 +4239,13 @@ let RULES_CONFIG = null;
 // las eliminaciones intencionales guardadas con esta versión se respetan.
 function migrateRulesCatalog(parsed) {
   const config = JSON.parse(JSON.stringify(parsed));
-  if (!config.catalogVersion && Array.isArray(config.f2) && config.f2.length === 6 &&
-      config.f2.every((g, i) => g.name === RULES_DEFAULT.f2[i].name)) {
-    config.f2.push(...JSON.parse(JSON.stringify(RULES_DEFAULT.f2.slice(6))));
+  if ((config.catalogVersion || 0) < 2 && Array.isArray(config.f2) &&
+      config.f2.filter(g=>RULES_DEFAULT.f2.some(base=>base.name===g.name)).length >= 3) {
+    RULES_DEFAULT.f2.forEach(base=>{
+      if(!config.f2.some(g=>g.name===base.name))config.f2.push(JSON.parse(JSON.stringify(base)));
+    });
   }
-  config.catalogVersion = 1;
+  config.catalogVersion = 2;
   return config;
 }
 
@@ -4249,6 +4253,7 @@ function _applyRulesParsed(parsed) {
   parsed = migrateRulesCatalog(parsed);
   RULES_CONFIG = JSON.parse(JSON.stringify(RULES_DEFAULT));
   if (parsed.general) Object.assign(RULES_CONFIG.general, parsed.general);
+  if (/dos rondas especiales/.test(RULES_CONFIG.general.intro)) RULES_CONFIG.general.intro = RULES_DEFAULT.general.intro;
   if (parsed.impostor) Object.assign(RULES_CONFIG.impostor, parsed.impostor);
   ['f1','f2'].forEach(phase => {
     if (Array.isArray(parsed[phase])) {
@@ -4263,7 +4268,7 @@ function _applyRulesParsed(parsed) {
       });
     }
   });
-  RULES_CONFIG.catalogVersion = 1;
+  RULES_CONFIG.catalogVersion = 2;
   localStorage.setItem('ndj_rules', JSON.stringify(RULES_CONFIG));
   syncRulestoRuntime();
   renderReglas();
@@ -4293,7 +4298,7 @@ function loadRulesConfig() {
             // Actualizar localStorage con lo que vino de Firebase
             const normalized = JSON.stringify(RULES_CONFIG);
             localStorage.setItem('ndj_rules', normalized);
-            if (!parsed.catalogVersion) window._fbWrite('rules', normalized);
+            if ((parsed.catalogVersion || 0) < 2) window._fbWrite('rules', normalized);
             // La lectura remota termina después del render inicial: actualizar
             // también el fixture y la pestaña visible, conservando lo jugado.
             ensureF2Fixture(false);
@@ -4310,7 +4315,7 @@ function loadRulesConfig() {
 }
 
 function saveRulesConfig() {
-  RULES_CONFIG.catalogVersion = 1;
+  RULES_CONFIG.catalogVersion = 2;
   const json = JSON.stringify(RULES_CONFIG);
   localStorage.setItem('ndj_rules', json);
   // Guardar en Firebase para que sobreviva actualizaciones del HTML
@@ -4790,7 +4795,7 @@ function renderReglas() {
             <div class="phase-timeline-title">Fase grupal (equipo vs equipo)</div>
             <div class="phase-timeline-meta">
               <span class="score-pill lose phase-timeline-tag">${rc.f2.length} estaciones</span>
-              <span class="score-pill draw phase-timeline-tag" style="color:#c060e8;background:rgba(192,96,232,0.12)">🗣️ Ronda especial: ¿Quién lo dijo?</span>
+              <span class="score-pill draw phase-timeline-tag" style="color:#c060e8;background:rgba(192,96,232,0.12)">🗣️ Ronda común: ¿Quién lo dijo?</span>
               <span class="score-pill win phase-timeline-tag">Clasifica: 1° equipo</span>
             </div>
           </div>
@@ -4826,7 +4831,7 @@ function renderReglas() {
 
     <!-- IMPOSTOR -->
     <div class="section-header anchor-target" id="reglas-impostor" style="margin-top:2rem">
-      <span class="section-title"><span class="dot-indicator impostor"></span>Ronda especial — Impostor</span>
+      <span class="section-title"><span class="dot-indicator impostor"></span>Ronda — Impostor</span>
     </div>
     <details class="rule-card${editing ? ' edit-mode' : ''}" id="imp-rule-card">
       <summary><span class="rule-name"><span class="rule-icon-badge impostor">🕵️</span>Impostor (todos contra todos)${editing?'<span class="rule-edited-badge">✏️ editable</span>':''}</span><span class="rule-summary-right">${(state.impostor && Array.isArray(state.impostor.rounds) && state.impostor.rounds.length > 0) ? '<span class="station-badge done">✓ Jugada</span>' : ''}<span class="rule-chevron">▾</span></span></summary>
@@ -4846,7 +4851,7 @@ function renderReglas() {
       <span class="section-title"><span class="dot-indicator fase2"></span>Fase grupal</span>
     </div>
     <div class="card">
-      <p class="rules-intro">Se conforman ${TEAMS.length} equipos por sorteo. Se juegan ${(F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0)) || rc.f2.length} rondas de duelos simultáneos. Todos los equipos juegan en cada ronda (${TEAMS.length % 2 === 1 ? 'salvo el que descansa por turno' : 'no hay descansos'}), pasando por las ${rc.f2.length} estaciones a lo largo de la fase, más 1 Ronda Especial (¿Quién lo dijo?). Clasifica el equipo con mayor puntaje acumulado.</p>
+      <p class="rules-intro">Se conforman ${TEAMS.length} equipos por sorteo. Se juegan ${RoundPlan.order(state,F2_FIXTURE,GAMES_F2).length} rondas en orden aleatorio: duelos simultáneos y rondas con todos juntos. Todos los equipos juegan en cada ronda (${TEAMS.length % 2 === 1 ? 'salvo el que descansa por turno' : 'no hay descansos'}), pasando por las ${rc.f2.length} estaciones a lo largo de la fase, con rondas comunes de Guess, 100 Argentinos, Impostor y ¿Quién lo dijo? intercaladas aleatoriamente. Impostor puntúa solo en su ranking individual. Clasifica el equipo con mayor puntaje acumulado.</p>
     </div>
     ${rc.f2.map((g,i) => gameCard('f2',i)).join('')}
     ${editing ? (canEditStations('f2') ? `
@@ -4863,7 +4868,7 @@ function renderReglas() {
 
     <!-- RONDA ESPECIAL — QUIÉN LO DIJO -->
     <div class="section-header anchor-target" id="reglas-quien" style="margin-top:2rem">
-      <span class="section-title"><span class="dot-indicator quien"></span>Ronda especial — ¿Quién lo dijo?</span>
+      <span class="section-title"><span class="dot-indicator quien"></span>Ronda — ¿Quién lo dijo?</span>
     </div>
     <details class="rule-card" id="quien-rule-card">
       <summary><span class="rule-name"><span class="rule-icon-badge quien">🗣️</span>¿Quién lo dijo?</span><span class="rule-summary-right">${(window._qldTeamPoints && Object.keys(window._qldTeamPoints).length > 0) ? '<span class="station-badge done">✓ Jugada</span>' : ''}<span class="rule-chevron">▾</span></span></summary>
@@ -6190,7 +6195,7 @@ function syncFixtureToFirebase() {
     if (!window._rtdb) return; // todavía no conectó
     const payload = {
       f1: { fixture: F1_FIXTURE, players: PLAYERS, games: GAMES_F1 },
-      f2: { fixture: F2_FIXTURE, teams: TEAMS, fullNames: FULL_NAMES, games: GAMES_F2 },
+      f2: { fixture: F2_FIXTURE, teams: TEAMS, fullNames: FULL_NAMES, games: GAMES_F2, roundOrder: state.roundOrder || [] },
       updated: Date.now()
     };
     const firma = JSON.stringify({ f1: payload.f1, f2: payload.f2 });
@@ -6389,17 +6394,18 @@ function markLocalTs(key, ts) {
         window._autoResultados = snap.val() || {};
       });
 
+      window._commonResults={};
+      [['argentinos','argentinos/grupos/resultado'],['guess','velada/guess/groupResult'],['qld','velada/qld/result']].forEach(([id,path])=>{
+        qldDb.ref(path).on('value',snap=>{
+          const data=snap.val();
+          window._commonResults[id]=data&&((data.byTeam||data.byGroup)||Array.isArray(data.standings)&&data.standings.length)?data:null;
+        });
+      });
       // Leemos el resultado ya finalizado de la ronda (1°/2°/3° puesto → 3/2/1 pts)
       qldDb.ref('velada/qld/result').on('value', snap => {
         const d = snap.val() || {};
         const standings = Array.isArray(d.standings) ? d.standings : [];
-        window._qldTeamPoints = {};
-        standings.forEach(s => { window._qldTeamPoints[s.teamIndex] = s.fase2Points || 0; });
-        // Guardarlo en el estado para que el modo TV también lo vea
-        try {
-          state.qldTeamPoints = window._qldTeamPoints;
-          saveState();
-        } catch(e) {}
+        window._qldTeamPoints = state.qldTeamPoints || {};
         // Re-renderizar la Fase 2 si está activa
         if(typeof renderFase2 === 'function' && document.getElementById('page-fase2') && document.getElementById('page-fase2').classList.contains('active')){
           try{ renderFase2(); }catch(e){}
@@ -6681,7 +6687,7 @@ function getF2StationStatus(teamIdx, beforeRound) {
 function getTeamPoints() {
   return Puntos.equipos({
     state: state, players: PLAYERS, teams: TEAMS, f2Fixture: F2_FIXTURE, f2Byes: F2_BYES,
-    rules: RULES_CONFIG, qldTeamPoints: window._qldTeamPoints || {}, teamIndexForPlayer: teamIndexForPlayer
+    rules: RULES_CONFIG, qldTeamPoints: state.qldTeamPoints || window._qldTeamPoints || {}, teamIndexForPlayer: teamIndexForPlayer
   });
 }
 
@@ -7108,7 +7114,7 @@ function deleteSuddenDeathResult() {
 
 function getSuddenDeathTieF2() {
   const f2Done = F2_FIXTURE.filter(([r,a,b]) => state.f2[r+'-'+a+'-'+b]).length;
-  if (f2Done < F2_FIXTURE.length) return null; // not all rounds done yet
+  if (f2Done < F2_FIXTURE.length || !commonGroupRoundsDone()) return null; // not all rounds done yet
 
   const tpts = getTeamPoints();
   const sorted = TEAMS.map((n,i) => ({n,i,pts:tpts[i]})).sort((a,b) => b.pts.total - a.pts.total);
@@ -7264,6 +7270,7 @@ function deleteSuddenDeathResultF2() {
 function renderNextMatch(phase) {
   const el = document.getElementById('next-match-' + phase);
   if (!el) return;
+  if(phase==='f2'){const id=nextCommonRound();if(id&&!id.startsWith('duel:')){el.innerHTML=commonRoundHtml(id,commonRoundNumber(id));return;}}
   const fixture = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
   const stateMap = phase === 'f1' ? state.f1 : state.f2;
   const names   = phase === 'f1' ? PLAYERS : TEAMS;
@@ -7285,7 +7292,7 @@ function renderNextMatch(phase) {
     <span style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);white-space:nowrap">Próximo</span>
     <span style="background:${gbg};color:${gcol};font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap">${game}</span>
     <span style="font-size:14px;font-weight:700;color:var(--text);flex:1;min-width:0">${nameA} <span style="color:var(--muted);font-weight:500;font-size:12px">vs</span> ${nameB}</span>
-    <span style="font-size:11px;color:var(--muted);white-space:nowrap">Ronda ${nr}</span>
+    <span style="font-size:11px;color:var(--muted);white-space:nowrap">Ronda ${phase==='f2'?commonRoundNumber('duel:'+nr):nr}</span>
     <button onclick="openModal('${phase}','${nr}-${na}-${nb}','${safeGame}','${safeA}','${safeB}',${na},${nb})" style="padding:0.35rem 0.85rem;border-radius:var(--radius);border:none;background:var(--accent);color:#0f0f13;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0">Cargar →</button>
   </div>`;
 }
@@ -7351,11 +7358,13 @@ function renderMyNext(phase) {
     ${selectHtml}
     <span style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--info);white-space:nowrap">${isNextOverall ? '¡Te toca ya!' : 'Tu próximo'}</span>
     <span style="font-size:14px;font-weight:700;color:var(--text);flex:1;min-width:0">vs ${oppName} <span style="color:var(--muted);font-weight:500;font-size:12px">·</span> ${game}</span>
-    <span style="font-size:11px;color:var(--muted);white-space:nowrap">Ronda ${nr}</span>
+    <span style="font-size:11px;color:var(--muted);white-space:nowrap">Ronda ${phase==='f2'?commonRoundNumber('duel:'+nr):nr}</span>
   </div>`;
 }
 
 function renderFase2() {
+  ensureF2Fixture(false);
+  ensureCommonRoundOrder();
   renderF2RosterAdmin();
   renderBetControlF2();
   renderComodinesPanel('f2');
@@ -7375,9 +7384,9 @@ function renderFase2() {
 
   const theadRowF2 = document.getElementById('thead-row-fase2');
   if (theadRowF2) {
-    const totalRoundsF2 = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0) + (state.argentinosRound ? 1 : 0) + (state.guessRound ? 1 : 0);
+    const totalRoundsF2 = ensureCommonRoundOrder().length;
     const roundThs = Array.from({length: totalRoundsF2}, (_, i) => `<th>R${i+1}</th>`).join('');
-    theadRowF2.innerHTML = `<th style="width:36px">#</th><th>Equipo</th>${roundThs}<th title="¿Quién lo dijo? — puntos individuales sumados al equipo. Tocá para editar" style="color:var(--purple)">🗣️ QLD</th><th title="Apuestas acertadas — tocá para editar">🃏</th><th style="text-align:right">Total</th>`;
+    theadRowF2.innerHTML = `<th style="width:36px">#</th><th>Equipo</th>${roundThs}<th title="Apuestas acertadas — tocá para editar">🃏</th><th style="text-align:right">Total</th>`;
   }
 
   const tbody = document.getElementById('tbody-fase2');
@@ -7394,7 +7403,10 @@ function renderFase2() {
       ? '<span class="classifica-tag">★ Clasifica</span>'
       : (isPendingTie ? '<span class="classifica-tag pending">⚡ Definir en Sudden Death</span>' : '');
     const nSafe = n.replace(/'/g,"\\'");
-    const rounds = pts.rounds.map((v, ri) => {
+    const rounds = pts.rounds.map((v, displayIndex) => {
+      const id=pts.roundKeys[displayIndex];
+      if (!id.startsWith('duel:')) return `<td class="round-pts${v===null?' pending':''}" ${id==='impostor'?'':`onclick="editCommonCellPts('${nSafe}','${id}')" style="cursor:pointer"`}>${id==='impostor'?'🕵️':v===null?'—':v}</td>`;
+      const ri = Number(id.slice(5))-1;
       const ov = cellIsOverridden('f2', n, ri) ? ' overridden' : '';
       const click = ` onclick="editCellPts('f2','${nSafe}',${ri})" style="cursor:pointer" title="Tocá para editar los puntos de esta ronda"`;
       if (v === 'bye') {
@@ -7418,7 +7430,6 @@ function renderFase2() {
       <td><div class="pos-badge ${badgeClass}">${pos+1}</div></td>
       <td class="player-name" style="font-size:12px"><div class="player-name-inner">${playerAvatarHtml(n, i)}<span>${n}</span>${classificaTag}</div></td>
       ${rounds}
-      ${qldCell}
       ${betsCell}
       <td style="text-align:right"><span class="total-pts">${pts.total}</span></td>
     </tr>`;
@@ -7433,7 +7444,7 @@ function renderFixtureF2() {
   const container = document.getElementById('fixture-fase2');
   ensureF2Fixture(false);
   const editing = _fixtureEditMode['f2'];
-  const canEdit = Object.keys(state.f2).length === 0;
+  const canEdit = Object.keys(state.f2).length === 0 && !hasCommonRoundResults();
 
   const toggleHtml = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;gap:0.5rem;flex-wrap:wrap">
     <span style="font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted)">Fixture</span>
@@ -7448,7 +7459,11 @@ function renderFixtureF2() {
 
   let html = '';
   const totalRoundsF2 = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0);
-  for (let r = 1; r <= totalRoundsF2; r++) {
+  const commonOrder=ensureCommonRoundOrder();
+  for (let ordinal=0;ordinal<commonOrder.length;ordinal++) {
+    const id=commonOrder[ordinal];
+    if(!id.startsWith('duel:')) { html+=commonRoundHtml(id,ordinal+1); continue; }
+    const r=Number(id.slice(5));
     const matches = F2_FIXTURE.filter(m => m[0] === r);
     const byeArrRaw = F2_BYES[r];
     const byeArr = Array.isArray(byeArrRaw) ? byeArrRaw : (typeof byeArrRaw === 'number' ? [byeArrRaw] : []);
@@ -7460,7 +7475,7 @@ function renderFixtureF2() {
           return `<span class="bye-tag">😴 Descansa: ${name}${missingTxt}</span>`;
         }).join(' ')
       : '';
-    html += `<div class="fixture-round"><div class="round-label">Ronda ${r} ${byeTag} ${buzzerRoundButton('f2',r)}</div>`;
+    html += `<div class="fixture-round"><div class="round-label">Ronda ${ordinal+1} ${byeTag} ${buzzerRoundButton('f2',r)}</div>`;
     matches.forEach(([round, a, b, g]) => {
       const key = `${round}-${a}-${b}`;
       const res = state.f2[key];
@@ -7508,15 +7523,15 @@ function renderFixtureF2() {
       ? 'Todavía no hay fixture: cargá al menos 2 equipos en la lista de equipos de arriba.'
       : 'Todavía no hay fixture: tocá "🎲 Generar fixture".'}</div>`;
   }
-  if (typeof argentinosRoundHtml === 'function') html += argentinosRoundHtml();
-  if (typeof guessRoundHtml === 'function') html += guessRoundHtml();
+
   container.innerHTML = toggleHtml + html;
 }
 
 function generateF2FixtureNow() {
-  if (Object.keys(state.f2 || {}).length) { showToast('🔒', 'Ya hay resultados cargados: el fixture quedó fijo', false); return; }
+  if (Object.keys(state.f2 || {}).length || hasCommonRoundResults()) { showToast('🔒', 'Ya hay resultados cargados: el fixture quedó fijo', false); return; }
   if (TEAMS.length < 2) { showToast('⚠️', 'Cargá al menos 2 equipos para generar el fixture', false); return; }
   ensureF2Fixture(true);
+  ensureCommonRoundOrder(true);
   renderFase2();
   const r = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0);
   showToast('🎲', `Fixture generado: ${r} rondas, ${F2_FIXTURE.length} duelos`, false);
@@ -7791,7 +7806,9 @@ function primeraRondaNoCargada(fixture, roster, store) {
 
 function computeAutoResultadosRows() {
   const resultados = window._autoResultados || {};
-  const rows = [];
+  const rows = commonAutoRows();
+  const order=ensureCommonRoundOrder();
+  const firstPending=order.findIndex(id=>!commonRoundDone(id));
   ['f1', 'f2'].forEach(phase => {
     const fixture = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
     const games = phase === 'f1' ? GAMES_F1 : GAMES_F2;
@@ -7800,7 +7817,8 @@ function computeAutoResultadosRows() {
     const rondaLimite = primeraRondaNoCargada(fixture, roster, store);
     fixture.forEach(([round, a, b, g]) => {
       if (!roster[a] || !roster[b]) return;
-      if (rondaLimite !== null && round > rondaLimite) return; // ronda futura: todavía no se habilita
+      if (phase==='f2' && firstPending>=0 && order.indexOf('duel:'+round)>firstPending) return;
+      if (phase==='f1' && rondaLimite !== null && round > rondaLimite) return; // ronda futura: todavía no se habilita
       const key = round + '-' + a + '-' + b;
       const matchId = phase + '-' + key;
       const gameName = games[g];
@@ -7818,6 +7836,7 @@ function computeAutoResultadosRows() {
       }
     });
   });
+  rows.forEach(row=>{if(!row.common&&row.phase==='f2')row.round=order.indexOf('duel:'+row.round)+1;});
   rows.sort((x, y) => x.round - y.round || (x.phase === y.phase ? 0 : (x.phase === 'f1' ? -1 : 1)));
   return rows;
 }
@@ -7943,6 +7962,7 @@ function renderAutoResultadosModal() {
   if (autoRows.length) {
     html += '<div class="section-header" style="margin-top:0.5rem"><span class="section-title">✅ Resultados automáticos</span></div>';
     html += autoRows.map(row => {
+      if(row.common)return commonAutoRowHtml(row);
       const b = computeBonus(row);
       const winnerIdx = resultadoWinnerIdx(row);
       const winnerName = winnerIdx === 'empate' ? 'Empate' : firstName(winnerIdx === row.a ? row.nameA : row.nameB);
@@ -7964,6 +7984,7 @@ function renderAutoResultadosModal() {
   if (pendingRows.length) {
     html += '<div class="section-header" style="margin-top:1rem"><span class="section-title">✏️ Cruces pendientes (carga manual)</span></div>';
     html += pendingRows.map(row => {
+      if(row.common)return commonAutoRowHtml(row);
       const m = _autoModalState.manual[row.matchId] || { winner: null, bonus: false };
       const selA = m.winner === row.a ? ' selected' : '';
       const selB = m.winner === row.b ? ' selected' : '';
@@ -8023,6 +8044,7 @@ function confirmAutoResultados() {
   const adjustsToAdd = []; // [{phase, adjust:{name,pts,label}}]
 
   _autoModalState.rows.forEach(row => {
+    if(row.common){if(applyCommonAutoRow(row))aplicados++;return;}
     let winner, bonus;
     if (row.status === 'auto') {
       winner = resultadoWinnerIdx(row);
@@ -9141,6 +9163,9 @@ function resetDigitalGameScores() {
     try {
       await window._rtdb.ref().update({
         'velada/resultados':null,
+        'velada/guess/groupResult':null,
+        'argentinos/grupos/resultado':null,
+        'velada/qld/result':null,
         'velada/enVivo':null,
         'velada/config/scoreReset':{token,t:Date.now()}
       });
@@ -9188,6 +9213,8 @@ function resetEverything() {
       state.betWindow = { open: false, round: 0 };
       state.betWindowF2 = { open: false, round: 0 };
       state.qldOverride = {};
+      state.qldTeamPoints = {}; window._qldTeamPoints = {};
+      state.commonCellPts = {};
       state.adjust = { f1: [], f2: [] };
       if (state.argentinosRound) state.argentinosRound = { byTeam: {} };
       if (state.guessRound) state.guessRound = { byTeam: {} };
@@ -13613,7 +13640,7 @@ function renderBracket() {
                        .sort((a, b) => b.t - a.t);
 
   // ¿Terminó cada fase? Mientras no termine, el clasificado es provisorio
-  const f2Fin = F2_FIXTURE.every(([r, a, b]) => state.f2[r + '-' + a + '-' + b]);
+  const f2Fin = F2_FIXTURE.every(([r, a, b]) => state.f2[r + '-' + a + '-' + b]) && commonGroupRoundsDone();
 
   const corto = n => String(n || '').split('/').map(x => x.trim().split(' ')[0]).join(' / ');
 
@@ -13712,8 +13739,9 @@ function renderFinal() {
   const f2Done = F2_FIXTURE.filter(([r,a,b]) => state.f2[`${r}-${a}-${b}`]).length;
   const impDone = (state.impostor.rounds || []).length > 0;
   const qldDone = !!(state.qldTeamPoints && Object.keys(state.qldTeamPoints).length > 0);
-  const totalDone = f1Done + f2Done + (impDone ? 1 : 0) + (qldDone ? 1 : 0);
-  const totalAll = f1Total + f2Total + 2; // +1 impostor, +1 ¿quién lo dijo?
+  const groupExtras=ensureCommonRoundOrder().filter(id=>id==='guess'||id==='argentinos');
+  const totalDone = f1Done + f2Done + (impDone ? 1 : 0) + (qldDone ? 1 : 0)+groupExtras.filter(commonRoundDone).length;
+  const totalAll = f1Total + f2Total + 2 + groupExtras.length; // +1 impostor, +1 ¿quién lo dijo?
   const pct = Math.round((totalDone / totalAll) * 100);
 
   const f1Pend = f1Total - f1Done;
@@ -13723,7 +13751,7 @@ function renderFinal() {
   // Fase 1: 1st place is locked when all f1 matches done
   // Fase 2: 1st team is locked when all f2 matches done
   const f1Locked = f1Done === f1Total;
-  const f2Locked = f2Done === f2Total;
+  const f2Locked = f2Done === f2Total && commonGroupRoundsDone();
 
   // ---- PROGRESS SECTION ----
   const overallStatus = pct >= 100
@@ -13737,6 +13765,7 @@ function renderFinal() {
     if (f1Pend > 0) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator fase1"></span>Fase 1: faltan <b style="color:var(--text);margin:0 3px">${f1Pend}</b> partido${f1Pend>1?'s':''}</div>`);
     if (!impDone) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator impostor"></span>Ronda Impostor: pendiente</div>`);
     if (f2Pend > 0) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator fase2"></span>Fase grupal: faltan <b style="color:var(--text);margin:0 3px">${f2Pend}</b> partido${f2Pend>1?'s':''}</div>`);
+    groupExtras.filter(id=>!commonRoundDone(id)).forEach(id=>pendItems.push('<div class="final-pending-item">Ronda '+(id==='guess'?'Guess Movies/Songs':'100 Argentinos Dicen')+': pendiente</div>'));
     if (!qldDone) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator quien"></span>Ronda ¿Quién lo dijo?: pendiente</div>`);
     if (pendItems.length) pendingHtml = `<div class="final-pending-list">${pendItems.join('')}</div>`;
   }
@@ -17543,7 +17572,7 @@ function updateNavProgress() {
   const b1 = document.getElementById('badge-fase1');
   const b2 = document.getElementById('badge-fase2');
   const f1Rem = F1_FIXTURE.length - f1Done;
-  const f2Rem = F2_FIXTURE.length - f2Done;
+  const f2Rem = RoundPlan.order(state,F2_FIXTURE,GAMES_F2).filter(id=>!commonRoundDone(id)).length;
   if (b1) { b1.textContent = f1Rem; b1.style.display = f1Rem > 0 ? '' : 'none'; }
   if (b2) { b2.textContent = f2Rem; b2.style.display = f2Rem > 0 ? '' : 'none'; }
 }
@@ -17662,6 +17691,7 @@ loadElencoConfig();
 syncRulestoRuntime();
 restoreRosterAndFixtures();
 ensureF2Fixture(false);
+ensureCommonRoundOrder();
 syncFixtureToFirebase();
 restoreImpGame();
 renderReglas();

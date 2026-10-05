@@ -650,8 +650,8 @@ body.guess-group .part-gboard{display:flex;flex-wrap:wrap;justify-content:center
 .part-gqueue .g-chip{font-size:clamp(11px,1.6vw,22px);padding:.3rem .8rem}
 .pa-g{background:rgba(192,96,232,.14);border:1.5px solid rgba(192,96,232,.45);color:#c060e8}
 .pb-g{background:rgba(192,96,232,.14);border:1.5px solid rgba(192,96,232,.4);color:#c060e8}
-</style><script src="buzzer-rounds.js"></script><script src="auto-live.js"></script>
-<script src="round-host.js"></script>
+</style><script src="buzzer-rounds.js?v=2"></script><script src="auto-live.js"></script>
+<script src="round-host.js?v=2"></script>
 <script src="guess-rounds.js"></script>
 </head>
 <body>
@@ -2114,6 +2114,7 @@ function gLeave(){
   if(!GROUP)return;
   GROUP=false;gResetQueue();
   document.body.classList.remove('guess-group');
+  document.getElementById('g-finish')?.remove();
   syncPhaseUI();
 }
 function gRenderBoard(){
@@ -2121,7 +2122,27 @@ function gRenderBoard(){
   if(!b||!GROUP)return;
   const cur=(phase==='playing_g')?gQueue[gTurn]:null;
   b.innerHTML=gTeams.map((t,i)=>`<div class="g-team${cur&&cur.team===t?' turn':''}"><div class="g-name">${esc(t)}</div><div class="g-score" id="g-s${i}">${gScores[t]||0}</div><div class="g-adj"><button class="sbt-adj-btn" onclick="adjScore(gTeams[${i}],-1)">−</button><button class="sbt-adj-btn" onclick="adjScore(gTeams[${i}],1)">+</button></div></div>`).join('');
+  if(!document.getElementById('g-finish'))b.insertAdjacentHTML('afterend','<button id="g-finish" class="cta-btn" onclick="gFinishRound()">🏁 Finalizar ronda y publicar resultado</button>');
   if(q)q.innerHTML=gQueue.map((x,i)=>`<span class="g-chip${i===gTurn&&phase==='playing_g'?' now':(i<gTurn||(i===gTurn&&phase==='idle'))?' done':''}">${i+1}° ${esc(x.name)} · ${esc(x.team)}</span>`).join('');
+}
+async function gFinishRound(){
+  if(!GROUP||!gTeams.length)return;
+  const ranked=gTeams.slice().sort((a,b)=>(gScores[b]||0)-(gScores[a]||0));
+  const byTeam={};
+  const top=gScores[ranked[0]]||0;
+  ranked.forEach(t=>{
+    const place=ranked.filter(other=>(gScores[other]||0)>(gScores[t]||0)).length;
+    byTeam[t]=place===0?3:place===1&&ranked.length>2?1:0;
+    if(place===0&&ranked.length>1&&ranked.filter(other=>top-(gScores[other]||0)>=5).length===ranked.length-1)byTeam[t]+=1;
+  });
+  if(!confirm('¿Finalizar Guess?\n\n'+ranked.map(t=>t+': '+gScores[t]+' aciertos → '+byTeam[t]+' pts').join('\n')+'\n\nDespués confirmá la carga en el hub.'))return;
+  const result={game:'guess',byTeam,scores:Object.assign({},gScores),fixtureId:gFixtureId,ts:Date.now()};
+  try{
+    if(!fbDb)throw new Error('Sin conexión con Firebase');
+    await fbDb.ref('velada/guess/groupResult').set(result);
+    localStorage.setItem('guess_group_result',JSON.stringify(result));
+    showToast('🏁 Resultado publicado. Cargalo desde el hub.');
+  }catch(e){showToast('No se pudo publicar: '+e.message);}
 }
 function gBonusBtns(){
   return gTeams.map((t,i)=>`<button class="cta-btn bonus-team-btn" style="border-color:rgba(192,96,232,.4);color:#c060e8" onclick="bonusAnswerG(${i})">✓ Acertó ${esc(t)}</button>`).join('');

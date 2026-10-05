@@ -831,9 +831,9 @@ body.vb-clean .vb-peek { display: flex; }
   .gm-fin .mv button:disabled { opacity:0.25; }
   .gm-tie { font-size:11px; color:var(--gold); font-weight:700; text-align:center; }
 </style>
-<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="buzzer-rounds.js"></script><script src="auto-live.js"></script>
-<script src="round-host.js"></script>
-<script src="argentinos-rounds.js"></script>
+<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="buzzer-rounds.js?v=2"></script><script src="auto-live.js"></script>
+<script src="round-host.js?v=2"></script>
+<script src="argentinos-rounds.js?v=2"></script>
 </head>
 <body>
 <div class="velada-bar"></div>
@@ -1678,7 +1678,7 @@ function gmLoad() {
   } catch (e) {}
 }
 function gmAttr(v) { return escapeHtml(v).replace(/"/g, '&quot;'); }
-function gmFixtureActive() { return !!(window.currentFixtureMatch && currentFixtureMatch() && currentFixtureMatch().active); }
+function gmFixtureActive() { return !!(window.currentFixtureMatch && currentFixtureMatch() && currentFixtureMatch().active && !currentFixtureMatch().group); }
 
 // ── Algoritmo (puro) ──
 // Reparte los grupos originales (por tamaño) en k equipos: de mayor a menor,
@@ -1797,7 +1797,7 @@ function gmAccept() {
   if (totals.some(t => t === 0)) { showToast('Hay un equipo sin grupos: movelos o recalculá'); return; }
   if (gm && gm.scores.some(x => x > 0) && !confirm('Ya hay puntajes cargados. Armar los grupos de nuevo los pone en 0. ¿Seguir?')) return;
   gm = {
-    active: true, maxTeams: parseInt(document.getElementById('gm-max').value, 10) || 3,
+    active: true, fixtureId: window.currentFixtureMatch?.()?.id || null, maxTeams: parseInt(document.getElementById('gm-max').value, 10) || 3,
     origs: d.origs.map(o => ({ label: o.label, members: o.members, size: o.size })),
     teams: d.names.map((name, t) => ({ name, origs: d.origs.map((_, i) => i).filter(i => d.assign[i] === t), size: totals[t] })),
     scores: d.names.map(() => 0), plays: d.names.map(() => 0), last: null, cur: null, finished: false, result: null
@@ -1837,6 +1837,7 @@ function gmApplyTeams(list) {
   score = sc; saveScore();
   syncScoreUI();
   if (fbRef) { try { fbRef.child('names').set(fbNames()); } catch (e) {} }
+  if(window.publishArgentinosGroupFixture)publishArgentinosGroupFixture();
   gmSave(); gmRender();
 }
 function gmTeamLabel(t) {
@@ -1970,7 +1971,7 @@ function gmConfirmFinal() {
   });
   const byGroup = {}, byMember = {};
   teams.forEach(t => { t.groups.forEach(g => { byGroup[g] = t.pts; }); t.members.forEach(m => { byMember[m] = t.pts; }); });
-  const result = { ts: Date.now(), game: 'argentinos', mode: 'grupos', teams, byGroup, byMember };
+  const result = { fixtureId: window.currentFixtureMatch?.()?.id || null, ts: Date.now(), game: 'argentinos', mode: 'grupos', teams, byGroup, byMember };
   gm.finished = true; gm.result = result; gmSave();
   try { localStorage.setItem('cad_group_result', JSON.stringify(result)); } catch (e) {}
   let sent = false;

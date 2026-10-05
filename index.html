@@ -387,7 +387,7 @@ body { animation: appEnter .32s ease-out both; }
 .skip-splash #splash{display:none!important}
 
 </style>
-<script src="buzzer-rounds.js"></script>
+<script src="buzzer-rounds.js?v=2"></script>
 </head>
 <body>
 <script>if(new URLSearchParams(location.search).get('hub')) document.documentElement.classList.add('skip-splash');</script>
@@ -1062,7 +1062,7 @@ function startBuzzListener(){
     }
 
     // Ronda grupal (Guess): un solo buzzer para todos los equipos, con cola de orden.
-    if(d.fixture && d.fixture.group){
+    if(d.fixture && d.fixture.group && d.fixture.game==='movies'){
       applyGroupBuzz(d, btn, statusEl);
       return;
     }
@@ -1648,6 +1648,6 @@ window.qldPhotos = window.qldPhotos || {};
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-<script src="hub-rounds.js"></script>
+<script src="hub-rounds.js?v=2"></script>
 </body>
 </html>

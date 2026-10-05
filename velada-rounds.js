@@ -5,7 +5,7 @@
     return ''; // Se activa todo desde "Activar ronda N"; el botón por cruce quedó sin uso.
   };
   window.buzzerRoundButton=function(phase,round){
-    return '<button class="fixture-edit-toggle" style="margin-left:10px" onclick="activateBuzzerRound(\''+phase+'\','+round+',this)">▶ Activar ronda '+round+'</button>';
+    return '<button class="fixture-edit-toggle" style="margin-left:10px" onclick="activateBuzzerRound(\''+phase+'\','+round+',this)">▶ Activar ronda '+(typeof commonRoundNumber==='function'?commonRoundNumber('duel:'+round):round)+'</button>';
   };
   function ctx(phase){return {players:PLAYERS,teams:TEAMS,fullNames:FULL_NAMES,games:GAMES_F2};}
   async function publish(phase,matches,button,wholeRound){
@@ -16,13 +16,14 @@
     if(!filtered.length){showToast('ℹ️','No hay juegos vinculados en esa ronda.',false);return;}
     const games=filtered.map(m=>BuzzerRounds.gameId(context.games[m[3]]));
     if(new Set(games).size!==games.length){showToast('⚠️','Hay dos cruces del mismo juego. Activá cada cruce por separado.',false);return;}
-    if(!confirm('¿Activar '+(wholeRound?'la ronda '+filtered[0][0]:'este cruce')+' en los celulares?\n\nSe cambia la selección de participantes y se reinicia el marcador de los juegos activados. Los resultados del fixture no se modifican.')) return;
+    if(!confirm('¿Activar '+(wholeRound?'la ronda '+commonRoundNumber('duel:'+filtered[0][0]):'este cruce')+' en los celulares?\n\nSe cambia la selección de participantes y se reinicia el marcador de los juegos activados. Los resultados del fixture no se modifican.')) return;
     busy=true;
     if(button) button.disabled=true;
     try{
       const token=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10), updates={};
       filtered.forEach((m,i)=>{
         const match=BuzzerRounds.buildMatch(phase,m,context,token+'-'+i);
+        match.round=commonRoundNumber('duel:'+m[0]);
         updates[BuzzerRounds.paths[match.game]]=BuzzerRounds.initial(match);
       });
       // A full round closes stations with no match. Other stations stay independent on single activation.
@@ -37,7 +38,7 @@
       // realmente activados por el conductor, no por inferencia del fixture.
       state.activeMatches = filtered.map(m => ({ phase, key: m[0]+'-'+m[1]+'-'+m[2] }));
       saveState();
-      showToast('🔔','Ronda '+filtered[0][0]+' publicada. Los celulares ya pueden elegir su nombre.',false);
+      showToast('🔔','Ronda '+commonRoundNumber('duel:'+filtered[0][0])+' publicada. Los celulares ya pueden elegir su nombre.',false);
     }catch(e){showToast('⚠️','No se pudo activar: '+e.message,false);}
     finally{busy=false;if(button)button.disabled=false;}
   }
@@ -59,7 +60,7 @@
     const gi=GAMES_F2.indexOf(NAME);
     if(gi===-1||!F2_FIXTURE.length) return '';
     if(!state.argentinosRound){state.argentinosRound={byTeam:{}};saveState();}
-    const r=Math.max.apply(null,F2_FIXTURE.map(m=>m[0]))+1, done=cargado();
+    const r=commonRoundNumber('argentinos'), done=cargado();
     const c=GAME_COLORS_F2[gi]||['var(--surface2)','var(--muted)'];
     return '<div class="fixture-round"><div class="round-label">Ronda '+r+' <span class="bye-tag">🎤 Todos juegan juntos · sin otros juegos</span>'
       +'<button class="fixture-edit-toggle" style="margin-left:10px" onclick="activateArgentinosRound('+r+',this)">▶ Activar ronda '+r+'</button></div>'
@@ -74,8 +75,10 @@
     if(button)button.disabled=true;
     try{
       const token=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10), updates={};
+      const match=BuzzerRounds.buildGroup(round,{players:PLAYERS,teams:TEAMS,fullNames:FULL_NAMES},token,'argentinos');
       Object.keys(BuzzerRounds.paths).forEach(game=>{
         const p=BuzzerRounds.paths[game];
+        if(game==='argentinos'){updates[p]=BuzzerRounds.initial(match);return;}
         updates[p+'/fixture']={active:false,id:token+'-closed',round:round,phase:'f2'};
         if(game==='movies'||game==='argentinos'){updates[p+'/state']='locked';updates[p+'/winner']=null;}
       });
@@ -105,8 +108,7 @@
 (function(){
   const NAME='Guess Movie/Song';
   window.guessRoundNumber=function(){
-    const base=F2_FIXTURE.length?Math.max.apply(null,F2_FIXTURE.map(m=>m[0])):0;
-    return base+1+(state.argentinosRound?1:0);
+    return commonRoundNumber('guess');
   };
   window.guessRoundHtml=function(){
     const gi=GAMES_F2.indexOf(NAME);
