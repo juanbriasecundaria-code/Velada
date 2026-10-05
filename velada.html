@@ -4232,7 +4232,21 @@ const RULES_DEFAULT = {
 
 let RULES_CONFIG = null;
 
+// Versionar el catálogo evita que una configuración anterior a los diez juegos
+// oculte las nuevas estaciones. Solo migramos la lista histórica exacta de seis:
+// las eliminaciones intencionales guardadas con esta versión se respetan.
+function migrateRulesCatalog(parsed) {
+  const config = JSON.parse(JSON.stringify(parsed));
+  if (!config.catalogVersion && Array.isArray(config.f2) && config.f2.length === 6 &&
+      config.f2.every((g, i) => g.name === RULES_DEFAULT.f2[i].name)) {
+    config.f2.push(...JSON.parse(JSON.stringify(RULES_DEFAULT.f2.slice(6))));
+  }
+  config.catalogVersion = 1;
+  return config;
+}
+
 function _applyRulesParsed(parsed) {
+  parsed = migrateRulesCatalog(parsed);
   RULES_CONFIG = JSON.parse(JSON.stringify(RULES_DEFAULT));
   if (parsed.general) Object.assign(RULES_CONFIG.general, parsed.general);
   if (parsed.impostor) Object.assign(RULES_CONFIG.impostor, parsed.impostor);
@@ -4244,11 +4258,13 @@ function _applyRulesParsed(parsed) {
       // estación eliminada "reapareciera" al recargar, y que una agregada
       // (índice fuera del default) se perdiera.
       RULES_CONFIG[phase] = parsed[phase].map((saved, i) => {
-        const base = (RULES_DEFAULT[phase][i]) ? RULES_DEFAULT[phase][i] : _newDefaultGame(saved.name || '');
+        const base = RULES_DEFAULT[phase].find(g => g.name === saved.name) || _newDefaultGame(saved.name || '');
         return Object.assign(JSON.parse(JSON.stringify(base)), saved);
       });
     }
   });
+  RULES_CONFIG.catalogVersion = 1;
+  localStorage.setItem('ndj_rules', JSON.stringify(RULES_CONFIG));
   syncRulestoRuntime();
   renderReglas();
 }
@@ -4275,7 +4291,13 @@ function loadRulesConfig() {
             const parsed = JSON.parse(data);
             _applyRulesParsed(parsed);
             // Actualizar localStorage con lo que vino de Firebase
-            localStorage.setItem('ndj_rules', data);
+            const normalized = JSON.stringify(RULES_CONFIG);
+            localStorage.setItem('ndj_rules', normalized);
+            if (!parsed.catalogVersion) window._fbWrite('rules', normalized);
+            // La lectura remota termina después del render inicial: actualizar
+            // también el fixture y la pestaña visible, conservando lo jugado.
+            ensureF2Fixture(false);
+            reapplyStateAndRerender();
             console.log('Reglas cargadas desde Firebase ✓');
           } catch(e) { console.warn('Error al parsear reglas de Firebase:', e); }
         }
@@ -4288,6 +4310,7 @@ function loadRulesConfig() {
 }
 
 function saveRulesConfig() {
+  RULES_CONFIG.catalogVersion = 1;
   const json = JSON.stringify(RULES_CONFIG);
   localStorage.setItem('ndj_rules', json);
   // Guardar en Firebase para que sobreviva actualizaciones del HTML
@@ -17638,6 +17661,7 @@ loadCuartoConfig();
 loadElencoConfig();
 syncRulestoRuntime();
 restoreRosterAndFixtures();
+ensureF2Fixture(false);
 syncFixtureToFirebase();
 restoreImpGame();
 renderReglas();
