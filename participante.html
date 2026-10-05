@@ -1869,34 +1869,24 @@ function promedioGrupo() {
 }
 
 function renderMyFinalPath(myName, teamIdx) {
-  const f1 = ranked('f1'), f2 = ranked('f2');
-  const hasF1 = f1[0] && f1[0].total > 0;
-  const hasF2 = f2[0] && f2[0].total > 0;
-  if (!hasF1 && !hasF2) return '';
-  const f1Done = F1_FIXTURE.length > 0 && F1_FIXTURE.every(([r,a,b]) => (latestState.f1 || {})[r+'-'+a+'-'+b]);
+  const f2 = ranked('f2');
+  if (!f2[0] || !(f2[0].total > 0)) return '';
   const f2Done = F2_FIXTURE.length > 0 && F2_FIXTURE.every(([r,a,b]) => (latestState.f2 || {})[r+'-'+a+'-'+b]);
   const full = latestFinal || {}, grand = full.final || {}, bronze = full.tercero || {};
-  const row = (title, player, team, partner, teamDuo, result) => {
-    const person = player && player.total > 0 ? escapeHtml(player.n) + (partner ? ' / ' + escapeHtml(partner) : '') : 'Por definir';
-    const members = team ? entityMembers(team.n) : [];
-    const duo = entityMembers(teamDuo);
-    const validDuo = duo.length === 2 && duo.every(n => members.includes(n));
-    const group = team && team.total > 0 ? escapeHtml(validDuo ? teamDuo : team.n) : 'Por definir';
-    return `<div class="gh-path-row"><b>${title}:</b> ${person} vs. ${group}${result ?
-      `<div class="gh-path-note">Resultado: ${escapeHtml(result)}</div>` : ''}</div>`;
-  };
+  const nombre = t => t && t.total > 0 ? escapeHtml(t.n) : 'Por definir';
+  const row = (title, a, b, result) => `<div class="gh-path-row"><b>${title}:</b> ${nombre(a)} vs. ${nombre(b)}${result ?
+    `<div class="gh-path-note">Resultado: ${escapeHtml(result)}</div>` : ''}</div>`;
+  const pos = f2.findIndex(t => t.i === teamIdx);
   let mine = '';
-  if (hasF1 && f1[0].n === myName) mine = 'Vas 1° en Fase 1: ' + (grand.companero ? 'tu compañero para la final es ' + grand.companero + '.' : 'tu compañero para la final está pendiente de confirmar.');
-  else if (hasF1 && f1[1] && f1[1].n === myName) mine = 'Vas 2° en Fase 1: ' + (bronze.companero ? 'tu compañero para el tercer puesto es ' + bronze.companero + '.' : 'tu compañero para el tercer puesto está pendiente de confirmar.');
-  else if (hasF2 && f2[0].i === teamIdx) mine = 'Tu equipo va 1° en Fase 2: jugaría la final.';
-  else if (hasF2 && f2[1] && f2[1].i === teamIdx) mine = 'Tu equipo va 2° en Fase 2: jugaría por el 3er puesto.';
-  if (mine && (!f1Done || !f2Done)) mine += ' Posiciones provisorias.';
+  if (pos === 0 || pos === 1) mine = 'Tu equipo va ' + (pos + 1) + '°: jugaría la gran final.';
+  else if (pos === 2 || pos === 3) mine = 'Tu equipo va ' + (pos + 1) + '°: jugaría por el 3er puesto.';
+  if (mine && !f2Done) mine += ' Posiciones provisorias.';
   return `<div class="gh-path"><div class="gh-path-title">🏆 Camino a la final</div>
     ${mine ? `<div class="gh-path-note">${escapeHtml(mine)}</div>` : ''}
-    ${row('Gran final', f1[0], f2[0], grand.companero, grand.duplaEquipo, grand.ganador)}
-    ${row('Tercer puesto', f1[1], f2[1], bronze.companero, bronze.duplaEquipo, bronze.ganador)}
-    ${(!f1Done || !f2Done) ? '<div class="gh-path-note">Las posiciones pueden cambiar hasta que terminen ambas fases.</div>' :
-      '<div class="gh-path-note">Clasificación según las tablas. El organizador confirma las duplas y resultados.</div>'}
+    ${row('Gran final', f2[0], f2[1], grand.ganador)}
+    ${row('Tercer puesto', f2[2], f2[3], bronze.ganador)}
+    ${!f2Done ? '<div class="gh-path-note">Las posiciones pueden cambiar hasta que termine la fase grupal.</div>' :
+      '<div class="gh-path-note">Clasificación según la tabla. El organizador confirma los resultados.</div>'}
   </div>`;
 }
 

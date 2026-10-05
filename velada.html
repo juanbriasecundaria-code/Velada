@@ -4823,7 +4823,7 @@ function renderReglas() {
       <span class="section-title"><span class="dot-indicator fase2"></span>Fase grupal</span>
     </div>
     <div class="card">
-      <p class="rules-intro">Se conforman ${TEAMS.length} equipos por sorteo. Se juegan ${rc.f2.length} rondas de duelos simultáneos. Todos los equipos juegan en cada ronda (${TEAMS.length % 2 === 1 ? 'salvo el que descansa por turno' : 'no hay descansos'}), pasando por las ${rc.f2.length} estaciones a lo largo de la fase, más 1 Ronda Especial (¿Quién lo dijo?). Clasifica el equipo con mayor puntaje acumulado.</p>
+      <p class="rules-intro">Se conforman ${TEAMS.length} equipos por sorteo. Se juegan ${(F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0)) || rc.f2.length} rondas de duelos simultáneos. Todos los equipos juegan en cada ronda (${TEAMS.length % 2 === 1 ? 'salvo el que descansa por turno' : 'no hay descansos'}), pasando por las ${rc.f2.length} estaciones a lo largo de la fase, más 1 Ronda Especial (¿Quién lo dijo?). Clasifica el equipo con mayor puntaje acumulado.</p>
     </div>
     ${rc.f2.map((g,i) => gameCard('f2',i)).join('')}
     ${editing ? (canEditStations('f2') ? `
@@ -5333,6 +5333,33 @@ function generateF2Fixture(n) {
 }
 
 
+// Un fixture guardado solo sirve si coincide con los equipos y estaciones de
+// ahora: índices dentro de rango y todos los equipos juegan al menos una vez.
+function f2FixtureIsValid(fix, nTeams, nGames) {
+  if (!Array.isArray(fix) || !fix.length || nTeams < 2) return false;
+  const seen = new Set();
+  for (const m of fix) {
+    if (!Array.isArray(m) || m.length < 4) return false;
+    const [, a, b, g] = m;
+    if (!(a >= 0 && a < nTeams && b >= 0 && b < nTeams && a !== b && g >= 0 && g < nGames)) return false;
+    seen.add(a); seen.add(b);
+  }
+  return seen.size === nTeams;
+}
+
+// Regenera el fixture grupal si falta o quedó desfasado (solo mientras no haya
+// resultados cargados, para no desincronizar nada). force=true lo rehace igual.
+function ensureF2Fixture(force) {
+  if (TEAMS.length < 2) return false;
+  if (Object.keys(state.f2 || {}).length) return false;
+  if (!force && f2FixtureIsValid(F2_FIXTURE, TEAMS.length, GAMES_F2.length)) return false;
+  regenerateF2Fixture();
+  state.f2FixtureSnapshot = { fixture: F2_FIXTURE.map(m => m.slice()), byes: Object.assign({}, F2_BYES) };
+  state.teamsSnapshot = TEAMS.slice();
+  try { saveState(); } catch (e) { console.warn('No se pudo guardar el fixture', e); }
+  return true;
+}
+
 function regenerateF1Fixture() {
   const { fixture, byes } = generateF1Fixture(PLAYERS.length);
   F1_FIXTURE = fixture;
@@ -5371,11 +5398,16 @@ function restoreRosterAndFixtures() {
     // estaciones cambió respecto al default con el que arrancó la página.
     regenerateF1Fixture();
   }
-  if (state.f2FixtureSnapshot) {
+  const _f2HasResults = Object.keys(state.f2 || {}).length > 0;
+  const _f2SnapOk = state.f2FixtureSnapshot && (_f2HasResults || TEAMS.length < 2 ||
+    f2FixtureIsValid(state.f2FixtureSnapshot.fixture, TEAMS.length, GAMES_F2.length));
+  if (_f2SnapOk) {
     F2_FIXTURE = state.f2FixtureSnapshot.fixture;
     F2_BYES = state.f2FixtureSnapshot.byes;
   } else {
+    // Snapshot vacío o de otra configuración (equipos/estaciones): se rehace.
     regenerateF2Fixture();
+    state.f2FixtureSnapshot = null;
   }
   // Persist the first generated fixture immediately. Without a snapshot, a
   // refresh generated a different random F1 pairing and published it to RTDB.
@@ -7322,6 +7354,7 @@ function renderFase2() {
 
 function renderFixtureF2() {
   const container = document.getElementById('fixture-fase2');
+  ensureF2Fixture(false);
   const editing = _fixtureEditMode['f2'];
   const canEdit = Object.keys(state.f2).length === 0;
 
@@ -7330,7 +7363,7 @@ function renderFixtureF2() {
     <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
       <button class="fixture-edit-toggle" onclick="openAutoResultadosModal()">🔄 Cargar resultados automáticamente</button>
       ${canEdit
-        ? `<button class="fixture-edit-toggle ${editing ? 'active' : ''}" onclick="toggleFixtureEdit('f2')">${editing ? '✓ Cerrar editor' : '✏️ Editar enfrentamientos'}</button>`
+        ? `<button class="fixture-edit-toggle" onclick="generateF2FixtureNow()">🎲 Generar fixture</button><button class="fixture-edit-toggle ${editing ? 'active' : ''}" onclick="toggleFixtureEdit('f2')">${editing ? '✓ Cerrar editor' : '✏️ Editar enfrentamientos'}</button>`
         : `<span style="font-size:11px;color:var(--muted);opacity:0.6">🔒 Fijo (hay resultados)</span>`
       }
     </div>
@@ -7393,7 +7426,21 @@ function renderFixtureF2() {
     });
     html += '</div>';
   }
+  if (!html) {
+    html = `<div style="font-size:12px;color:var(--muted);padding:0.5rem 0.25rem">${TEAMS.length < 2
+      ? 'Todavía no hay fixture: cargá al menos 2 equipos en la lista de equipos de arriba.'
+      : 'Todavía no hay fixture: tocá "🎲 Generar fixture".'}</div>`;
+  }
   container.innerHTML = toggleHtml + html;
+}
+
+function generateF2FixtureNow() {
+  if (Object.keys(state.f2 || {}).length) { showToast('🔒', 'Ya hay resultados cargados: el fixture quedó fijo', false); return; }
+  if (TEAMS.length < 2) { showToast('⚠️', 'Cargá al menos 2 equipos para generar el fixture', false); return; }
+  ensureF2Fixture(true);
+  renderFase2();
+  const r = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0);
+  showToast('🎲', `Fixture generado: ${r} rondas, ${F2_FIXTURE.length} duelos`, false);
 }
 
 // ============================================================
@@ -11206,34 +11253,8 @@ function escHtmlName(s) {
 // de abajo. Las fotos de cada integrante (si ya están cargadas) se arman
 // solas vía entityPhotos/playerAvatarHtml.
 function championCandidates(inputId) {
-  const candidates = TEAMS.filter(name => entityMembers(name).length > 1);
-  // La persona clasificada en Fase 1 compite con el compañero que eligió.
-  // Su dupla también debe poder elegirse como ganadora o subcampeona.
-  const third = inputId === 'campeon-tercer-input' || inputId === 'campeon-cuarto-input';
-  const cfg = third ? TERCER_CONFIG : FINAL_CONFIG;
-  try {
-    const teamPts = getTeamPoints();
-    const rankedTeams = TEAMS.map((n, i) => ({ n, p: teamPts[i] ? teamPts[i].total : 0 }))
-      .sort((a, b) => b.p - a.p);
-    const qualifiedTeam = rankedTeams[third ? 1 : 0];
-    const members = qualifiedTeam ? entityMembers(qualifiedTeam.n) : [];
-    // Si el equipo grupal tiene 3+, se eligen los dos representantes del 2v2.
-    if (members.length > 2) members.forEach((a, i) => members.slice(i + 1).forEach(b => {
-      const duo = a + ' / ' + b;
-      if (!candidates.includes(duo)) candidates.push(duo);
-    }));
-    const pts = getPlayerPoints();
-    const ranked = PLAYERS.map((n, i) => ({ n, p: pts[i] ? pts[i].total : 0 }))
-      .sort((a, b) => b.p - a.p);
-    const finalist = ranked[third ? 1 : 0];
-    const partner = cfg && cfg.companero && PLAYERS.find(n =>
-      n.toLocaleLowerCase('es') === cfg.companero.trim().toLocaleLowerCase('es'));
-    if (finalist && partner && finalist.n !== partner) {
-      const duo = finalist.n + ' / ' + partner;
-      if (!candidates.some(n => n === duo)) candidates.push(duo);
-    }
-  } catch (e) {}
-  return candidates;
+  // La final y el 3er puesto son entre equipos de la fase grupal.
+  return TEAMS.slice();
 }
 
 // ── FOTOS DEL PODIO (1er/2do puesto de la final y del juego x el 3er puesto) ──
@@ -12063,7 +12084,7 @@ function cerSndFinale() {
 // Editable config for the Final tab
 const FINAL_CONFIG_DEFAULT = {
   juego: '',
-  intro: 'El mejor jugador de la fase individual y el equipo con más puntos de la fase grupal se enfrentan en la gran final. Si algún jugador o integrante de equipo no desea participar, puede ser reemplazado antes de comenzar.',
+  intro: 'El 1° y el 2° de la fase grupal se enfrentan en la gran final. Si algún integrante no desea participar, puede ser reemplazado antes de comenzar.',
   formato: 'A definir por el organizador. Se recomienda un juego que permita participación simultánea de todos (ej: trivia con buzzer, Kahoot, Carrera de Mentes grupal o desafío especial creado para la ocasión).',
   puntos: 'El puntaje de la final se define según el juego elegido. El primero en llegar al objetivo gana la noche.',
   nota: 'El formato de la final lo define el organizador. Sugerencias: trivia con buzzer, Kahoot, Carrera de Mentes grupal o desafío especial.',
@@ -12307,13 +12328,13 @@ function renderGamePostersEditor() {
 }
 
 // ============================================================
-// 3ER PUESTO (mismo esquema que la final, con los segundos de cada fase)
+// 3ER PUESTO (mismo esquema que la final, entre el 3° y el 4° de la fase grupal)
 // ============================================================
 const TERCER_CONFIG_DEFAULT = {
   juego: '',
-  formato: 'A definir por el organizador. Mismo espíritu que la final, pero entre los subcampeones de cada fase.',
+  formato: 'A definir por el organizador. Mismo espíritu que la final, pero entre el 3° y el 4° de la fase grupal.',
   puntos: 'El puntaje del 3er puesto se define según el juego elegido. El primero en llegar al objetivo se queda con el bronce.',
-  nota: 'El 2° de la fase individual elige compañero (no puede ser alguien que juegue la final). Pelea contra el 2° equipo de la fase grupal.',
+  nota: 'El 3° de la fase grupal juega contra el 4°.',
   companero: '',
   duplaEquipo: '',
   ganador: '',
@@ -13516,27 +13537,24 @@ function renderBracket() {
   const root = document.getElementById('bracket-root');
   if (!root) return;
 
-  let ppts, tpts;
-  try { ppts = getPlayerPoints(); tpts = getTeamPoints(); } catch (e) { root.innerHTML = ''; return; }
+  let tpts;
+  try { tpts = getTeamPoints(); } catch (e) { root.innerHTML = ''; return; }
 
-  const sortedP = PLAYERS.map((n, i) => ({ n, t: ppts[i] ? ppts[i].total : 0 }))
-                         .sort((a, b) => b.t - a.t);
   const sortedT = TEAMS.map((n, i) => ({ n, t: tpts[i] ? tpts[i].total : 0 }))
                        .sort((a, b) => b.t - a.t);
 
   // ¿Terminó cada fase? Mientras no termine, el clasificado es provisorio
-  const f1Fin = F1_FIXTURE.every(([r, a, b]) => state.f1[r + '-' + a + '-' + b]);
   const f2Fin = F2_FIXTURE.every(([r, a, b]) => state.f2[r + '-' + a + '-' + b]);
 
   const corto = n => String(n || '').split('/').map(x => x.trim().split(' ')[0]).join(' / ');
 
   // Los dos que llegan a la final
-  const cA = sortedP[0] && sortedP[0].t > 0 ? sortedP[0] : null;
-  const cB = sortedT[0] && sortedT[0].t > 0 ? sortedT[0] : null;
+  const cA = sortedT[0] && sortedT[0].t > 0 ? sortedT[0] : null;
+  const cB = sortedT[1] && sortedT[1].t > 0 ? sortedT[1] : null;
 
-  // Los que juegan el tercer puesto (los segundos de cada fase)
-  const tA = sortedP[1] && sortedP[1].t > 0 ? sortedP[1] : null;
-  const tB = sortedT[1] && sortedT[1].t > 0 ? sortedT[1] : null;
+  // Los que juegan el tercer puesto (3° y 4° de la fase grupal)
+  const tA = sortedT[2] && sortedT[2].t > 0 ? sortedT[2] : null;
+  const tB = sortedT[3] && sortedT[3].t > 0 ? sortedT[3] : null;
 
   const g = (cfg) => { try { return cfg && cfg.ganador ? cfg.ganador : ''; } catch (e) { return ''; } };
   const campeon = g(typeof FINAL_CONFIG   !== 'undefined' ? FINAL_CONFIG   : null);
@@ -13563,7 +13581,7 @@ function renderBracket() {
   root.innerHTML = `
     <div class="section-header">
       <span class="section-title"><span class="dot-indicator final"></span>Cuadro de la noche</span>
-      ${(f1Fin && f2Fin) ? '<span class="especial-badge">definido</span>'
+      ${f2Fin ? '<span class="especial-badge">definido</span>'
                          : '<span class="especial-badge prov">en juego</span>'}
     </div>
     <div class="card bk-card">
@@ -13571,9 +13589,9 @@ function renderBracket() {
       <div class="bk-llave">
         <div class="bk-titulo">🥉 Partido por el 3er puesto</div>
         <div class="bk-par">
-          ${slot(tA, '2° Fase 1', !f1Fin, tercero)}
+          ${slot(tA, '3° grupal', !f2Fin, tercero)}
           <div class="bk-vs">vs</div>
-          ${slot(tB, '2° Fase 2', !f2Fin, tercero)}
+          ${slot(tB, '4° grupal', !f2Fin, tercero)}
         </div>
         ${tercero ? `<div class="bk-res">🥉 ${_escC(corto(tercero))}${cuarto ? ` · 4° ${_escC(corto(cuarto))}` : ''}</div>` : ''}
       </div>
@@ -13581,14 +13599,14 @@ function renderBracket() {
       <div class="bk-llave destacada">
         <div class="bk-titulo">🏆 Gran final</div>
         <div class="bk-par">
-          ${slot(cA, '1° Fase 1', !f1Fin, campeon)}
+          ${slot(cA, '1° grupal', !f2Fin, campeon)}
           <div class="bk-vs">vs</div>
-          ${slot(cB, '1° Fase 2', !f2Fin, campeon)}
+          ${slot(cB, '2° grupal', !f2Fin, campeon)}
         </div>
         ${campeon ? `<div class="bk-res campeon">👑 ${_escC(corto(campeon))}${segundo ? ` · 2° ${_escC(corto(segundo))}` : ''}</div>` : ''}
       </div>
 
-      ${(!f1Fin || !f2Fin) ? `<div class="bk-nota">Los clasificados se van actualizando con cada resultado.</div>` : ''}
+      ${!f2Fin ? `<div class="bk-nota">Los clasificados se van actualizando con cada resultado.</div>` : ''}
     </div>`;
 }
 
@@ -13649,7 +13667,7 @@ function renderFinal() {
     const pendItems = [];
     if (f1Pend > 0) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator fase1"></span>Fase 1: faltan <b style="color:var(--text);margin:0 3px">${f1Pend}</b> partido${f1Pend>1?'s':''}</div>`);
     if (!impDone) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator impostor"></span>Ronda Impostor: pendiente</div>`);
-    if (f2Pend > 0) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator fase2"></span>Fase 2: faltan <b style="color:var(--text);margin:0 3px">${f2Pend}</b> partido${f2Pend>1?'s':''}</div>`);
+    if (f2Pend > 0) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator fase2"></span>Fase grupal: faltan <b style="color:var(--text);margin:0 3px">${f2Pend}</b> partido${f2Pend>1?'s':''}</div>`);
     if (!qldDone) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator quien"></span>Ronda ¿Quién lo dijo?: pendiente</div>`);
     if (pendItems.length) pendingHtml = `<div class="final-pending-list">${pendItems.join('')}</div>`;
   }
@@ -13662,12 +13680,6 @@ function renderFinal() {
 
   const phaseRows = `
     <div class="final-phase-row">
-      <span class="final-phase-dot" style="background:var(--accent)"></span>
-      <span class="final-phase-name">Fase 1 — Individual</span>
-      <span class="final-phase-count">${f1Done}/${f1Total} partidos</span>
-      <span class="final-phase-pct" style="color:${f1Locked?'var(--success)':'var(--muted)'}">${f1Pct}%</span>
-    </div>
-    <div class="final-phase-row">
       <span class="final-phase-dot" style="background:var(--danger)"></span>
       <span class="final-phase-name">Ronda Impostor</span>
       <span class="final-phase-count">${impDone ? '1 ronda' : 'pendiente'}</span>
@@ -13675,7 +13687,7 @@ function renderFinal() {
     </div>
     <div class="final-phase-row">
       <span class="final-phase-dot" style="background:var(--info)"></span>
-      <span class="final-phase-name">Fase 2 — Grupal</span>
+      <span class="final-phase-name">Fase grupal</span>
       <span class="final-phase-count">${f2Done}/${f2Total} partidos</span>
       <span class="final-phase-pct" style="color:${f2Locked?'var(--success)':'var(--muted)'}">${f2Pct}%</span>
     </div>
@@ -13707,25 +13719,7 @@ function renderFinal() {
     </div>`;
   }
 
-  const clasificadosHtml = [
-    ...sortedP.slice(0,1).map((p,i) => playerCard(p, i, 'f1')),
-    ...sortedT.slice(0,1).map((t,i) => playerCard(t, i, 'f2')),
-  ].join('') || `<div class="final-clasificado-none">Aún no hay datos suficientes.</div>`;
-
-  // Compañero que elige el 1° de la fase individual (para emparejar contra el equipo grupal)
-  const finalCompaneroHtml = (FINAL_CONFIG && FINAL_CONFIG.companero)
-    ? `<div class="final-player" style="border-style:dashed">
-         <div class="pos-badge" style="background:var(--gold-dim);color:var(--gold)">+</div>
-         <div style="flex:1">
-           <div style="font-weight:500;font-size:14px">${FINAL_CONFIG.companero}</div>
-           <div style="font-size:11px;color:var(--muted)">Compañero elegido (1° individual)</div>
-         </div>
-         <span style="font-size:11px;color:var(--muted);font-style:italic">invitado</span>
-       </div>`
-    : '';
-  const finalTeamDuoHtml = fc => fc.duplaEquipo && sortedT[0] &&
-    entityMembers(fc.duplaEquipo).every(n => entityMembers(sortedT[0].n).includes(n))
-      ? `<div class="final-player" style="border-style:dashed">2v2 del equipo: ${_escC(fc.duplaEquipo)}</div>` : '';
+  const clasificadosHtml = sortedT.slice(0,2).map((t,i) => playerCard(t, i, 'f2')).join('') || `<div class="final-clasificado-none">Aún no hay datos suficientes.</div>`;
 
   // ---- EDIT MODE ----
   const fc = FINAL_CONFIG;
@@ -13742,11 +13736,6 @@ function renderFinal() {
     : `<span style="font-size:12px;color:var(--muted);font-style:italic">Sin definir — editá para agregar el juego</span>`;
 
   const formatoSection = _finalEditMode ? `
-    <div class="final-edit-field">
-      <label class="final-edit-label">Compañero del 1° individual</label>
-      <input class="final-edit-input" id="final-edit-companero" placeholder="Nombre del compañero elegido…" value="${(fc.companero||'').replace(/"/g,'&quot;')}">
-    </div>
-    ${teamDuoPickerHtml('final-edit-dupla-equipo', sortedT[0]?.n, fc.duplaEquipo)}
     <div class="final-edit-field">
       <label class="final-edit-label">Juego de la final</label>
       <input class="final-edit-input" id="final-edit-juego" placeholder="ej: Carrera de Mentes, Kahoot, Trivia…" value="${(fc.juego||'').replace(/"/g,'&quot;')}">
@@ -13801,21 +13790,8 @@ function renderFinal() {
 
   // ---- 3ER PUESTO: los segundos de cada fase ----
   const tc = TERCER_CONFIG;
-  const segundoP = sortedP.slice(1,2).map((p) => playerCard(p, 1, 'f1'));
-  const segundoT = sortedT.slice(1,2).map((t) => playerCard(t, 1, 'f2'));
-  const tercerClasificadosHtml = [...segundoP, ...segundoT].join('')
+  const tercerClasificadosHtml = sortedT.slice(2,4).map((t,i) => playerCard(t, i + 2, 'f2')).join('')
     || `<div class="final-clasificado-none">Aún no hay datos suficientes.</div>`;
-
-  const companeroHtml = tc.companero
-    ? `<div class="final-player" style="border-style:dashed">
-         <div class="pos-badge accent">+</div>
-         <div style="flex:1">
-           <div style="font-weight:500;font-size:14px">${tc.companero}</div>
-           <div style="font-size:11px;color:var(--muted)">Compañero elegido (2° individual)</div>
-         </div>
-         <span style="font-size:11px;color:var(--muted);font-style:italic">invitado</span>
-       </div>`
-    : '';
 
   const tercerPosterSrc = tc.juego ? gamePosterFor(tc.juego, '') : '';
   const tercerJuegoDisplay = tc.juego
@@ -13830,11 +13806,6 @@ function renderFinal() {
     : `<div class="final-edit-bar"><span>⚙️ Podés editar el juego, formato y compañero del 3er puesto</span><button class="final-edit-toggle" onclick="toggleTercerEdit()">Editar</button></div>`;
 
   const tercerFormatoSection = _tercerEditMode ? `
-    <div class="final-edit-field">
-      <label class="final-edit-label">Compañero del 2° individual</label>
-      <input class="final-edit-input" id="tercer-edit-companero" placeholder="Nombre del compañero elegido…" value="${(tc.companero||'').replace(/"/g,'&quot;')}">
-    </div>
-    ${teamDuoPickerHtml('tercer-edit-dupla-equipo', sortedT[1]?.n, tc.duplaEquipo)}
     <div class="final-edit-field">
       <label class="final-edit-label">Juego del 3er puesto</label>
       <input class="final-edit-input" id="tercer-edit-juego" placeholder="ej: Keep Talking, Trivia, Kahoot…" value="${(tc.juego||'').replace(/"/g,'&quot;')}">
@@ -13893,7 +13864,7 @@ function renderFinal() {
     <div class="card">
       <div style="font-size:15px;font-weight:600;margin-bottom:${fc.juego ? '0.5rem' : '1rem'}"><span class="dot-indicator final"></span>Clasificados a la final</div>
       ${fc.juego ? `<div style="margin-bottom:1rem"><span class="match-game-badge" style="font-size:12px;padding:3px 10px;border-radius:99px;background:var(--gold-dim);color:var(--gold);font-weight:600">🏆 ${fc.juego}</span></div>` : ''}
-      <div class="final-players">${clasificadosHtml}${finalCompaneroHtml}${finalTeamDuoHtml(fc)}</div>
+      <div class="final-players">${clasificadosHtml}</div>
       <div style="font-size:12px;color:var(--muted);padding-top:0.75rem;border-top:0.5px solid var(--border)">${fc.nota}</div>
     </div>
 
@@ -13901,7 +13872,7 @@ function renderFinal() {
     <div class="card">
       <div style="font-size:15px;font-weight:600;margin-bottom:${tc.juego ? '0.5rem' : '1rem'}"><span class="dot-indicator" style="background:#cd7f32;box-shadow:0 0 8px rgba(205,127,50,0.6)"></span>Clasificados al 3er puesto</div>
       ${tc.juego ? `<div style="margin-bottom:1rem"><span class="match-game-badge" style="font-size:12px;padding:3px 10px;border-radius:99px;background:var(--accent-dim,rgba(200,240,96,.13));color:var(--accent);font-weight:600">🥉 ${tc.juego}</span></div>` : ''}
-      <div class="final-players">${tercerClasificadosHtml}${companeroHtml}${tc.duplaEquipo && sortedT[1] && entityMembers(tc.duplaEquipo).every(n => entityMembers(sortedT[1].n).includes(n)) ? `<div class="final-player" style="border-style:dashed">2v2 del equipo: ${_escC(tc.duplaEquipo)}</div>` : ''}</div>
+      <div class="final-players">${tercerClasificadosHtml}</div>
       ${tercerOpciones().length ? `<button class="tj-open-btn" onclick="openTercerGallery()">🎮 Ver las ${tercerOpciones().length} opciones de juego</button>` : ''}
       <div style="font-size:12px;color:var(--muted);padding-top:0.75rem;border-top:0.5px solid var(--border);margin-top:0.85rem">${tc.nota}</div>
     </div>
@@ -13968,10 +13939,10 @@ function renderFinal() {
           <div id="game-posters-editor"></div>
         </div>
 
-        <!-- ELENCO (editable, base = fase 1) -->
+        <!-- ELENCO (editable) -->
         <div class="card">
           <div style="font-size:15px;font-weight:600;margin-bottom:0.3rem"><span class="dot-indicator final"></span>Elenco</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Estos nombres aparecen en los créditos. Vienen de la fase 1 — editalos si querés que se muestren distinto.</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:1rem;line-height:1.5">Estos nombres aparecen en los créditos — editalos si querés que se muestren distinto.</div>
           <div style="display:flex;flex-direction:column;gap:0.5rem">
             ${PLAYERS.map((nick,i)=>`
               <div class="final-edit-field" style="margin:0">
@@ -13980,7 +13951,7 @@ function renderFinal() {
           </div>
           <div style="display:flex;gap:0.6rem;margin-top:1rem">
             <button class="final-edit-save" style="flex:1" onclick="saveElencoEdits()">Guardar elenco</button>
-            <button class="final-edit-save" style="flex:0 0 auto;background:var(--surface2);color:var(--muted);border:1.5px solid var(--border2)" onclick="resetElencoEdits()">↺ Fase 1</button>
+            <button class="final-edit-save" style="flex:0 0 auto;background:var(--surface2);color:var(--muted);border:1.5px solid var(--border2)" onclick="resetElencoEdits()">↺ Restablecer</button>
           </div>
         </div>
       </div>
@@ -14426,7 +14397,9 @@ function rollCredits() {
   const sortedT = TEAMS.map((n, i) => ({ n, pts: tpts[i].total })).sort((a, b) => b.pts - a.pts);
   const medal = ['🥇', '🥈', '🥉'];
 
-  const champP = sortedP[0], champT = sortedT[0];
+  const impPts = getImpostorPoints();
+  const sortedI = PLAYERS.map((n, i) => ({ n, pts: impPts[i] ? impPts[i].total : 0 })).filter(e => e.pts > 0).sort((a, b) => b.pts - a.pts);
+  const champT = sortedT[0];
   const pName = (n) => esc(n);             // jugadores → tal cual los cargaste en la fase 1
   const tName = (n) => esc(n);             // equipos → tal cual
   const podium = (arr, nf) => arr.slice(0, 3)
@@ -14443,7 +14416,6 @@ function rollCredits() {
   gameMeta['Impostor'] = { icon: '🕵️', color: 'var(--danger)' };
   gameMeta['¿Quién lo dijo?'] = { icon: '🗣️', color: '#c060e8' };
   const allGames = [];
-  if (typeof GAMES_F1 !== 'undefined') allGames.push(...GAMES_F1);
   allGames.push('Impostor');
   if (typeof GAMES_F2 !== 'undefined') allGames.push(...GAMES_F2);
   allGames.push('¿Quién lo dijo?');
@@ -14647,22 +14619,15 @@ function rollCredits() {
         <div class="cr-tag">Edición 2026</div>
 
         <div class="cr-block">
-          <div class="cr-role role-fase1">Campeón · Fase Individual</div>
-          <div class="cr-champ-fig">${champP ? entityFigureHtml(champP.n, entityColor(champP.n, 0), 150, 'victory') : ''}</div>
-          <div class="cr-name champ">🏆 ${esc(champP ? champP.n : '—')}<span class="cr-pts">${champP ? champP.pts : 0} pts</span></div>
-        </div>
-
-        <div class="cr-block">
-          <div class="cr-role role-fase2">Campeón · Fase Grupal</div>
+          <div class="cr-role role-fase2">Campeón · Fase grupal</div>
           <div class="cr-champ-fig">${champT ? entityFigureHtml(champT.n, entityColor(champT.n, 0), 150, 'victory') : ''}</div>
           <div class="cr-name champ">🏆 ${esc(champT ? champT.n : '—')}<span class="cr-pts">${champT ? champT.pts : 0} pts</span></div>
         </div>
 
         <div class="cr-block">
           <div class="cr-divider"></div>
-          <div class="cr-role role-fase1">Podio · Fase Individual</div>
-          ${podium(sortedP, pName)}
-          <div class="cr-role role-fase2">Podio · Fase Grupal</div>
+          ${sortedI.length ? `<div class="cr-role role-fase1">Podio · Impostor</div>${podium(sortedI, pName)}` : ''}
+          <div class="cr-role role-fase2">Podio · Fase grupal</div>
           ${podium(sortedT, tName)}
         </div>
 
@@ -17654,10 +17619,10 @@ function applyPulledState(newStateJson) {
 }
 
 function reapplyStateAndRerender() {
+  syncRulestoRuntime();
   restoreRosterAndFixtures();
   syncFixtureToFirebase();
   restoreImpGame();
-  syncRulestoRuntime();
   renderReglas();
   const tabEl = document.querySelector('.nav-tab.active');
   const tabName = tabEl ? tabEl.dataset.tab : (state.lastTab || 'reglas');
