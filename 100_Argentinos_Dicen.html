@@ -831,9 +831,9 @@ body.vb-clean .vb-peek { display: flex; }
   .gm-fin .mv button:disabled { opacity:0.25; }
   .gm-tie { font-size:11px; color:var(--gold); font-weight:700; text-align:center; }
 </style>
-<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="team-maps.js?v=20261005c"></script><script src="buzzer-rounds.js?v=20261005b"></script><script src="auto-live.js"></script>
-<script src="round-host.js?v=20261005c"></script>
-<script src="argentinos-rounds.js?v=20261005c"></script>
+<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="team-maps.js?v=20261005d"></script><script src="buzzer-rounds.js?v=20261005d"></script><script src="auto-live.js?v=20261005d"></script>
+<script src="round-host.js?v=20261005d"></script>
+<script src="argentinos-rounds.js?v=20261005d"></script>
 </head>
 <body>
 <div class="velada-bar"></div>
@@ -3422,6 +3422,7 @@ function initFirebase(){
       getScore:()=>({a:fmDuelScore ? fmDuelScore.a : score.a||0,b:fmDuelScore ? fmDuelScore.b : score.b||0,
         bonusInfo:{}})});
     fbInited = true;
+    if(MODE==='participant')fbDb.ref('argentinos/live').on('value',s=>{if(s.val())onSync(JSON.stringify(s.val()));});
     if(window.initReactions) initReactions();   // emojis de los invitados
     fbDb.ref('.info/connected').on('value', snap => {
       const ok = snap.val();
@@ -3465,14 +3466,15 @@ async function fbToggle(){
     // countdownStart va como ServerValue.TIMESTAMP (lo resuelve el servidor
     // de Firebase, no el reloj de este celu) para que el 3-2-1 quede
     // sincronizado en todos los dispositivos.
+    const buzzId=BuzzerRounds.newBuzzId();
     try{
-      const result=await fbRef.set({ state:'countdown', queue:[], turn:0, winner:null, countdownStart:firebase.database.ServerValue.TIMESTAMP, countdownMs:BUZZ_COUNTDOWN_MS, names:fbNames() });
+      const result=await fbRef.set({ buzzId,state:'countdown', queue:[], turn:0, winner:null, countdownStart:firebase.database.ServerValue.TIMESTAMP, countdownMs:BUZZ_COUNTDOWN_MS, names:fbNames() });
       if(result && result.committed===false){showToast('Activá la ronda desde el fixture antes de habilitar el buzzer');return;}
       showToast('⏳ Cuenta regresiva…');
     }catch(e){showToast('Error: '+e.message);return;}
     _bzCountdownTimer = setTimeout(()=>{
       if(!fbRef) return;
-      fbRef.set({ state:'open', queue:[], turn:0, winner:null, names:fbNames() })
+      fbRef.transaction(cur=>{if(cur?.buzzId!==buzzId||cur.state!=='countdown'||!cur.fixture?.active)return;return Object.assign({},cur,{state:'open'});},undefined,false)
         .then(()=>{ showToast('🔓 Buzzer habilitado — esperando'); })
         .catch(e=>{ showToast('Error: '+e.message); });
     }, BUZZ_COUNTDOWN_MS);
@@ -3578,6 +3580,7 @@ function snapshot() {
     names: fbNames(),
     score: scoreAll(),
     target: targetScore,
+    roster:gm?gm.teams.map((t,i)=>({side:SLOTS[i],name:t.name,score:gm.scores[i]||0})):SLOTS.filter(t=>teamNames[t]).map(t=>({side:t,name:teamNames[t],score:score[t]||0})),
     round: round ? {
       q: round.q,
       ans: round.a.map((x, i) => ({ t: x.t, v: x.v, rev: round.revealed[i], owner: round.owner[i] })),
@@ -3606,7 +3609,15 @@ function writeSync() {
   const json = JSON.stringify(snapshot());
   try { localStorage.setItem(SYNC_KEY, json); } catch (e) {}
   if (bc) { try { bc.postMessage(json); } catch (e) {} }
+  if(fbDb){
+    const data=JSON.parse(json),sig=JSON.stringify({...data,t:0});
+    if(sig!==_lastArgLive){_lastArgLive=sig;
+      if(data.round)data.round.ans=data.round.ans.map(a=>a.rev?a:{...a,t:'',v:0});
+      fbDb.ref('argentinos/live').set(data).catch(e=>{_lastArgLive=null;setFbStatus('error','No se pudo sincronizar participantes: '+e.message);});
+    }
+  }
 }
+let _lastArgLive=null;
 let _hb = null;
 function startHeartbeat() { if (_hb) clearInterval(_hb); _hb = setInterval(writeSync, 150); writeSync(); }
 
@@ -3656,14 +3667,16 @@ function pSlots(r) {
 }
 function pScoreRow(snap, r) {
   const ctrl = r ? r.control : null;
-  const teams = (r && r.teams) ? r.teams : ['a', 'b'];
+  const roster=!r&&Array.isArray(snap?.roster)?snap.roster:[];
+  const teams = (r && r.teams) ? r.teams : roster.length?roster.map(t=>t.side):Object.keys(snap?.names||{}).filter(t=>SLOTS.includes(t));
   const pot = r ? r.pot : 0;
   const mult = r ? r.mult : 1;
   const badge = (mult > 1) ? `<div class="pot-mult-badge">vale ${mult} pts</div>` : '';
   const sc = (snap && snap.score) || {};
   const cell = t => {
+    const member=roster.find(row=>row.side===t);
     const h = (teams.length > 2 && r && r.hold && r.hold[t]) ? `<div class="rs-hold">+${r.hold[t]}</div>` : '';
-    return `<div class="rs-team rs-${t}${ctrl === t ? ' in-control' : ''}"><div class="rs-name">${escapeHtml(pName(snap, t))}</div><div class="rs-score">${sc[t] || 0}</div>${h}</div>`;
+    return `<div class="rs-team rs-${t}${ctrl === t ? ' in-control' : ''}"><div class="rs-name">${escapeHtml(member?member.name:pName(snap, t))}</div><div class="rs-score">${member?member.score:sc[t] || 0}</div>${h}</div>`;
   };
   const potBox = `<div class="pot-box"><div class="pot-label">Pozo</div><div class="pot-value">${pot}</div>${badge}</div>`;
   if (teams.length === 2) return `<div class="round-score">${cell(teams[0])}${potBox}${cell(teams[1])}</div>`;

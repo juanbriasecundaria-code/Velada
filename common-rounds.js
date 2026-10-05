@@ -17,7 +17,7 @@
   window.commonRoundNumber=id=>ensureCommonRoundOrder().indexOf(id)+1;
   window.commonRoundDone=function(id){
     if(id.startsWith('duel:'))return F2_FIXTURE.filter(m=>m[0]===Number(id.slice(5))).every(m=>state.f2[m[0]+'-'+m[1]+'-'+m[2]]);
-    if(id==='impostor')return !!(state.impostor&&state.impostor.rounds&&state.impostor.rounds.length);
+    if(id==='impostor')return !!(state.impostorManualResult || state.impostor&&state.impostor.rounds&&state.impostor.rounds.length);
     if(id==='qld')return !!Object.keys(state.qldTeamPoints||{}).length;
     return !!Object.keys((state[id+'Round']||{}).byTeam||{}).length;
   };
@@ -92,12 +92,13 @@ window.hasCommonRoundResults=function(){return ['guess','argentinos','impostor',
 function commonEscape(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 window.openCommonResultModal=function(id){
   const names={guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?'};
-  const files={guess:'guess_Movies_Songs.html',argentinos:'100_Argentinos_Dicen.html',qld:'quien_lo_dijo.html'};
   let bg=document.getElementById('common-result-modal');
-  if(!bg){bg=document.createElement('div');bg.id='common-result-modal';bg.className='modal-bg';document.body.append(bg);bg.onclick=e=>{if(e.target===bg)bg.classList.remove('open');};}
+  if(!bg){bg=document.createElement('div');bg.id='common-result-modal';bg.className='modal-bg';bg.setAttribute('role','dialog');bg.setAttribute('aria-modal','true');document.body.append(bg);bg.onclick=e=>{if(e.target===bg)bg.classList.remove('open');};}
   window._commonEditing=id;
-  const points=id==='qld'?TEAMS.map((t,i)=>(state.qldTeamPoints||{})[i]||0):TEAMS.map(t=>((state[id+'Round']||{}).byTeam||{})[t]||0);
-  bg.innerHTML='<div class="modal" style="max-height:90vh;overflow-y:auto"><div class="modal-title">'+names[id]+' · Ronda '+commonRoundNumber(id)+'</div><div class="modal-sub">'+(id==='impostor'?'Puntúa en el ranking individual.':'Resultado de todos los equipos · puntos para el ranking grupal')+'</div>'+(id==='impostor'?'<button class="btn" onclick="document.getElementById(\'common-result-modal\').classList.remove(\'open\');activateTab(\'impostor\')">Cargar resultado individual</button>':TEAMS.map((t,i)=>'<label style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0"><span>'+commonEscape(t)+'</span><input type="number" step="1" id="common-points-'+i+'" value="'+points[i]+'" style="width:75px" aria-label="Puntos de '+commonEscape(t)+'"></label>').join(''))+'<div class="modal-actions"><button class="btn btn-ghost" onclick="document.getElementById(\'common-result-modal\').classList.remove(\'open\')">Cancelar</button>'+(id!=='impostor'?'<button class="btn" onclick="importCommonResult()">Traer resultado del juego</button><button class="btn btn-primary" onclick="saveCommonResult()">Guardar</button>':'')+'</div>'+(files[id]?'<a class="btn" href="'+files[id]+'" target="_blank" rel="noopener">Abrir pantalla del juego</a>':'')+'</div>';
+  const individual=id==='impostor',roster=individual?PLAYERS:TEAMS;
+  const individualPts=individual?Puntos.jugadores({state,players:PLAYERS,rules:RULES_CONFIG}):[];
+  const points=individual?individualPts.map(p=>p.total):id==='qld'?TEAMS.map((t,i)=>(state.qldTeamPoints||{})[i]||0):TEAMS.map(t=>((state[id+'Round']||{}).byTeam||{})[t]||0);
+  bg.innerHTML='<div class="modal common-result-dialog"><div class="modal-title">'+names[id]+'</div><div class="modal-sub">Ronda '+commonRoundNumber(id)+' · '+(individual?'Resultado individual':'Todos los equipos')+'</div><div class="modal-players">'+roster.map((name,i)=>'<label class="modal-player-btn common-result-card"><span class="common-result-name">'+commonEscape(name)+'</span><span class="common-result-caption">Puntos finales</span><input class="common-result-points" type="number" step="1" id="common-points-'+i+'" value="'+points[i]+'" aria-label="Puntos de '+commonEscape(name)+'"></label>').join('')+'</div>'+(individual?'<div class="modal-bonus-row"><span class="modal-bonus-label">Suma únicamente al ranking individual.</span></div>':(window._commonResults||{})[id]?'<button class="empate-btn" onclick="importCommonResult()">Usar resultado publicado</button>':'')+'<div class="modal-actions"><button class="btn btn-ghost" onclick="document.getElementById(\'common-result-modal\').classList.remove(\'open\')">Cancelar</button><button class="btn btn-primary" onclick="saveCommonResult()">Guardar</button></div></div>';
   bg.classList.add('open');
 };
 window.importCommonResult=function(){
@@ -108,10 +109,11 @@ window.importCommonResult=function(){
   saveState();renderFase2();openCommonResultModal(id);showToast('✓','Resultado cargado',true);
 };
 window.saveCommonResult=function(){
-  const id=window._commonEditing,values=TEAMS.map((t,i)=>{const v=document.getElementById('common-points-'+i).value;return v.trim()?Number(v):NaN;});
+  const id=window._commonEditing,roster=id==='impostor'?PLAYERS:TEAMS,values=roster.map((t,i)=>{const v=document.getElementById('common-points-'+i).value;return v.trim()?Number(v):NaN;});
   if(values.some(v=>!Number.isFinite(v))){showToast('⚠️','Completá los puntos de todos los equipos',false);return;}
-  if(id==='qld'){state.qldTeamPoints=Object.fromEntries(values.map((v,i)=>[i,v]));window._qldTeamPoints=state.qldTeamPoints;}
+  if(id==='impostor'){state.specialOverride=Object.fromEntries(values.map((v,i)=>[i,v]));state.impostorManualResult={ts:Date.now()};}
+  else if(id==='qld'){state.qldTeamPoints=Object.fromEntries(values.map((v,i)=>[i,v]));window._qldTeamPoints=state.qldTeamPoints;}
   else state[id+'Round']={byTeam:Object.fromEntries(TEAMS.map((t,i)=>[t,values[i]])),ts:Date.now()};
   TEAMS.forEach(t=>{if(state.commonCellPts)delete state.commonCellPts[t+'||'+id];});
-  saveState();renderFase2();document.getElementById('common-result-modal').classList.remove('open');
+  saveState();renderFase2();if(id==='impostor'&&typeof renderImpostor==='function')renderImpostor();document.getElementById('common-result-modal').classList.remove('open');
 };

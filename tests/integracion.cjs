@@ -16,7 +16,7 @@ function node(){const classes=new Set();return {innerHTML:'',textContent:'',valu
 
  const snap=()=>({val:()=>JSON.parse(JSON.stringify(data))});
  const ref={on:(e,fn)=>{listeners.push(fn);fn(snap());},transaction:async(fn,cb)=>{const next=fn(JSON.parse(JSON.stringify(data)));const committed=next!==undefined;if(committed){data=prune(next);if(data.countdownStart?.['.sv'])data.countdownStart=Date.now();listeners.slice().forEach(f=>f(snap()));}if(cb)cb(null,committed,snap());return {committed,snapshot:snap()};}};
- const phone=context({bzTeam:'A',navigator:{},hideResult(){},hideBzCountdown(){},showBzCountdown(start,ms){phone.countdown={start,ms};},nowServer:Date.now,_bzPhase:'waiting',_gTurnBuzzed:null,_resultShownFor:null,_earlyTaps:0,_openedAt:null});
+ const phone=context({currentGame:'movies',bzTeam:'A',navigator:{},hideResult(){},hideBzCountdown(){},showBzCountdown(start,ms){phone.countdown={start,ms};},nowServer:Date.now,_bzPhase:'waiting',_gTurnBuzzed:null,_resultShownFor:null,_earlyTaps:0,_openedAt:null});
  const btn=node(),status=node();
  vm.runInContext(extract(read('index.html'),'function applyGroupBuzz(', '// ── BUZZER LISTENER'),phone);
  const host=context({setTimeout:fn=>{timer=fn;return 1;},clearTimeout:()=>{timer=null;},fbRef:ref,firebase:{database:{ServerValue:{TIMESTAMP:{'.sv':'timestamp'}}}},GROUP:true,gResetQueue(){},_buzzBlocked:null,_buzzCountdownTimer:null,BUZZ_COUNTDOWN_MS:3000,nameA:'A',nameB:'B',showToast(){}});
@@ -28,10 +28,10 @@ function node(){const classes=new Set();return {innerHTML:'',textContent:'',valu
  assert(!Object.hasOwn(data.fixture,'names'),'Firebase elimina names vacío');
  await host.fbOpenBuzzer();assert.equal(data.state,'countdown');assert.equal(phone._bzPhase,'countdown');assert.equal(phone.countdown.ms,3000);assert(Number.isFinite(phone.countdown.start));assert(timer);
  await timer();assert.equal(data.state,'open');assert.equal(phone._bzPhase,'open');
- for(const [i,t] of ['A','B','C'].entries()){phone.bzTeam=t;await ref.transaction(cur=>host.BuzzerRounds.buzz(cur,'round-seven',t,t,100+i));assert.equal(phone._bzPhase,'won');assert(status.textContent.includes((i+1)+'°'));}
- assert.equal(data.queue.length,3);assert.equal((await ref.transaction(cur=>host.BuzzerRounds.buzz(cur,'round-seven','A','A',200))).committed,false);
- assert.equal((await ref.transaction(cur=>host.BuzzerRounds.buzz(cur,'old-round','B','B',200))).committed,false);
- await host.fbOpenBuzzer();assert.equal((data.queue||[]).length,0);assert.equal(data.state,'countdown');
+ for(const [i,t] of ['A','B','C'].entries()){phone.bzTeam=t;await ref.transaction(cur=>host.BuzzerRounds.buzz(cur,'round-seven',t,t,100+i,cur.buzzId));assert.equal(phone._bzPhase,'won');assert(status.textContent.includes((i+1)+'°'));}
+ assert.equal(data.queue.length,3);assert.equal((await ref.transaction(cur=>host.BuzzerRounds.buzz(cur,'round-seven','A','A',200,cur.buzzId))).committed,false);
+ assert.equal((await ref.transaction(cur=>host.BuzzerRounds.buzz(cur,'old-round','B','B',200,cur.buzzId))).committed,false);
+ const oldOpening=data.buzzId;await host.fbOpenBuzzer();assert.equal((data.queue||[]).length,0);assert.equal(data.state,'countdown');await timer();assert.equal(data.state,'open');assert.equal(host.BuzzerRounds.buzz(data,'round-seven','A','A',50,oldOpening),undefined,'Rechaza un toque atrasado de la apertura anterior');
  data.fixture.active=false;timer=null;await host.fbOpenBuzzer();assert.equal(timer,null);
  // Finalización real de Guess y recepción sin depender de rondas anteriores pendientes.
  let published;

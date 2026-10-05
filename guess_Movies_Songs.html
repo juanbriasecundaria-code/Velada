@@ -669,10 +669,10 @@ body.guess-all-teams .part-gscore{font-size:clamp(28px,3.6vw,46px);line-height:1
  body.guess-all-teams #participant .part-main{width:100%}
  .guess-team-photo{width:32px;height:32px}
 }
-</style><script src="team-maps.js?v=20261005c"></script><script src="buzzer-rounds.js?v=20261005b"></script><script src="auto-live.js"></script>
-<script src="round-host.js?v=20261005c"></script>
-<script src="guess-rounds.js?v=20261005c"></script>
-<script src="guess-teams.js?v=20261005c"></script>
+</style><script src="team-maps.js?v=20261005d"></script><script src="buzzer-rounds.js?v=20261005d"></script><script src="auto-live.js?v=20261005d"></script>
+<script src="round-host.js?v=20261005d"></script>
+<script src="guess-rounds.js?v=20261005d"></script>
+<script src="guess-teams.js?v=20261005d"></script>
 </head>
 <body>
 <div class="velada-bar"></div>
@@ -1199,13 +1199,14 @@ async function fbOpenBuzzer(blocked){
   // countdownStart va como ServerValue.TIMESTAMP (lo resuelve el servidor
   // de Firebase, no el reloj de este celu) para que el 3-2-1 quede
   // sincronizado en todos los dispositivos.
+  const buzzId=BuzzerRounds.newBuzzId();
   try {
-    const result=await fbRef.set({ state:'countdown', queue:[],turn:0,winner:null, blocked:_buzzBlocked, countdownStart:firebase.database.ServerValue.TIMESTAMP, countdownMs:BUZZ_COUNTDOWN_MS, names:{ a:nameA, b:nameB } });
+    const result=await fbRef.set({ buzzId,state:'countdown', queue:[],turn:0,winner:null, blocked:_buzzBlocked, countdownStart:firebase.database.ServerValue.TIMESTAMP, countdownMs:BUZZ_COUNTDOWN_MS, names:{ a:nameA, b:nameB } });
     if(result && result.committed===false){showToast('Activá esta ronda desde el fixture antes de habilitar el buzzer');return;}
   }catch(e){showToast('No se pudo habilitar el buzzer: '+e.message);return;}
   _buzzCountdownTimer = setTimeout(()=>{
     if(!fbRef) return;
-    fbRef.set({ state:'open',queue:[],turn:0,winner:null, blocked:_buzzBlocked, names:{ a:nameA, b:nameB } }).catch(e=>showToast('No se pudo abrir el buzzer: '+e.message));
+    fbRef.transaction(cur=>{if(cur?.buzzId!==buzzId||cur.state!=='countdown'||!cur.fixture?.active)return;return Object.assign({},cur,{state:'open'});},undefined,false).catch(e=>showToast('No se pudo abrir el buzzer: '+e.message));
   }, BUZZ_COUNTDOWN_MS);
 }
 

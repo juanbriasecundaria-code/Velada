@@ -652,7 +652,7 @@ body { animation: appEnter .32s ease-out both; }
   .part-main{padding:1rem 1.75rem;overflow:hidden;justify-content:flex-start;gap:.8rem}
 }
 </style>
-</head>
+<script src="qld-turns.js?v=20261005d"></script></head>
 <body>
 
 <!-- ── FONDO ANIMADO (persiste en splash y juego) ── -->
@@ -1154,8 +1154,7 @@ function initFirebase(){
         roundResult = snap.val() || null;
         renderRoundStatus();
       });
-      // Al arrancar: buzzer cerrado
-      fbLockBuzzer();
+      // Se conserva el turno confirmado al recargar el conductor.
     }
   }catch(e){ console.error('[FB] init error', e); setFbStatus('err','Error FB'); }
 }
@@ -3680,5 +3679,5 @@ window.veladaConn = function(estado){
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-</body>
+<script src="qld-timer.js?v=20261005d"></script></body>
 </html>

@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>La Velada del Año</title>
-<script src="puntos.js?v=3"></script>
+<script src="puntos.js?v=20261005d"></script>
 <!-- Tipografía con serifas para la portada del diario. Si no carga, Georgia
      (que está en todos los sistemas) cumple el mismo rol. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -335,6 +335,12 @@
   }
   /* Cuando el modal se abre desde Fase grupal, se tiñe celeste para mantener la identidad de fase */
   .modal.f2 { --accent: var(--info); --accent-dim: rgba(96,180,240,0.12); }
+  .common-result-dialog { max-height:90vh;overflow-y:auto; }
+  .common-result-card { display:flex;flex-direction:column;align-items:center;gap:6px;cursor:default; }
+  .common-result-name { font-weight:600;line-height:1.4;overflow-wrap:anywhere; }
+  .common-result-caption { font-size:11px;color:var(--muted); }
+  .common-result-points { width:78px;box-sizing:border-box;padding:7px 8px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);font-family:inherit;font-size:18px;font-weight:600;text-align:center; }
+  .common-result-points:focus { outline:2px solid var(--accent);outline-offset:2px; }
   .modal-title { font-size: 15px; font-weight: 600; margin-bottom: 0.25rem; }
   .modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 1.25rem; }
   .modal-players {
@@ -3992,9 +3998,9 @@ body.solo-impostor #tv-btn{ opacity:.42 }
 .pr-del{ background:none; border:none; color:var(--danger); font-size:9px;
   cursor:pointer; font-family:inherit; padding:1px }
 </style>
-<style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style><script src="team-maps.js?v=20261005c"></script><script src="buzzer-rounds.js?v=20261005b"></script>
-<script src="velada-rounds.js?v=20261005b"></script>
-<script src="common-rounds.js?v=20261005c"></script>
+<style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style><script src="team-maps.js?v=20261005d"></script><script src="buzzer-rounds.js?v=20261005d"></script>
+<script src="velada-rounds.js?v=20261005d"></script>
+<script src="common-rounds.js?v=20261005d"></script>
 </head>
 <body>
 <script>
@@ -18363,5 +18369,5 @@ document.addEventListener('keydown', function(e) {
   }
 })();
 </script>
-<script src="ensayo-guiado.js"></script>
-<script src="duplas-fotos.js"></script>
+<script src="ensayo-guiado.js?v=20261005d"></script>
+<script src="duplas-fotos.js?v=20261005d"></script>

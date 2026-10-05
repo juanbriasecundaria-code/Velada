@@ -51,3 +51,17 @@ El marcador principal de 100 Argentinos muestra todos los grupos con controles d
 Subir también team-maps.js, guess-teams.js y los HTML actualizados. Recargar el hub y ambas pantallas del juego con Ctrl+F5, y recargar el buzzer en los celulares.
 
 Pruebas: `node tests/turnos-banco.cjs` y `node tests/integracion.cjs`, además de las anteriores. Cubren objetos vacíos eliminados por Firebase, claves de equipos con / y otros caracteres, cartas y resultados publicados, cambio automático de turnos, puntaje/cierre del tercer grupo, fotos desde el proyecto correcto y persistencia de preguntas importadas. Se ejecutan con conexiones simuladas: la entrega no acredita una prueba en la web publicada.
+
+## Equipos antes de preguntar, formularios y turnos de ¿Quién lo dijo?
+
+100 Argentinos publica también la lista completa de grupos antes de lanzar una pregunta. La vista de participantes muestra 2, 3, 4 o los grupos configurados, con sus nombres y puntajes; ya no reduce el marcador inicial a Equipo 1 / Equipo 2. La pantalla se sincroniza por Firebase entre dispositivos, además del apoyo local. Las respuestas aún no reveladas se excluyen de esa publicación.
+
+Los cuatro formularios comunes usan la cuadrícula de tarjetas, bordes, controles oscuros y botones Cancelar / Guardar del estilo de Mario Party y Time’s Up. Se retiraron todos los accesos “Abrir juego” de estos formularios. Impostor permite ajustar los puntos individuales y sigue sin sumar al ranking grupal.
+
+¿Quién lo dijo? registra una cola confirmada por equipo. El primer buzzeo inicia un turno de 30 segundos; si vence sin marcar correcto, se pasa automáticamente al siguiente equipo que buzzeó, con 30 segundos nuevos. Si todavía no buzzeó otro equipo, se espera su toque. Al agotarse los equipos registrados, se muestra “Nadie acertó” para pasar a la siguiente pregunta. El mismo contador se muestra en participantes, calculado desde el inicio confirmado del servidor; no se envían escrituras de reloj cada segundo. Los puntos no se pueden asignar al equipo del turno vencido ni a otro equipo mientras está respondiendo el actual.
+
+El index.html del buzzer también está actualizado. Las transacciones de los celulares no anuncian ganadores provisionales; la posición que se muestra viene de la cola confirmada. El celular muestra quién responde y el puesto de su equipo. Mientras espera confirmación no duplica solicitudes. Guess y 100 Argentinos identifican cada apertura para rechazar toques atrasados de una pregunta anterior y evitar que un temporizador viejo reabra el buzzer.
+
+Subir todo el proyecto, incluidos qld-turns.js, qld-timer.js e index.html. Recargar con Ctrl+F5 el hub, los conductores y participantes, y recargar los celulares. Se conservan los dos Firebase existentes.
+
+Pruebas nuevas: `node tests/qld-roster-modales.cjs`, `node tests/qld-widget.cjs` y `node tests/buzzer-confirmado.cjs`. Las pruebas usan las funciones reales de las pantallas con conexiones simuladas: verifican 30/30/30 segundos, el reloj de conductor/TV, rechazo de turnos obsoletos, formularios, roster previo de 2–5 grupos y confirmación compartida del orden del buzzer. No constituyen una comprobación con celulares en la web publicada.

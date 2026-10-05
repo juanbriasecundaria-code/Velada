@@ -1,7 +1,7 @@
 /* Round-specific name selection for the four fixture games. QLD keeps its own flow. */
 (function(){
   const oldSelect=selectGame, oldTeam=selectTeam, oldBack=goBack, oldBuzz=doBuzz;
-  let ref=null, listener=null, connListener=null, match=null, player=null, connected=false, request=0;
+  let ref=null, listener=null, connListener=null, match=null, player=null, connected=false, request=0,pendingBuzz=false;
   const box=document.createElement('div');
   box.id='fixture-caption';box.style.cssText='max-width:360px;text-align:center;margin:0 0 20px;line-height:1.5;font-weight:700;color:var(--accent)';
   document.getElementById('ts-section-label').before(box);
@@ -17,7 +17,7 @@
   function hideTransient(){['bz-record','bz-verdict','bz-early'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('show');});}
   function clear(){
     hideTransient();
-    request++;
+    request++;pendingBuzz=false;
     if(ref && listener) ref.off('value',listener);
     if(connListener && fbDb) fbDb.ref('.info/connected').off('value',connListener);
     if(bzListener && fbRef){fbRef.off('value',bzListener);bzListener=null;}
@@ -105,7 +105,7 @@
         const changed=(match&&match.id)!==(next&&next.id) || !!(match&&match.active)!==!!(next&&next.active) || JSON.stringify(match&&match.players)!==JSON.stringify(next&&next.players);
         match=next;
         if(changed){
-          hideTransient();
+          request++;pendingBuzz=false;hideTransient();
           if(bzListener){ref.off('value',bzListener);bzListener=null;}
           player=null;bzTeam=null;_bzPhase='waiting';_lastVerdictTs=null;
           hideBzCountdown();hideResult();show('team-select-screen');
@@ -127,12 +127,15 @@
     if(!managed())return oldBuzz();
     if(!connected || !ref || !player || !BuzzerRounds.allowed(match,player,bzTeam))return;
     if(_bzPhase==='waiting' || _bzPhase==='countdown'){showEarlyWarning();return;}
-    if(_bzPhase!=='open')return;
+    if(_bzPhase!=='open'||pendingBuzz)return;
     const id=match.id, who=player, side=bzTeam, ms=_openedAt?Math.max(0,nowServer()-_openedAt):null;
-    bzMyName=who;
-    ref.transaction(current=>BuzzerRounds.buzz(current,id,who,side,ms),(err,committed)=>{
+    bzMyName=who;const ticket=request,buzzId=window._confirmedBuzzId;pendingBuzz=true;
+    document.getElementById('bz-status').textContent='Enviando toque…';
+    ref.transaction(current=>{if(!connected||ticket!==request)return;return BuzzerRounds.buzz(current,id,who,side,ms,buzzId);},(err,committed,snap)=>{
+      if(ticket!==request)return;pendingBuzz=false;
       if(err){document.getElementById('bz-status').textContent='No se pudo enviar. Revisá tu conexión.';return;}
+      if(!committed && snap && bzListener)bzListener(snap);
       if(committed){sfxTin();checkSpeedRecord(ms);if(navigator.vibrate)navigator.vibrate(60);}
-    });
+    },false);
   };
 })();

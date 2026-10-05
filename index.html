@@ -387,7 +387,7 @@ body { animation: appEnter .32s ease-out both; }
 .skip-splash #splash{display:none!important}
 
 </style>
-<script src="buzzer-rounds.js?v=20261005b"></script>
+<script src="qld-turns.js?v=20261005d"></script><script src="buzzer-rounds.js?v=20261005d"></script>
 </head>
 <body>
 <script>if(new URLSearchParams(location.search).get('hub')) document.documentElement.classList.add('skip-splash');</script>
@@ -660,6 +660,7 @@ function initFirebase(cb){
     // servidor (no entre ellos), así el 3-2-1 queda sincronizado aunque
     // los relojes de los celus no lo estén.
     try{
+      fbDb.ref('.info/connected').on('value',s=>{window._remoteBuzzConnected=!!s.val();});
       fbDb.ref('.info/serverTimeOffset').on('value', snap=>{
         _fbServerOffsetMs = snap.val() || 0;
       });
@@ -979,7 +980,8 @@ let _gTurnBuzzed = null;
 function applyGroupBuzz(d, btn, statusEl){
   const state = d.state || 'locked';
   const queue = Array.isArray(d.queue) ? d.queue : [];
-  const pos = queue.findIndex(q=>q && q.team===bzTeam);
+  const side=currentGame==='quien'?(d.fixture?.players||[]).find(p=>p.name===bzTeam)?.side:bzTeam;
+  const pos = queue.findIndex(q=>q && q.team===side);
   const turn = (typeof d.turn === 'number' && d.turn >= 0) ? d.turn : 0;
   const cur = queue[turn] || null;
   hideResult(); _resultShownFor = null;
@@ -1010,7 +1012,7 @@ function applyGroupBuzz(d, btn, statusEl){
     btn.classList.add('locked'); btn.classList.remove('open');
     if(pos === turn){
       btn.classList.add('won-me');
-      statusEl.textContent = '🎤 ¡Te toca responder! (' + (pos+1) + '°)';
+      statusEl.textContent = '🎤 Responde '+(queue[pos].name||side)+' · tu equipo va '+(pos+1)+'°';
       statusEl.className = 'bz-status won';
       if(_gTurnBuzzed !== d.turn+'/'+pos && navigator.vibrate){ navigator.vibrate([80,40,80,40,80]); }
       _gTurnBuzzed = d.turn+'/'+pos;
@@ -1035,6 +1037,7 @@ function startBuzzListener(){
   if(!fbRef) return;
   bzListener = fbRef.on('value', snap=>{
     const d = snap.val()||{};
+    window._confirmedBuzzFixture=d.fixture?.id||null;window._confirmedBuzzId=d.buzzId||null;
     const state = d.state||'locked';
 
     // Sync nombres en caso de que el conductor los haya cambiado
@@ -1407,10 +1410,12 @@ function showEarlyWarning(){
   showEarlyWarning._t = setTimeout(()=>el.classList.remove('show'), 2200);
 }
 
+let _legacyBuzzPending=false;
 function doBuzz(){
-  if(!fbRef || !bzTeam) return;
+  if(!fbRef || !bzTeam || _legacyBuzzPending) return;
+  if(!window._remoteBuzzConnected){document.getElementById('bz-status').textContent='Sin conexión · esperá para buzzear';return;}
   // Todavía no abrió: avisamos en vez de ignorar el toque
-  if(_bzPhase === 'waiting'){ showEarlyWarning(); return; }
+  if(_bzPhase === 'waiting' || _bzPhase === 'countdown'){ showEarlyWarning(); return; }
   if(_bzPhase === 'won' || _bzPhase === 'blocked') return;  // ya se resolvió
   const meta = GAME_META[currentGame] || {};
   const isIndividual = !!meta.individual;
@@ -1421,7 +1426,11 @@ function doBuzz(){
   if(navigator.vibrate) navigator.vibrate(60);
 
   // Transacción atómica — solo gana el primero en llegar
+  const session=window._confirmedBuzzFixture,chosenGame=currentGame,chosenPlayer=bzTeam;_legacyBuzzPending=true;
+  document.getElementById('bz-status').textContent='Enviando toque…';
   fbRef.transaction(current=>{
+    if(!window._remoteBuzzConnected||currentGame!==chosenGame||bzTeam!==chosenPlayer)return;
+    if(currentGame==='quien' && current?.fixture?.game==='qld')return QldTurns.buzz(current,session,bzTeam,_ms,firebase.database.ServerValue.TIMESTAMP);
     if(!current) return;
     // Movies & Songs usa { state:'open', winner:null }
     // 100 Argentinos usa { state:'open', winner:null } también
@@ -1435,12 +1444,16 @@ function doBuzz(){
       });
     }
     return; // abort — ya hay ganador o está bloqueado
-  }, (err, committed)=>{
+  }, (err, committed,snap)=>{
+    _legacyBuzzPending=false;
+    if(currentGame!==chosenGame || bzTeam!==chosenPlayer || window._confirmedBuzzFixture!==session)return;
+    if(err){document.getElementById('bz-status').textContent='No se pudo enviar el toque · revisá la conexión';return;}
+    if(!committed&&snap&&bzListener)bzListener(snap);
     if(!err && committed){
       sfxTin();                 // sonó solo si este celular ganó
       checkSpeedRecord(_ms);    // ¿rompió el récord de la noche?
     }
-  });
+  },false);
 }
 
 // ── SPLASH ───────────────────────────────────────────────────────
@@ -1648,6 +1661,6 @@ window.qldPhotos = window.qldPhotos || {};
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-<script src="hub-rounds.js?v=20261005b"></script>
+<script src="hub-rounds.js?v=20261005d"></script>
 </body>
 </html>

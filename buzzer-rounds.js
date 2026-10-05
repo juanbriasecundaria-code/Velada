@@ -40,7 +40,8 @@
   function allowed(match,name,side){
     return !!(match && match.active && Array.isArray(match.players) && match.players.some(p=>p.name===name && p.side===side));
   }
-  function buzz(current,matchId,player,side,ms){
+  function buzz(current,matchId,player,side,ms,buzzId){
+    if(current?.buzzId && current.buzzId!==buzzId)return;
     if(!current || !current.fixture || current.fixture.id!==matchId || !allowed(current.fixture,player,side)) return;
     if(current.fixture.group){
       // Cola de buzzer: cada equipo entra una sola vez, en el orden en que apretó.
@@ -65,5 +66,5 @@
     if(m&&m.active&&m.group) return 'Ronda '+m.round+' · Todos los equipos juntos';
     return m&&m.active ? 'Ronda '+m.round+' · '+m.names.a+' vs. '+m.names.b : 'Esperando que el conductor active una ronda';
   }
-  root.BuzzerRounds={paths,gameId,members,buildMatch,buildGroup,allowed,buzz,initial,caption};
+  root.BuzzerRounds={newBuzzId:()=>Date.now().toString(36)+'-'+Math.random().toString(36).slice(2),paths,gameId,members,buildMatch,buildGroup,allowed,buzz,initial,caption};
 })(typeof window==='undefined'?globalThis:window);
