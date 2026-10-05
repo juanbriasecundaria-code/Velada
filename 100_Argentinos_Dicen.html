@@ -200,6 +200,14 @@
   .buzz-btn.b-b.active { background: var(--gold-dim); box-shadow: 0 0 0 2px var(--gold), 0 0 26px rgba(245,200,66,0.35); }
   .buzz-btn.armed { animation: buzzPulse 1.4s ease-in-out infinite; }
   @keyframes buzzPulse { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+  /* 3+ equipos: botones de buzzer y marcador en varias filas */
+  .buzz-row.multi { flex-wrap: wrap; max-width: 560px; }
+  .buzz-row.multi .buzz-btn { flex: 1 1 30%; min-width: 96px; }
+  .buzz-btn.done { opacity: 0.6; }
+  .round-score.multi { flex-wrap: wrap; max-width: 560px; }
+  .round-score.multi .pot-box { order: -1; flex: 1 0 100%; flex-direction: row; gap: 0.7rem; }
+  .round-score.multi .rs-team { flex: 1 1 26%; }
+  .rs-hold { font-size: 11px; font-weight: 800; color: var(--muted); min-height: 13px; }
 
   /* ── JUGAR / PASAR ── */
   .choice-panel { width: 100%; max-width: 480px; display: flex; gap: 0.55rem; }
@@ -790,6 +798,34 @@ body.vb-clean .vb-peek { display: flex; }
   .velada-bar-dot span.warn { animation: none }
 }
 
+
+  /* ── MODO GRUPOS (armado automático de equipos de juego) ── */
+  .gm-strip { display:none; flex-wrap:wrap; gap:0.4rem; align-items:center; justify-content:center; margin-top:-0.2rem; }
+  .gm-strip.on { display:flex; }
+  .gm-chip { display:flex; align-items:center; gap:0.4rem; padding:0.35rem 0.7rem; border-radius:99px; border:1.5px solid var(--border2); background:var(--surface2); font-size:12px; font-weight:800; color:var(--text); }
+  .gm-chip b { color:var(--accent); font-size:14px; font-variant-numeric:tabular-nums; }
+  .gm-chip.cur { border-color:var(--accent); background:var(--accent-dim); }
+  .gm-end-btn { font-size:12px; font-weight:800; padding:0.4rem 0.8rem; border-radius:99px; border:1.5px solid var(--gold); background:transparent; color:var(--gold); cursor:pointer; font-family:inherit; }
+  .gm-ta { width:100%; min-height:104px; resize:vertical; background:var(--surface); border:1.5px solid var(--border2); border-radius:10px; color:var(--text); font:600 13px/1.5 inherit; font-family:inherit; padding:0.6rem 0.7rem; }
+  .gm-row { display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
+  .gm-sel { background:var(--surface); border:1.5px solid var(--border2); border-radius:9px; color:var(--text); font:700 13px inherit; font-family:inherit; padding:0.45rem 0.5rem; min-width:0; }
+  .gm-team { border:1.5px solid var(--border2); border-radius:12px; background:var(--surface); padding:0.6rem 0.7rem; display:flex; flex-direction:column; gap:0.4rem; }
+  .gm-team-h { display:flex; align-items:center; gap:0.5rem; }
+  .gm-team-h input { flex:1; min-width:0; }
+  .gm-team-n { font-size:11px; font-weight:800; color:var(--accent); white-space:nowrap; }
+  .gm-orig { display:flex; align-items:center; justify-content:space-between; gap:0.5rem; font-size:13px; font-weight:700; }
+  .gm-orig span.l { overflow-wrap:anywhere; }
+  .gm-sum { font-size:13px; font-weight:800; color:var(--accent); text-align:center; padding:0.4rem; border-radius:9px; background:var(--accent-dim); }
+  .gm-sum.warn { color:var(--gold); background:rgba(255,200,60,0.12); }
+  .gm-fin { display:flex; align-items:center; gap:0.5rem; padding:0.55rem 0.7rem; border:1.5px solid var(--border2); border-radius:12px; background:var(--surface); }
+  .gm-fin .pos { font-size:18px; font-weight:900; width:1.6rem; text-align:center; }
+  .gm-fin .nm { flex:1; min-width:0; font-size:14px; font-weight:800; overflow-wrap:anywhere; }
+  .gm-fin .nm small { display:block; font-size:11px; font-weight:600; color:var(--muted); }
+  .gm-fin .sc { font-size:12px; font-weight:700; color:var(--muted); white-space:nowrap; }
+  .gm-fin .pt { font-size:18px; font-weight:900; color:var(--accent); min-width:3.2rem; text-align:right; white-space:nowrap; }
+  .gm-fin .mv button { background:none; border:1.5px solid var(--border2); color:var(--text); border-radius:7px; width:28px; height:28px; cursor:pointer; font-size:13px; }
+  .gm-fin .mv button:disabled { opacity:0.25; }
+  .gm-tie { font-size:11px; color:var(--gold); font-weight:700; text-align:center; }
 </style>
 <style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="buzzer-rounds.js"></script><script src="auto-live.js"></script>
 <script src="round-host.js"></script>
@@ -882,7 +918,10 @@ body.vb-clean .vb-peek { display: flex; }
     <button class="reset-link" onclick="resetScore()">↺ puntaje</button>
     <span class="footer-sep">·</span>
     <button class="meta-btn" id="meta-btn" onclick="openMetaSheet()">🏁 Meta: 100</button>
+    <span class="footer-sep">·</span>
+    <button class="reset-link" id="gm-open-btn" onclick="gmOpenSetup()">🧩 grupos</button>
   </div>
+  <div class="gm-strip" id="gm-strip"></div>
 
   <button class="reveal-btn" id="start-round-btn" onclick="startRound()">🎤 Nueva pregunta</button>
   <button class="fm-entry" onclick="fmStart()">⚡ Dinero Rápido <span style="opacity:.7;font-weight:700">· ronda final</span></button>
@@ -920,7 +959,7 @@ body.vb-clean .vb-peek { display: flex; }
   </div>
 
   <!-- Marcador + pozo -->
-  <div class="round-score">
+  <div class="round-score" id="round-score">
     <div class="rs-team rs-a" id="rs-team-a">
       <div class="rs-name" id="rs-name-a">Equipo 1</div>
       <div class="rs-score" id="rs-score-a">0</div>
@@ -1024,6 +1063,7 @@ body.vb-clean .vb-peek { display: flex; }
     <div class="kb-group-title">Duelo (buzzer)</div>
     <div class="kb-row"><div class="kb-label">🔔 Buzzer Equipo 1</div><div class="kb-keys"><span class="kbd">Q</span></div></div>
     <div class="kb-row"><div class="kb-label">🔔 Buzzer Equipo 2</div><div class="kb-keys"><span class="kbd">P</span></div></div>
+    <div class="kb-row"><div class="kb-label">🔔 Buzzer equipos 3 a 6</div><div class="kb-keys"><span class="kbd">W</span><span class="kbd">O</span><span class="kbd">E</span><span class="kbd">I</span></div></div>
     <div class="kb-row"><div class="kb-label">🔓 Habilitar buzzer remoto</div><div class="kb-keys"><span class="kbd">B</span></div></div>
 
     <div class="kb-group-title">Jugada</div>
@@ -1106,6 +1146,7 @@ body.vb-clean .vb-peek { display: flex; }
         <button class="timer-opt-btn" data-s="15" onclick="setTimerSecs(15)">15s</button>
         <button class="timer-opt-btn" data-s="20" onclick="setTimerSecs(20)">20s</button>
         <button class="timer-opt-btn" data-s="30" onclick="setTimerSecs(30)">30s</button>
+        <button class="timer-opt-btn" data-s="40" onclick="setTimerSecs(40)">40s</button>
         <button class="timer-opt-btn" data-s="45" onclick="setTimerSecs(45)">45s</button>
       </div>
     </div>
@@ -1180,6 +1221,62 @@ body.vb-clean .vb-peek { display: flex; }
     <div class="deck-footer">
       <button class="sheet-cancel deck-restore" onclick="closeNameEditor()">Cancelar</button>
       <button class="btn-primary deck-done" onclick="saveNames()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ── MODO GRUPOS: armado automático ── -->
+<div class="sheet-overlay" id="gm-overlay">
+  <div class="comodin-sheet">
+    <div class="sheet-title">🧩 Grupos de juego</div>
+    <div class="sheet-sub">Los grupos originales nunca se separan: solo se juntan completos para formar los equipos de este juego.</div>
+    <div style="font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Grupos originales (uno por línea, integrantes con “/”)</div>
+    <textarea class="gm-ta" id="gm-ta" placeholder="Laza / Tomás&#10;Thiago / Lara&#10;Totti / Risu" spellcheck="false"></textarea>
+    <div class="gm-row">
+      <button class="sheet-cancel deck-restore" onclick="gmLoadFromVelada()">⬇️ Cargar de la Velada</button>
+      <label style="font-size:12px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:0.4rem">Máx. equipos
+        <select class="gm-sel" id="gm-max" onchange="gmCompute()"><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select>
+      </label>
+    </div>
+    <button class="deck-add-btn" onclick="gmCompute()">⚙️ Calcular automático</button>
+    <div id="gm-preview" style="display:flex;flex-direction:column;gap:0.6rem"></div>
+    <div class="deck-footer" style="flex-wrap:wrap">
+      <button class="sheet-cancel deck-restore" id="gm-off-btn" onclick="gmDisable()" style="display:none">Volver a 1 vs 1</button>
+      <button class="sheet-cancel" onclick="gmCloseSetup()">Cancelar</button>
+      <button class="btn-primary deck-done" onclick="gmAccept()">Aceptar y usar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODO GRUPOS: qué grupos juegan esta pregunta ── -->
+<div class="sheet-overlay" id="gm-pair-overlay">
+  <div class="comodin-sheet">
+    <div class="sheet-title">⚔️ ¿Qué grupos juegan esta pregunta?</div>
+    <div class="sheet-sub" id="gm-pair-sub">Te propongo el cruce para que todos jueguen parejo. Podés cambiarlo.</div>
+    <div class="gm-row" id="gm-pair-duo" style="flex-wrap:nowrap">
+      <select class="gm-sel" id="gm-pair-a" style="flex:1" onchange="gmPairChanged('a')"></select>
+      <span style="font-weight:900;color:var(--muted)">VS</span>
+      <select class="gm-sel" id="gm-pair-b" style="flex:1" onchange="gmPairChanged('b')"></select>
+    </div>
+    <div id="gm-pair-multi" style="display:none;flex-direction:column;gap:0.45rem;max-height:50vh;overflow-y:auto"></div>
+    <div class="deck-footer">
+      <button class="sheet-cancel" onclick="gmClosePair()">Cancelar</button>
+      <button class="btn-primary deck-done" onclick="gmConfirmPair()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODO GRUPOS: cierre y puntos al ranking ── -->
+<div class="sheet-overlay" id="gm-final-overlay">
+  <div class="comodin-sheet">
+    <div class="sheet-title">🏁 Cierre del juego</div>
+    <div class="sheet-sub" id="gm-final-sub"></div>
+    <div id="gm-final-body" style="display:flex;flex-direction:column;gap:0.5rem"></div>
+    <div class="gm-tie" id="gm-final-tie"></div>
+    <div class="deck-footer">
+      <button class="sheet-cancel" onclick="gmCloseFinal()">Volver</button>
+      <button class="btn-primary deck-done" onclick="gmConfirmFinal()">Confirmar y publicar</button>
     </div>
   </div>
 </div>
@@ -1348,15 +1445,35 @@ const SK_SCORE = 'cad_score';
 const SK_NAMES = 'cad_names';
 const SK_TARGET = 'cad_target';
 const SK_SIZES = 'cad_sizes';
-const SK_TIMER = 'cad_timer';
+const SK_TIMER = 'cad_timer40';   // v2: el default pasó a 40 s por strike
+const SK_GROUPS = 'cad_groups';
 
 let bank      = [];
 let usedQ     = new Set();
 let score     = { a: 0, b: 0 };
 let teamNames = { a: 'Equipo 1', b: 'Equipo 2' };
 let teamSizes = { a: 1, b: 1 };  // integrantes por equipo (1-5) — default 1v1
+// Hasta 8 equipos en una ronda (modo grupos). Con 2 equipos todo funciona como siempre.
+const SLOTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const TEAM_COLORS = { a: '#60b4f0', b: '#f5c842', c: '#c8f060', d: '#c060e8', e: '#ff8a5c', f: '#5ce6c8', g: '#ff6bb5', h: '#9aa0ff' };
+function teamColorCss(t) { return t === 'a' ? 'var(--blue)' : t === 'b' ? 'var(--gold)' : (TEAM_COLORS[t] || '#aaa'); }
+(function injectSlotColors() {
+  let css = '';
+  SLOTS.forEach(t => {
+    if (t === 'a' || t === 'b') return;
+    const c = TEAM_COLORS[t];
+    css += `.rs-team.rs-${t}{border-color:${c}80}.rs-team.rs-${t} .rs-name{color:${c}}` +
+      `.feud-slot.team-${t}{border-color:${c}}.feud-slot.team-${t} .slot-pts{background:${c}22;color:${c};border-color:transparent}` +
+      `.p-wrap .rs-team.rs-${t}::before{background:linear-gradient(90deg,transparent,${c},transparent)}` +
+      `.buzz-btn.b-${t}{border-color:${c}73}.buzz-btn.b-${t} .bz-name{color:${c}}` +
+      `.buzz-btn.b-${t}.active{background:${c}22;box-shadow:0 0 0 2px ${c},0 0 26px ${c}59}`;
+  });
+  const st = document.createElement('style'); st.id = 'slot-colors'; st.textContent = css;
+  document.head.appendChild(st);
+})();
 let targetScore = 5;   // rondas ganadas para ganar el match (0 = sin meta)
-let roundTimerSecs = 0;  // 0 = off; 15/20/30/45 = activo
+let roundTimerSecs = 40;  // 0 = off; 15/20/30/40/45 = activo (default 40 s por strike)
+let gm = null;           // modo grupos (null = juego normal 1 vs 1)
 let _roundTimerInterval = null;
 let _roundTimerLeft = 0;
 
@@ -1403,7 +1520,7 @@ function _saveTeamNames() { try { localStorage.setItem(SK_NAMES, JSON.stringify(
 function _saveTeamSizes() { try { localStorage.setItem(SK_SIZES, JSON.stringify(teamSizes)); } catch (e) {} }
 function _setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
 function other(t) { return t === 'a' ? 'b' : 'a'; }
-function nameOf(t) { return (teamNames[t] || (t === 'a' ? 'Equipo 1' : 'Equipo 2')); }
+function nameOf(t) { return (teamNames[t] || ('Equipo ' + (Math.max(0, SLOTS.indexOf(t)) + 1))); }
 function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 function ordinalFem(n) { return n + 'ª'; }
 
@@ -1418,21 +1535,30 @@ function syncTimerOptBtns() {
 }
 function startRoundTimer() {
   stopRoundTimer();
-  if (!roundTimerSecs) { const el = document.getElementById('round-timer'); if (el) el.style.display = 'none'; return; }
-  _roundTimerLeft = roundTimerSecs;
   const el = document.getElementById('round-timer');
+  if (!roundTimerSecs || !round || (round.phase !== 'play' && round.phase !== 'steal')) { if (el) el.style.display = 'none'; return; }
+  _roundTimerLeft = roundTimerSecs;
   if (el) el.style.display = '';
   _renderRoundTimer();
   _roundTimerInterval = setInterval(() => {
     _roundTimerLeft--;
     _renderRoundTimer();
     if (_roundTimerLeft <= 5 && _roundTimerLeft > 0) sfxTick();
-    if (_roundTimerLeft <= 0) { stopRoundTimer(); playBuzzer(); if (navigator.vibrate) navigator.vibrate([80,40,80,40,80]); }
+    if (_roundTimerLeft <= 0) { stopRoundTimer(); _turnTimeout(); }
   }, 1000);
 }
 function stopRoundTimer() {
   if (_roundTimerInterval) { clearInterval(_roundTimerInterval); _roundTimerInterval = null; }
   const el = document.getElementById('round-timer'); if (el) el.style.display = 'none';
+}
+// Se acabó el tiempo sin respuesta: strike automático y arranca otro turno de timer
+// (el 3er strike pasa el tablero al otro equipo, que juega con la misma lógica).
+function _turnTimeout() {
+  if (!round || (round.phase !== 'play' && round.phase !== 'steal')) return;
+  const who = round.phase === 'steal' ? other(round.controlTeam) : round.controlTeam;
+  showToast('⏱ Sin respuesta: strike para ' + nameOf(who));
+  if (navigator.vibrate) navigator.vibrate([80,40,80,40,80]);
+  doStrike();
 }
 function _renderRoundTimer() {
   const el = document.getElementById('rt-secs');
@@ -1465,22 +1591,23 @@ function memberLabel(team) {
 }
 
 function syncScoreUI() {
-  const a = nameOf('a'), b = nameOf('b');
-  _setText('sb-name-a', a); _setText('sb-name-b', b);
+  _setText('sb-name-a', nameOf('a')); _setText('sb-name-b', nameOf('b'));
   _setText('sb-score-a', score.a); _setText('sb-score-b', score.b);
-  _setText('buzz-name-a', memberLabel('a')); _setText('buzz-name-b', memberLabel('b'));
-  _setText('rs-name-a', a); _setText('rs-name-b', b);
-  _setText('rs-score-a', score.a); _setText('rs-score-b', score.b);
+  SLOTS.forEach(t => {
+    _setText('buzz-name-' + t, memberLabel(t));
+    _setText('rs-name-' + t, nameOf(t));
+    _setText('rs-score-' + t, score[t] || 0);
+  });
 }
 function bumpEl(id) { const el = document.getElementById(id); if (el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); } }
 function addPoint(team, delta) {
-  if (team !== 'a' && team !== 'b') return;
+  if (!SLOTS.includes(team)) return;
   score[team] = Math.max(0, (score[team] || 0) + delta);
-  saveScore(); syncScoreUI();
+  saveScore(); syncScoreUI(); gmSyncScore(team);
   bumpEl('sb-score-' + team); bumpEl('rs-score-' + team);
   if (navigator.vibrate) navigator.vibrate(delta > 0 ? 35 : 18);
 }
-function resetScore() { if (!confirm('¿Reiniciar el puntaje a 0 – 0?')) return; score = { a: 0, b: 0 }; saveScore(); syncScoreUI(); if (navigator.vibrate) navigator.vibrate(25); }
+function resetScore() { if (!confirm('¿Reiniciar el puntaje a 0 – 0?')) return; score = { a: 0, b: 0 }; saveScore(); syncScoreUI(); gmResetScores(); if (navigator.vibrate) navigator.vibrate(25); }
 function openNameEditor() {
   document.getElementById('name-input-a').value = teamNames.a || '';
   document.getElementById('name-input-b').value = teamNames.b || '';
@@ -1511,7 +1638,7 @@ function saveNames() {
   const b = (document.getElementById('name-input-b').value || '').trim();
   teamNames.a = a || 'Equipo 1'; teamNames.b = b || 'Equipo 2';
   if (_pendingSizes) { teamSizes = _pendingSizes; _pendingSizes = null; _saveTeamSizes(); }
-  _saveTeamNames(); syncScoreUI(); closeNameEditor();
+  _saveTeamNames(); gmNamesEdited(); syncScoreUI(); closeNameEditor();
   // FIX: propagar al buzzer del celu al instante (antes había que esperar
   // al próximo fbToggle()/fbLock() para que los teléfonos vieran el cambio).
   if (fbRef) { try { fbRef.child('names').set({ a: teamNames.a, b: teamNames.b }); } catch (e) {} }
@@ -1525,6 +1652,327 @@ function syncUI() {
   if (fill) fill.style.width = (total > 0 ? used / total * 100 : 0) + '%';
   if (txt) txt.textContent = total === 0 ? 'No hay preguntas activas — editá el banco'
     : (remaining > 0 ? `Quedan ${remaining} de ${total} preguntas` : 'Mazo completo — reiniciá o editá');
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODO GRUPOS — armado automático de los equipos de juego
+// Los grupos originales (los del juego general) NUNCA se parten: solo se
+// juntan completos. 100 Argentinos calcula cuántos equipos y de cuántos
+// integrantes para quedar lo más parejo posible, y después reparte los
+// puntos del ranking según la posición final (3/1/0, o 3/0 si son 2).
+// ══════════════════════════════════════════════════════════════
+const GM_LETTERS = 'ABCDEFGH';
+let gmDraft = null;   // borrador editable en la vista previa
+
+function gmSave() { try { if (gm) localStorage.setItem(SK_GROUPS, JSON.stringify(gm)); else localStorage.removeItem(SK_GROUPS); } catch (e) {} }
+function gmLoad() {
+  try {
+    const d = localStorage.getItem(SK_GROUPS);
+    if (!d) return;
+    const g = JSON.parse(d);
+    if (g && Array.isArray(g.teams) && g.teams.length >= 2 && Array.isArray(g.origs)) gm = g;
+  } catch (e) {}
+}
+function gmAttr(v) { return escapeHtml(v).replace(/"/g, '&quot;'); }
+function gmFixtureActive() { return !!(window.currentFixtureMatch && currentFixtureMatch() && currentFixtureMatch().active); }
+
+// ── Algoritmo (puro) ──
+// Reparte los grupos originales (por tamaño) en k equipos: de mayor a menor,
+// cada uno al equipo que tenga menos integrantes en ese momento.
+function gmAssign(sizes, k) {
+  const order = sizes.map((_, i) => i).sort((x, y) => sizes[y] - sizes[x] || x - y);
+  const totals = Array(k).fill(0), assign = Array(sizes.length).fill(0);
+  order.forEach(i => {
+    let t = 0;
+    for (let j = 1; j < k; j++) if (totals[j] < totals[t]) t = j;
+    assign[i] = t; totals[t] += sizes[i];
+  });
+  // Mejora local: el reparto goloso no siempre es el mejor (ej. 3+3 vs 2+2+2).
+  // Prueba mover un grupo o intercambiar dos entre equipos mientras mejore (diferencia, y luego dispersión).
+  const obj = tt => [Math.max(...tt) - Math.min(...tt), tt.reduce((a, v) => a + v * v, 0)];
+  const better = (x, y) => x[0] < y[0] || (x[0] === y[0] && x[1] < y[1]);
+  for (let it = 0; it < 200; it++) {
+    let cur = obj(totals), improved = false;
+    for (let i = 0; i < sizes.length && !improved; i++) {
+      for (let t = 0; t < k && !improved; t++) {           // mover i al equipo t
+        if (t === assign[i] || totals[assign[i]] - sizes[i] <= 0) continue;
+        const tt = totals.slice(); tt[assign[i]] -= sizes[i]; tt[t] += sizes[i];
+        if (better(obj(tt), cur)) { totals[assign[i]] -= sizes[i]; totals[t] += sizes[i]; assign[i] = t; improved = true; }
+      }
+      for (let j = i + 1; j < sizes.length && !improved; j++) {   // intercambiar i con j
+        if (assign[i] === assign[j] || sizes[i] === sizes[j]) continue;
+        const tt = totals.slice(); tt[assign[i]] += sizes[j] - sizes[i]; tt[assign[j]] += sizes[i] - sizes[j];
+        if (better(obj(tt), cur)) { totals.splice(0, k, ...tt); const a = assign[i]; assign[i] = assign[j]; assign[j] = a; improved = true; }
+      }
+    }
+    if (!improved) break;
+  }
+  return { k, assign, totals, diff: Math.max(...totals) - Math.min(...totals) };
+}
+// Prueba de 2 a maxTeams equipos: gana la menor diferencia de tamaño; si empatan, la que tenga más equipos.
+function gmPropose(sizes, maxTeams) {
+  const top = Math.min(Math.max(2, maxTeams), sizes.length);
+  let best = null;
+  for (let k = 2; k <= top; k++) {
+    const r = gmAssign(sizes, k);
+    if (!best || r.diff < best.diff || (r.diff === best.diff && r.k > best.k)) best = r;
+  }
+  return best;
+}
+function gmParseOrigs(text) {
+  return String(text || '').split(/\n/).map(l => l.trim()).filter(Boolean).map(label => {
+    const members = label.split('/').map(x => x.trim()).filter(Boolean);
+    return { label, members, size: Math.max(1, members.length) };
+  });
+}
+function gmVeladaGroups() {
+  try {
+    const st = JSON.parse(localStorage.getItem('ndj_state') || 'null');
+    const t = st && st.teamsSnapshot;
+    if (Array.isArray(t) && t.length) return t.map(String);
+  } catch (e) {}
+  return [];
+}
+
+// ── Configuración (vista previa editable) ──
+function gmOpenSetup() {
+  if (gmFixtureActive()) { showToast('Hay un cruce del fixture activo: el modo grupos no aplica ahí'); return; }
+  const ta = document.getElementById('gm-ta');
+  if (gm) {
+    ta.value = gm.origs.map(o => o.label).join('\n');
+    const assign = gm.origs.map((_, i) => gm.teams.findIndex(t => t.origs.includes(i)));
+    gmDraft = { origs: gm.origs.map(o => Object.assign({}, o)), assign, names: gm.teams.map(t => t.name) };
+    const mx = document.getElementById('gm-max'); if (mx && gm.maxTeams) mx.value = String(gm.maxTeams);
+  } else {
+    gmDraft = null;
+    if (!ta.value.trim()) ta.value = gmVeladaGroups().join('\n');
+  }
+  document.getElementById('gm-off-btn').style.display = gm ? '' : 'none';
+  gmRenderPreview();
+  document.getElementById('gm-overlay').classList.add('open');
+}
+function gmCloseSetup() { document.getElementById('gm-overlay').classList.remove('open'); }
+function gmLoadFromVelada() {
+  const g = gmVeladaGroups();
+  if (!g.length) { showToast('No encontré los grupos de la Velada en este navegador. Pegalos a mano.'); return; }
+  document.getElementById('gm-ta').value = g.join('\n');
+  gmCompute();
+}
+function gmCompute() {
+  const origs = gmParseOrigs(document.getElementById('gm-ta').value);
+  if (origs.length < 2) { showToast('Hacen falta al menos 2 grupos originales'); gmDraft = null; gmRenderPreview(); return; }
+  const maxT = parseInt(document.getElementById('gm-max').value, 10) || 3;
+  const r = gmPropose(origs.map(o => o.size), maxT);
+  const prev = gmDraft && gmDraft.names.length === r.k ? gmDraft.names : null;
+  gmDraft = { origs, assign: r.assign, names: Array.from({ length: r.k }, (_, t) => (prev && prev[t]) || ('Grupo ' + GM_LETTERS[t])) };
+  gmRenderPreview();
+}
+function gmRename(t, v) { if (!gmDraft) return; gmDraft.names[t] = (v || '').trim() || ('Grupo ' + GM_LETTERS[t]); gmRenderPreview(); }
+function gmMoveOrig(i, t) { if (!gmDraft) return; gmDraft.assign[i] = parseInt(t, 10); gmRenderPreview(); }
+function gmTotals(d) { const tot = Array(d.names.length).fill(0); d.origs.forEach((o, i) => { tot[d.assign[i]] += o.size; }); return tot; }
+function gmRenderPreview() {
+  const box = document.getElementById('gm-preview');
+  const d = gmDraft;
+  if (!d) { box.innerHTML = ''; return; }
+  const totals = gmTotals(d), diff = Math.max(...totals) - Math.min(...totals), empty = totals.some(t => t === 0);
+  let h = `<div class="gm-sum${(diff > 0 || empty) ? ' warn' : ''}">${d.names.length} equipos: ${totals.join(' · ')}${empty ? ' — hay un equipo vacío' : (diff > 0 ? ' — diferencia de ' + diff : ' — parejos')}</div>`;
+  d.names.forEach((nm, t) => {
+    h += `<div class="gm-team"><div class="gm-team-h"><input class="deck-add-input" maxlength="22" value="${gmAttr(nm)}" onchange="gmRename(${t},this.value)"><span class="gm-team-n">${totals[t]} integrantes</span></div>`;
+    d.origs.forEach((o, i) => {
+      if (d.assign[i] !== t) return;
+      h += `<div class="gm-orig"><span class="l">${escapeHtml(o.label)} <small style="color:var(--muted)">(${o.size})</small></span><select class="gm-sel" onchange="gmMoveOrig(${i},this.value)">${d.names.map((n2, t2) => `<option value="${t2}"${t2 === t ? ' selected' : ''}>${escapeHtml(n2)}</option>`).join('')}</select></div>`;
+    });
+    h += '</div>';
+  });
+  box.innerHTML = h;
+}
+function gmAccept() {
+  const d = gmDraft;
+  if (!d) { showToast('Primero calculá los grupos'); return; }
+  const totals = gmTotals(d);
+  if (totals.some(t => t === 0)) { showToast('Hay un equipo sin grupos: movelos o recalculá'); return; }
+  if (gm && gm.scores.some(x => x > 0) && !confirm('Ya hay puntajes cargados. Armar los grupos de nuevo los pone en 0. ¿Seguir?')) return;
+  gm = {
+    active: true, maxTeams: parseInt(document.getElementById('gm-max').value, 10) || 3,
+    origs: d.origs.map(o => ({ label: o.label, members: o.members, size: o.size })),
+    teams: d.names.map((name, t) => ({ name, origs: d.origs.map((_, i) => i).filter(i => d.assign[i] === t), size: totals[t] })),
+    scores: d.names.map(() => 0), plays: d.names.map(() => 0), last: null, cur: null, finished: false, result: null
+  };
+  const pair = gmSuggest();
+  gmApplyPair(pair[0], pair[1]);
+  gmCloseSetup();
+  showToast('🧩 ' + gm.teams.length + ' equipos: ' + totals.join(' · '));
+}
+function gmDisable() {
+  if (!confirm('¿Volver al juego normal 1 vs 1? Se pierden los puntajes de los grupos.')) return;
+  gm = null; gmDraft = null; gmSave(); gmRender(); gmCloseSetup();
+  teamNames = { a: 'Equipo 1', b: 'Equipo 2' }; teamSizes = { a: 1, b: 1 }; score = { a: 0, b: 0 };
+  _saveTeamNames(); _saveTeamSizes(); saveScore(); syncScoreUI();
+  if (fbRef) { try { fbRef.child('names').set({ a: teamNames.a, b: teamNames.b }); } catch (e) {} }
+}
+
+// ── Cruce de cada pregunta ──
+function gmSuggest() {
+  const idx = gm.teams.map((_, i) => i).sort((x, y) => (gm.plays[x] || 0) - (gm.plays[y] || 0) || x - y);
+  let pair = [idx[0], idx[1]];
+  const L = gm.last;
+  if (gm.teams.length > 2 && L && ((L[0] === pair[0] && L[1] === pair[1]) || (L[0] === pair[1] && L[1] === pair[0]))) pair = [idx[0], idx[2]];
+  return pair;
+}
+function gmApplyPair(ai, bi) { gmApplyTeams([ai, bi]); }
+// Arma la ronda con 2 o más grupos: el 1.º va al slot 'a', el 2.º al 'b', el 3.º al 'c'...
+function gmApplyTeams(list) {
+  gm.cur = {};
+  const nm = {}, sz = {}, sc = {};
+  list.forEach((ti, n) => {
+    const s = SLOTS[n];
+    gm.cur[s] = ti; nm[s] = gm.teams[ti].name; sz[s] = gm.teams[ti].size; sc[s] = gm.scores[ti] || 0;
+  });
+  teamNames = nm; _saveTeamNames();
+  teamSizes = sz; _saveTeamSizes();
+  score = sc; saveScore();
+  syncScoreUI();
+  if (fbRef) { try { fbRef.child('names').set(fbNames()); } catch (e) {} }
+  gmSave(); gmRender();
+}
+function gmTeamLabel(t) {
+  const tm = gm.teams[t];
+  const names = tm.origs.map(i => gm.origs[i].label).join(' + ');
+  return `${tm.name} · ${gm.scores[t] || 0} pts — ${names}`;
+}
+function gmOpenPair() {
+  const k = gm.teams.length;
+  const duo = document.getElementById('gm-pair-duo'), multi = document.getElementById('gm-pair-multi');
+  const sub = document.getElementById('gm-pair-sub');
+  if (k >= 3) {
+    // 3 o más grupos: juegan todos a la vez (podés destildar alguno, mínimo 2)
+    duo.style.display = 'none'; multi.style.display = 'flex';
+    if (sub) sub.textContent = 'Juegan todos a la vez: el orden de turnos lo define el orden del buzzer. Destildá los que no jueguen (mínimo 2).';
+    multi.innerHTML = gm.teams.slice(0, SLOTS.length).map((_, t) =>
+      `<label class="gm-row" style="flex-wrap:nowrap;gap:0.6rem;padding:0.5rem 0.6rem;border:1.5px solid var(--border2);border-radius:10px;background:var(--surface);cursor:pointer">` +
+      `<input type="checkbox" class="gm-pair-chk" value="${t}" checked style="width:20px;height:20px;accent-color:var(--accent);flex-shrink:0">` +
+      `<span style="font-size:13px;font-weight:700;overflow-wrap:anywhere">${escapeHtml(gmTeamLabel(t))}</span></label>`).join('');
+  } else {
+    duo.style.display = ''; multi.style.display = 'none';
+    if (sub) sub.textContent = 'Te propongo el cruce para que todos jueguen parejo. Podés cambiarlo.';
+    const pair = gmSuggest();
+    const opts = sel => gm.teams.map((_, t) => `<option value="${t}"${t === sel ? ' selected' : ''}>${escapeHtml(gmTeamLabel(t))}</option>`).join('');
+    document.getElementById('gm-pair-a').innerHTML = opts(pair[0]);
+    document.getElementById('gm-pair-b').innerHTML = opts(pair[1]);
+    document.getElementById('gm-pair-a').disabled = true; document.getElementById('gm-pair-b').disabled = true;   // con 2 equipos el cruce es siempre el mismo
+  }
+  document.getElementById('gm-pair-overlay').classList.add('open');
+}
+function gmPairChanged(side) {
+  const a = document.getElementById('gm-pair-a'), b = document.getElementById('gm-pair-b');
+  if (a.value !== b.value) return;
+  const k = gm.teams.length, from = side === 'a' ? a : b, other = side === 'a' ? b : a;
+  other.value = String((parseInt(from.value, 10) + 1) % k);
+}
+function gmClosePair() { document.getElementById('gm-pair-overlay').classList.remove('open'); _pendingRoundPick = null; }
+function gmConfirmPair() {
+  let list;
+  if (gm.teams.length >= 3) {
+    list = [...document.querySelectorAll('.gm-pair-chk:checked')].map(c => parseInt(c.value, 10));
+    if (list.length < 2) { showToast('Elegí al menos dos grupos'); return; }
+  } else {
+    const ai = parseInt(document.getElementById('gm-pair-a').value, 10), bi = parseInt(document.getElementById('gm-pair-b').value, 10);
+    if (isNaN(ai) || isNaN(bi) || ai === bi) { showToast('Elegí dos grupos distintos'); return; }
+    list = [ai, bi];
+  }
+  list.forEach(t => { gm.plays[t] = (gm.plays[t] || 0) + 1; });
+  gm.last = list.slice(0, 2);
+  gmApplyTeams(list);
+  document.getElementById('gm-pair-overlay').classList.remove('open');
+  _afterPairProceed();
+}
+
+// ── Puntaje interno por grupo (solo para ver quién va primero) ──
+function gmSyncScore(team) {
+  if (!gm || !gm.cur) return;
+  const ti = gm.cur[team];
+  if (ti == null || !gm.teams[ti]) return;
+  gm.scores[ti] = score[team]; gmSave(); gmRender();
+}
+function gmResetScores() {
+  if (!gm) return;
+  gm.scores = gm.teams.map(() => 0); gm.finished = false; gm.result = null; gmSave(); gmRender();
+}
+function gmNamesEdited() {
+  if (!gm || !gm.cur) return;
+  Object.keys(gm.cur).forEach(side => {
+    const ti = gm.cur[side];
+    if (gm.teams[ti]) { gm.teams[ti].name = teamNames[side]; gm.teams[ti].size = teamSizes[side] || gm.teams[ti].size; }
+  });
+  gmSave(); gmRender();
+}
+function gmRender() {
+  const strip = document.getElementById('gm-strip'), btn = document.getElementById('gm-open-btn');
+  if (btn) btn.textContent = gm ? '🧩 grupos (' + gm.teams.length + ')' : '🧩 grupos';
+  if (!strip) return;
+  if (!gm) { strip.classList.remove('on'); strip.innerHTML = ''; return; }
+  const cur = gm.cur || {};
+  strip.innerHTML = gm.teams.map((t, i) =>
+    `<span class="gm-chip${Object.values(cur).includes(i) ? ' cur' : ''}">${escapeHtml(t.name)} <b>${gm.scores[i] || 0}</b></span>`).join('') +
+    `<button class="gm-end-btn" onclick="gmOpenFinal()">🏁 Terminar juego</button>`;
+  strip.classList.add('on');
+}
+
+// ── Cierre: posiciones y puntos al ranking ──
+// 3 o más equipos: 3 pts al 1.º, 1 al 2.º, 0 a los demás. Solo 2 equipos: 3 al 1.º, 0 al 2.º.
+function gmPlacePts(n, pos) {
+  if (n >= 3) return pos === 0 ? 3 : pos === 1 ? 1 : 0;
+  if (n === 2) return pos === 0 ? 3 : 0;
+  return 0;
+}
+let _gmOrder = [];
+function gmOpenFinal() {
+  if (!gm) return;
+  _gmOrder = gm.teams.map((_, i) => i).sort((x, y) => (gm.scores[y] || 0) - (gm.scores[x] || 0) || x - y);
+  gmRenderFinal();
+  document.getElementById('gm-final-overlay').classList.add('open');
+}
+function gmCloseFinal() { document.getElementById('gm-final-overlay').classList.remove('open'); }
+function gmMoveFinal(pos, dir) {
+  const j = pos + dir;
+  if (j < 0 || j >= _gmOrder.length) return;
+  const t = _gmOrder[pos]; _gmOrder[pos] = _gmOrder[j]; _gmOrder[j] = t;
+  gmRenderFinal();
+}
+function gmRenderFinal() {
+  const n = _gmOrder.length, medals = ['🥇', '🥈', '🥉'];
+  document.getElementById('gm-final-sub').textContent = n >= 3
+    ? 'Ranking de la Velada: 3 pts al 1.º, 1 pt al 2.º, 0 a los demás.'
+    : 'Ranking de la Velada: 3 pts al 1.º, 0 al 2.º.';
+  let tie = false;
+  document.getElementById('gm-final-body').innerHTML = _gmOrder.map((t, pos) => {
+    const tm = gm.teams[t], sc = gm.scores[t] || 0, nextSc = pos < n - 1 ? (gm.scores[_gmOrder[pos + 1]] || 0) : null;
+    if (nextSc !== null && nextSc === sc) tie = true;
+    const members = tm.origs.map(i => gm.origs[i].label).join(' + ');
+    return `<div class="gm-fin"><div class="pos">${medals[pos] || (pos + 1)}</div>
+      <div class="nm">${escapeHtml(tm.name)}<small>${escapeHtml(members)}</small></div>
+      <div class="sc">${sc} ${sc === 1 ? 'ronda' : 'rondas'}</div>
+      <div class="pt">+${gmPlacePts(n, pos)} pts</div>
+      <div class="mv"><button onclick="gmMoveFinal(${pos},-1)" ${pos === 0 ? 'disabled' : ''}>▲</button> <button onclick="gmMoveFinal(${pos},1)" ${pos === n - 1 ? 'disabled' : ''}>▼</button></div></div>`;
+  }).join('');
+  document.getElementById('gm-final-tie').textContent = tie ? '⚖️ Hay empate en rondas ganadas: desempatá con las flechas ▲▼ antes de confirmar.' : '';
+}
+function gmConfirmFinal() {
+  const n = _gmOrder.length;
+  const teams = _gmOrder.map((t, pos) => {
+    const tm = gm.teams[t], groups = tm.origs.map(i => gm.origs[i].label);
+    const members = []; tm.origs.forEach(i => gm.origs[i].members.forEach(m => members.push(m)));
+    return { name: tm.name, place: pos + 1, score: gm.scores[t] || 0, pts: gmPlacePts(n, pos), groups, members };
+  });
+  const byGroup = {}, byMember = {};
+  teams.forEach(t => { t.groups.forEach(g => { byGroup[g] = t.pts; }); t.members.forEach(m => { byMember[m] = t.pts; }); });
+  const result = { ts: Date.now(), game: 'argentinos', mode: 'grupos', teams, byGroup, byMember };
+  gm.finished = true; gm.result = result; gmSave();
+  try { localStorage.setItem('cad_group_result', JSON.stringify(result)); } catch (e) {}
+  let sent = false;
+  if (fbDb) { try { fbDb.ref('argentinos/grupos/resultado').set(result); sent = true; } catch (e) {} }
+  gmCloseFinal();
+  showToast((sent ? '🏁 Puntos publicados: ' : '🏁 Puntos calculados (sin conexión): ') + teams.map(t => t.name + ' +' + t.pts).join(' · '), 5200);
 }
 
 // ── INICIAR RONDA ──
@@ -1618,17 +2066,25 @@ function pickRandomQuestion() {
 }
 
 function _afterPickProceed() {
-  const needPicker = (teamSizes.a || 1) > 1 || (teamSizes.b || 1) > 1;
+  if (gm && gm.active) { gmOpenPair(); return; }   // modo grupos: primero se elige el cruce
+  _afterPairProceed();
+}
+function _roundTeams() {
+  return (gm && gm.active && gm.cur) ? SLOTS.filter(t => gm.cur[t] != null) : ['a', 'b'];
+}
+function _afterPairProceed() {
+  const teams = _roundTeams();
+  const needPicker = teams.some(t => (teamSizes[t] || 1) > 1);
   if (needPicker) openMemberPicker();
-  else _launchRound({ a: 1, b: 1 });
+  else { const ones = {}; teams.forEach(t => { ones[t] = 1; }); _launchRound(ones); }
 }
 
 function openMemberPicker() {
   const body = document.getElementById('member-body');
   let html = '';
-  for (const team of ['a', 'b']) {
+  for (const team of _roundTeams()) {
     const size = teamSizes[team] || 1;
-    const color = team === 'a' ? 'var(--blue)' : 'var(--gold)';
+    const color = teamColorCss(team);
     const name = nameOf(team);
     if (size <= 1) {
       html += `<input type="hidden" id="mpick-${team}" value="1">`;
@@ -1667,16 +2123,20 @@ function confirmMemberPicker() {
   // FIX: con doble toque rápido en "Confirmar", _pendingRoundPick ya era null y
   // _launchRound reventaba leyendo pick.q. Además los inputs podían no existir.
   if (!_pendingRoundPick) { closeMemberPicker(); return; }
-  const ea = document.getElementById('mpick-a'), eb = document.getElementById('mpick-b');
-  const ma = parseInt((ea && ea.value) || '1', 10) || 1;
-  const mb = parseInt((eb && eb.value) || '1', 10) || 1;
+  const members = {};
+  _roundTeams().forEach(t => {
+    const el = document.getElementById('mpick-' + t);
+    members[t] = parseInt((el && el.value) || '1', 10) || 1;
+  });
   document.getElementById('member-overlay').classList.remove('open');
-  _launchRound({ a: ma, b: mb });
+  _launchRound(members);
 }
 
 function _launchRound(members) {
   const pick = _pendingRoundPick;
   _pendingRoundPick = null;
+  if (!pick) return;
+  const teams = _roundTeams();
 
   round = {
     q: pick.q,
@@ -1686,11 +2146,16 @@ function _launchRound(members) {
     pot: 0,
     mult: 1,
     strikes: 0,
-    phase: 'faceoff',     // faceoff → faceoff2 → choice → play → steal → over
+    phase: 'faceoff',     // faceoff → (faceoff2, solo con 2 equipos) → play → (steal, solo con 2 equipos) → over
+    teams,                 // equipos que juegan la ronda (2 o más)
+    buzzOrder: [],         // equipos en el orden en que apretaron el buzzer
+    foIdx: 0,              // posición del buzzer que está respondiendo ahora
     buzzWinner: null,      // quién tocó primero
     responder: null,       // quién responde ahora en el duelo
-    foRank: { a: null, b: null },
-    controlTeam: null,
+    foRank: {},
+    controlTeam: null,     // quién juega el tablero en este momento
+    turnOrder: [],         // orden de juego del tablero
+    turnIdx: 0,
     winner: null,
     members: members || { a: 1, b: 1 },  // integrante activo por equipo en esta ronda
   };
@@ -1700,6 +2165,7 @@ function _launchRound(members) {
   document.getElementById('round-end').classList.remove('visible');
   document.getElementById('round-cover').classList.add('open');
   document.getElementById('round-cover').scrollTop = 0;
+  renderRoundScore();
   renderPanel(); renderStrikes(); renderPot(); renderMult();
   setPhase('faceoff');
   playReady();
@@ -1712,7 +2178,7 @@ function renderPanel() {
   const locked = !round || round.phase === 'over' || round.phase === 'choice';
   panel.innerHTML = round.a.map((ans, i) => {
     const rank = i + 1, rev = round.revealed[i], owner = round.owner[i];
-    const teamCls = rev ? (owner === 'a' ? ' team-a' : owner === 'b' ? ' team-b' : ' team-none') : '';
+    const teamCls = rev ? (owner ? ' team-' + owner : ' team-none') : '';
     const body = rev ? `<span class="slot-text">${escapeHtml(ans.t)}</span>` : `<span class="slot-text slot-ghost">${escapeHtml(ans.t)}</span>`;
     const ptsHtml = rev ? `<span class="slot-pts">${ans.v}</span>` : `<span class="slot-pts slot-pts-hidden">👁</span>`;
     return `<div class="feud-slot${rev ? ' revealed' : ''}${teamCls}${locked ? ' locked' : ''}" onclick="tapSlot(${i})">
@@ -1728,6 +2194,7 @@ function renderPot() {
   _setText('pot-value', base);
   const badge = document.getElementById('pot-mult-badge');
   if (badge) badge.textContent = m > 1 ? `vale ${m} pts` : '';
+  renderHold();
 }
 function renderMult() {
   const m = round ? round.mult : 1;
@@ -1743,9 +2210,11 @@ function setMult(m) {
 function bumpPot() { const el = document.getElementById('pot-value'); if (el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); } }
 
 function markControl() {
-  const a = document.getElementById('rs-team-a'), b = document.getElementById('rs-team-b');
-  a.classList.toggle('in-control', round && round.controlTeam === 'a');
-  b.classList.toggle('in-control', round && round.controlTeam === 'b');
+  if (!round) return;
+  (round.teams || ['a', 'b']).forEach(t => {
+    const el = document.getElementById('rs-team-' + t);
+    if (el) el.classList.toggle('in-control', round.controlTeam === t);
+  });
 }
 
 // ── MÁQUINA DE FASES ──
@@ -1754,6 +2223,7 @@ function show(id, on) { const el = document.getElementById(id); if (el) el.style
 function setPhase(p) {
   if (!round) return;
   round.phase = p;
+  if (p !== 'play' && p !== 'steal') stopRoundTimer();
   const banner = document.getElementById('phase-banner');
   const icon = banner.querySelector('.pb-icon');
   banner.classList.remove('tone-blue', 'tone-gold', 'tone-red');
@@ -1780,15 +2250,17 @@ function setPhase(p) {
 
   if (p === 'faceoff') {
     stopRoundTimer();
-    setBuzzActive(round.buzzWinner);
+    renderBuzzRow();
     icon.textContent = '🔔';
-    _setText('phase-text', round.buzzWinner
-      ? `Responde ${nameOf(round.responder)} · tocá la respuesta que dijo, o ✕ si no está`
-      : '🔔 DUELO — ¿quién tocó el buzzer primero?');
+    _setText('phase-text', !round.buzzWinner
+      ? '🔔 ¿QUIÉN TOCÓ PRIMERO? Tocá los equipos en el orden en que apretaron el buzzer'
+      : round.responder
+        ? `Responde ${nameOf(round.responder)}${isDuel() ? '' : ' (' + (round.buzzOrder.indexOf(round.responder) + 1) + 'º en el buzzer)'} · tocá la respuesta que dijo, o ✕ si no está`
+        : 'Falló el anterior · tocá el buzzer del que apretó después, o ✕ si nadie más apretó');
     if (strikeBtn) strikeBtn.textContent = '✕ Erró';
   } else if (p === 'faceoff2') {
     icon.textContent = '🔔';
-    _setText('phase-text', `Ahora responde ${nameOf(round.responder)} · tocá su respuesta, o ✕ si no está`);
+    _setText('phase-text', `${nameOf(round.responder)} puede robar el tablero: solo vale la #1 · tocala, o ✕ si falla`);
     if (strikeBtn) strikeBtn.textContent = '✕ Erró';
   } else if (p === 'choice') {
     banner.classList.add(round.controlTeam === 'a' ? 'tone-blue' : 'tone-gold');
@@ -1797,39 +2269,116 @@ function setPhase(p) {
   } else if (p === 'play') {
     banner.classList.add(round.controlTeam === 'a' ? 'tone-blue' : 'tone-gold');
     icon.textContent = '▶️';
-    _setText('phase-text', `Juega ${nameOf(round.controlTeam)} · tocá cada acierto, o ✕ Strike si falla`);
+    _setText('phase-text', `Juega ${nameOf(round.controlTeam)}${isDuel() ? '' : ' (turno ' + (round.turnIdx + 1) + ' de ' + round.turnOrder.length + ')'} · tocá cada acierto, o ✕ Strike si falla` + (roundTimerSecs ? ` · ${roundTimerSecs}s por strike` : ''));
     if (strikeBtn) strikeBtn.textContent = '✕ Strike';
     startRoundTimer();
   } else if (p === 'steal') {
     banner.classList.add('tone-red');
     icon.textContent = '🦹';
-    _setText('phase-text', `¡ROBO! ${nameOf(other(round.controlTeam))} tiene UNA chance`);
-    if (strikeBtn) strikeBtn.textContent = '✕ Falló el robo';
-    stopRoundTimer();
+    _setText('phase-text', `¡ROBO! Juega ${nameOf(other(round.controlTeam))} · un acierto roba el pozo, 3 strikes y se acaba` + (roundTimerSecs ? ` · ${roundTimerSecs}s por strike` : ''));
+    if (strikeBtn) strikeBtn.textContent = '✕ Strike';
+    startRoundTimer();
   }
 
   markControl();
   renderStrikes();
   syncUndoStrikeBtn();
   // Refresh buzz button names with current member info
-  _setText('buzz-name-a', memberLabel('a')); _setText('buzz-name-b', memberLabel('b'));
+  if (p === 'faceoff') renderBuzzRow();
 }
 
-function setBuzzActive(team) {
-  const ba = document.getElementById('buzz-a'), bb = document.getElementById('buzz-b');
-  ba.classList.toggle('active', team === 'a'); bb.classList.toggle('active', team === 'b');
-  ba.classList.toggle('armed', team === null); bb.classList.toggle('armed', team === null);
-  _setText('buzz-tag-a', team === 'a' ? '● responde' : 'tocó primero');
-  _setText('buzz-tag-b', team === 'b' ? '● responde' : 'tocó primero');
+function isDuel() { return !round || !round.teams || round.teams.length <= 2; }
+
+function renderRoundScore() {
+  const box = document.getElementById('round-score');
+  if (!box || !round) return;
+  const teams = round.teams;
+  const cell = t => `<div class="rs-team rs-${t}" id="rs-team-${t}"><div class="rs-name" id="rs-name-${t}">${escapeHtml(nameOf(t))}</div><div class="rs-score" id="rs-score-${t}">${score[t] || 0}</div><div class="rs-hold" id="rs-hold-${t}"></div></div>`;
+  const pot = `<div class="pot-box"><div class="pot-label">Pozo</div><div class="pot-value" id="pot-value">0</div><div class="pot-mult-badge" id="pot-mult-badge"></div></div>`;
+  box.classList.toggle('multi', teams.length > 2);
+  box.innerHTML = teams.length === 2 ? cell(teams[0]) + pot + cell(teams[1]) : pot + teams.map(cell).join('');
 }
+
+// Puntos que tiene cada equipo en el tablero de esta ronda
+function holdOf(t) {
+  let s = 0;
+  if (round) round.a.forEach((x, i) => { if (round.revealed[i] && round.owner[i] === t) s += x.v; });
+  return s;
+}
+function renderHold() {
+  if (!round || !round.teams) return;
+  round.teams.forEach(t => _setText('rs-hold-' + t, round.teams.length > 2 ? (holdOf(t) ? '+' + holdOf(t) : '·') : ''));
+}
+
+// Nombres de todos los equipos (para celulares / TV)
+function fbNames() {
+  const o = { a: nameOf('a'), b: nameOf('b') };
+  SLOTS.slice(2).forEach(t => { if (teamNames[t]) o[t] = teamNames[t]; });
+  return o;
+}
+function scoreAll() { const o = {}; SLOTS.forEach(t => { o[t] = score[t] || 0; }); return o; }
+
+// Botones de buzzer: uno por equipo, con la posición en que apretaron
+function renderBuzzRow() {
+  const row = document.getElementById('buzz-row');
+  if (!row || !round) return;
+  const teams = round.teams;
+  row.classList.toggle('multi', teams.length > 2);
+  const noneYet = round.buzzOrder.length === 0;
+  row.innerHTML = teams.map(t => {
+    const pos = round.buzzOrder.indexOf(t) + 1;
+    const resp = round.phase === 'faceoff' && round.responder === t;
+    const tag = pos ? (resp ? `${pos}º · ● responde` : `${pos}º`) : (noneYet ? 'tocó primero' : 'tocó…');
+    return `<button class="buzz-btn b-${t}${resp ? ' active' : ''}${noneYet ? ' armed' : ''}${pos && !resp ? ' done' : ''}" id="buzz-${t}" onclick="buzz('${t}')">` +
+      `<span class="bz-icon">🔔</span><span class="bz-name" id="buzz-name-${t}">${escapeHtml(memberLabel(t))}</span><span class="bz-tag" id="buzz-tag-${t}">${tag}</span></button>`;
+  }).join('');
+}
+function setBuzzActive() { renderBuzzRow(); }
 
 // ── BUZZER (duelo) ──
+// Cada equipo que aprieta queda registrado en orden: 1º, 2º, 3º...
+// El 1º responde; ese orden también define el orden de turnos en el tablero.
 function buzz(team) {
   if (!round || round.phase !== 'faceoff') return;
-  round.buzzWinner = team; round.responder = team;
+  if (!round.teams.includes(team) || round.buzzOrder.includes(team)) return;
+  round.buzzOrder.push(team);
+  if (!round.buzzWinner) round.buzzWinner = team;
+  round.responder = round.buzzOrder[round.foIdx] || null;
   playBuzzer();
   if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
   setPhase('faceoff');
+}
+
+// Arranca el turno de tablero del equipo que ganó el duelo; los demás van después en orden de buzzer
+function startPlay(team) {
+  const rest = round.buzzOrder.filter(t => t !== team).concat(round.teams.filter(t => t !== team && !round.buzzOrder.includes(t)));
+  round.turnOrder = [team].concat(rest);
+  round.turnIdx = 0;
+  round.controlTeam = team;
+  round.strikes = 0;
+  // Los celulares se enteran de quién juega el tablero
+  fbSendControl(team);
+  celebrateControl(team);
+  setPhase('play');
+}
+
+// 3+ equipos: pasa al siguiente en el orden del buzzer; si ya jugaron todos, termina la ronda
+function nextTurn() {
+  round.turnIdx++;
+  if (round.turnIdx >= round.turnOrder.length) { finishMulti('multi'); return; }
+  round.controlTeam = round.turnOrder[round.turnIdx];
+  round.strikes = 0;
+  showToast('➡️ Juega ' + nameOf(round.controlTeam), 2400);
+  if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+  setPhase('play');
+}
+
+// 3+ equipos: gana la ronda el último equipo que dijo una respuesta correcta (igual que el robo con 2 equipos)
+function finishMulti(reason) {
+  const log = round.hitLog || [];
+  if (!log.length) { finishVoid(); return; }
+  const winner = log[log.length - 1].team;
+  finishRound(winner, reason === 'completo' ? 'multi_completo' : 'multi');
 }
 
 // ── REVELAR / ACIERTO ──
@@ -1840,22 +2389,31 @@ function tapSlot(i) {
   if (round.revealed[i]) return;
 
   // En el duelo hace falta saber quién respondió
-  if ((p === 'faceoff') && !round.buzzWinner) { flashBuzzers(); if (navigator.vibrate) navigator.vibrate([20, 40, 20]); return; }
+  if (p === 'faceoff' && !round.responder) { flashBuzzers(); if (navigator.vibrate) navigator.vibrate([20, 40, 20]); return; }
 
   const rank = i + 1;
   const pts = round.a[i].v;
 
-  if (p === 'faceoff' || p === 'faceoff2') {
+  if (p === 'faceoff') {
     const team = round.responder;
     revealSlot(i, team);
     round.foRank[team] = rank;
     showAnswerFlash(rank, pts);
-    if (p === 'faceoff') {
-      if (rank === 1) { round.controlTeam = team; setPhase('choice'); }   // sacó la #1 → elige
-      else { round.responder = other(team); setPhase('faceoff2'); }       // responde el otro
+    if (isDuel()) {
+      if (rank === 1) startPlay(team);                                   // sacó la #1 → juega el tablero
+      else { round.responder = other(team); setPhase('faceoff2'); }      // el otro puede robar con la #1
     } else {
-      resolveFaceoff();
+      startPlay(team);                                                   // 3+ equipos: cualquier posición juega el tablero
     }
+    return;
+  }
+
+  if (p === 'faceoff2') {   // solo 2 equipos: el segundo solo roba el tablero si acierta la #1
+    const team = round.responder;
+    revealSlot(i, team);
+    round.foRank[team] = rank;
+    showAnswerFlash(rank, pts);
+    startPlay(rank === 1 ? team : round.buzzWinner);
     return;
   }
 
@@ -1863,7 +2421,9 @@ function tapSlot(i) {
     const team = round.controlTeam;
     revealSlot(i, team);
     showAnswerFlash(rank, pts);
-    if (round.revealed.every(Boolean)) finishRound(team, 'completo');
+    round.playHits = (round.playHits || 0) + 1;
+    if (round.revealed.every(Boolean)) { if (isDuel()) finishRound(team, 'completo'); else finishMulti('completo'); }
+    else startRoundTimer();   // acertó: arranca de nuevo el turno de 40 s
     return;
   }
 
@@ -1871,6 +2431,7 @@ function tapSlot(i) {
     const thief = other(round.controlTeam);
     revealSlot(i, thief);
     showAnswerFlash(rank, pts);
+    round.playHits = (round.playHits || 0) + 1;
     finishRound(thief, 'robo');
     return;
   }
@@ -1882,6 +2443,7 @@ function revealSlot(i, team) {
   round.owner[i] = team;
   round.pot += round.a[i].v;
   round.lastReveal = i;   // track for undo
+  (round.hitLog = round.hitLog || []).push({ i, team });   // quién dijo cada acierto, en orden
   varPendingValid = false;
   const step = round.revealed.filter(Boolean).length;   // 1, 2, 3... → ding ascendente
   // Cuánto vale esta respuesta comparada con la más alta del tablero (0 a 1)
@@ -1949,6 +2511,7 @@ function undoReveal() {
   round.pot -= round.a[i].v;
   round.revealed[i] = false;
   round.owner[i] = null;
+  if (round.hitLog) round.hitLog = round.hitLog.filter(h => h.i !== i);
   round.lastReveal = null;
   varPendingValid = false;
   renderPanel(); renderPot();
@@ -1956,19 +2519,9 @@ function undoReveal() {
   if (navigator.vibrate) navigator.vibrate(20);
 }
 
+// Nadie sacó la respuesta que buscábamos: juega el tablero el que apretó primero
 function resolveFaceoff() {
-  const ra = round.foRank.a == null ? Infinity : round.foRank.a;
-  const rb = round.foRank.b == null ? Infinity : round.foRank.b;
-  let control;
-  if (ra < rb) control = 'a';
-  else if (rb < ra) control = 'b';
-  else control = round.buzzWinner || 'a';
-  round.controlTeam = control;
-  // Los celulares se enteran de quién se quedó el tablero. Antes el que buzzeaba
-  // sabía que había ganado el buzz, pero no si eso le había servido de algo.
-  fbSendControl(control);
-  celebrateControl(control);
-  setPhase('choice');
+  startPlay(round.buzzOrder[0] || round.teams[0]);
 }
 
 // Le avisa a cada celular si su equipo se quedó con el control del tablero
@@ -1977,7 +2530,7 @@ function fbSendControl(team) {
   try {
     fbRef.set({
       state: 'locked', winner: null,
-      names: { a: nameOf('a'), b: nameOf('b') },
+      names: fbNames(),
       verdict: { team: team, name: nameOf(team), ok: true, pts: 0,
                  msg: 'control', ts: Date.now() }
     });
@@ -2007,7 +2560,7 @@ function showAnswerFlash(rank, pts) {
   f.classList.remove('fire'); void f.offsetWidth; f.classList.add('fire');
   setTimeout(() => f.classList.remove('fire'), 1300);
 }
-function flashBuzzers() { ['buzz-a', 'buzz-b'].forEach(id => { const el = document.getElementById(id); el.classList.remove('armed'); void el.offsetWidth; el.classList.add('armed'); }); }
+function flashBuzzers() { (round && round.teams ? round.teams : ['a', 'b']).forEach(t => { const el = document.getElementById('buzz-' + t); if (!el) return; el.classList.remove('armed'); void el.offsetWidth; el.classList.add('armed'); }); }
 
 // ── ELEGIR JUGAR / PASAR ──
 function chooseControl(opt) {
@@ -2025,18 +2578,30 @@ function doStrike() {
 
   if (p === 'faceoff') {
     if (!round.buzzWinner) { flashBuzzers(); return; }
-    round.foRank[round.responder] = null;
     playBuzzer();
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
-    round.responder = other(round.responder);
-    setPhase('faceoff2');
+    if (isDuel()) {
+      // Falló el primero: el otro equipo puede robar el tablero acertando la #1
+      round.foRank[round.responder] = null;
+      round.responder = other(round.buzzWinner);
+      setPhase('faceoff2');
+      return;
+    }
+    // 3+ equipos: sigue el siguiente en el orden del buzzer
+    if (!round.responder) { resolveFaceoff(); return; }   // nadie más apretó: juega el primero
+    round.foRank[round.responder] = null;
+    round.foIdx++;
+    if (round.foIdx >= round.teams.length) { resolveFaceoff(); return; }   // fallaron todos: juega el primero
+    round.responder = round.buzzOrder[round.foIdx] || null;
+    setPhase('faceoff');
     return;
   }
   if (p === 'faceoff2') {
+    // Falló el que quería robar: juega el tablero el que apretó primero
     round.foRank[round.responder] = null;
     playBuzzer();
     if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
-    resolveFaceoff();
+    startPlay(round.buzzWinner);
     return;
   }
   if (p === 'play') {
@@ -2049,13 +2614,25 @@ function doStrike() {
       setTimeout(() => { playFail(); fireStrikeFlash(); }, 220);
       if (navigator.vibrate) navigator.vibrate([50, 60, 50, 60, 140]);
     }
-    if (round.strikes >= 3) setPhase('steal');
+    if (round.strikes >= 3) {
+      round.strikes = 0;
+      if (isDuel()) setPhase('steal');   // 2 equipos: el otro puede robar con un acierto
+      else nextTurn();                   // 3+ equipos: sigue el próximo en el orden del buzzer
+    }
+    else startRoundTimer();              // otro turno de 40 s
     return;
   }
   if (p === 'steal') {
-    playBuzzer();
+    round.strikes = Math.min(3, round.strikes + 1);
+    renderStrikes(); playBuzzer();
     if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
-    finishRound(round.controlTeam, 'robo_fallado');
+    syncUndoStrikeBtn();
+    if (round.strikes >= 3) {
+      setTimeout(() => { playFail(); fireStrikeFlash(); }, 220);
+      // Si en toda la ronda nadie acertó en el tablero: se muestran resultados y se cambia la pregunta
+      if (!(round.playHits > 0)) finishVoid();
+      else finishRound(round.controlTeam, 'robo_fallado');
+    } else startRoundTimer();
     return;
   }
 }
@@ -2063,6 +2640,7 @@ function doStrike() {
 // ── FIN DE RONDA ──
 function finishRound(winner, reason) {
   if (!round) return;
+  stopRoundTimer();
   round.winner = winner;
 
   const mult = round.mult || 1;
@@ -2081,6 +2659,7 @@ function finishRound(winner, reason) {
   if (reason === 'completo')          { msg = `¡Tablero completo! ${nameOf(winner)} gana la ronda (${ptsTxt})${potTxt} 🎉`; }
   else if (reason === 'robo')         { msg = `¡ROBO! ${nameOf(winner)} gana la ronda (${ptsTxt})${potTxt} 🦹`; }
   else if (reason === 'robo_fallado') { msg = `Robo fallido — ${nameOf(winner)} gana la ronda (${ptsTxt})${potTxt}`; }
+  else if (reason === 'multi' || reason === 'multi_completo') { msg = `${nameOf(winner)} dijo la última respuesta correcta y gana la ronda (${ptsTxt})${potTxt} 🏆`; }
   else if (reason === 'rinde')        { msg = `Se rindió el rival — ${nameOf(winner)} gana la ronda (${ptsTxt})`; }
   else                                { msg = `${nameOf(winner)} gana la ronda (${ptsTxt})`; }
 
@@ -2092,7 +2671,7 @@ function finishRound(winner, reason) {
       _setText('round-end-msg', msg);
       document.getElementById('round-cover').scrollTop = document.getElementById('round-cover').scrollHeight;
       launchConfetti(); playDing();
-      if (targetScore > 0 && score[winner] >= targetScore) setTimeout(() => showWin(winner), 900);
+      if (!gm && targetScore > 0 && score[winner] >= targetScore) setTimeout(() => showWin(winner), 900);
     });
   } else {
     // Revelar lo que falta en cascada rápida, luego terminar
@@ -2103,9 +2682,22 @@ function finishRound(winner, reason) {
       _setText('round-end-msg', msg);
       document.getElementById('round-cover').scrollTop = document.getElementById('round-cover').scrollHeight;
       if (reason === 'robo') { launchConfetti(); playDing(); }
-      if (targetScore > 0 && score[winner] >= targetScore) setTimeout(() => showWin(winner), 900);
+      if (!gm && targetScore > 0 && score[winner] >= targetScore) setTimeout(() => showWin(winner), 900);
     });
   }
+}
+
+// Nadie respondió en todo el tablero: se muestran los resultados, sin puntos, y se cambia la pregunta
+function finishVoid() {
+  if (!round) return;
+  stopRoundTimer();
+  round.winner = null;
+  round.revealed = round.revealed.map(() => true);
+  cascadeBoard(null, () => {
+    setPhase('over');
+    _setText('round-end-msg', 'Nadie respondió — se muestran los resultados y se cambia la pregunta (sin puntos).');
+    document.getElementById('round-cover').scrollTop = document.getElementById('round-cover').scrollHeight;
+  });
 }
 
 // Dispara la animación de cascada en las slots del tablero y llama a done() al terminar
@@ -2127,9 +2719,16 @@ function cascadeBoard(winner, done) {
 
 function surrender() {
   if (!round || round.phase !== 'play') return;
-  const giver = round.controlTeam, rival = other(giver);
-  if (!confirm(`¿${nameOf(giver)} se rinde? La ronda la gana ${nameOf(rival)}.`)) return;
-  finishRound(rival, 'rinde');
+  const giver = round.controlTeam;
+  if (isDuel()) {
+    const rival = other(giver);
+    if (!confirm(`¿${nameOf(giver)} se rinde? La ronda la gana ${nameOf(rival)}.`)) return;
+    finishRound(rival, 'rinde');
+    return;
+  }
+  if (!confirm(`¿${nameOf(giver)} se rinde? Pasa al siguiente equipo.`)) return;
+  stopRoundTimer();
+  nextTurn();
 }
 
 function closeRound() {
@@ -2172,7 +2771,7 @@ const SK_KBDOCK_POS = 'cad_kbdock_pos';
 function kbIsTypingTarget(el) { if (!el) return false; const tag = el.tagName; return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable; }
 
 function kbBlockingOverlayOpen() {
-  const ids = ['names-overlay', 'qpick-overlay', 'deck-overlay', 'meta-overlay', 'win-overlay', 'mode-gate', 'member-overlay', 'fm-overlay'];
+  const ids = ['names-overlay', 'qpick-overlay', 'deck-overlay', 'meta-overlay', 'win-overlay', 'mode-gate', 'member-overlay', 'fm-overlay', 'gm-overlay', 'gm-pair-overlay', 'gm-final-overlay'];
   return ids.some(id => document.getElementById(id)?.classList.contains('open'));
 }
 
@@ -2206,6 +2805,10 @@ document.addEventListener('keydown', function (e) {
   switch (k) {
     case 'q': case 'Q': buzz('a'); break;
     case 'p': case 'P': buzz('b'); break;
+    case 'w': case 'W': buzz('c'); break;
+    case 'o': case 'O': buzz('d'); break;
+    case 'e': case 'E': buzz('e'); break;
+    case 'i': case 'I': buzz('f'); break;
     case 'x': case 'X': doStrike(); break;
     case 'ArrowRight': e.preventDefault(); if (round.phase === 'choice') chooseControl('jugar'); break;
     case 'ArrowLeft': e.preventDefault(); if (round.phase === 'choice') chooseControl('pasar'); break;
@@ -3006,7 +3609,7 @@ function fbToggle(){
   if(!fbRef){ showToast('⚠️ Firebase no conectado'); return; }
   if(_bzOpen || _bzState==='countdown'){
     clearTimeout(_bzCountdownTimer);
-    fbRef.set({ state:'locked', winner:null, names:{ a:nameOf('a'), b:nameOf('b') } })
+    fbRef.set({ state:'locked', winner:null, names:fbNames() })
       .then(()=>{ showToast('🔒 Buzzer bloqueado'); })
       .catch(e=>{ showToast('Error: '+e.message); });
   } else {
@@ -3014,12 +3617,12 @@ function fbToggle(){
     // countdownStart va como ServerValue.TIMESTAMP (lo resuelve el servidor
     // de Firebase, no el reloj de este celu) para que el 3-2-1 quede
     // sincronizado en todos los dispositivos.
-    fbRef.set({ state:'countdown', winner:null, countdownStart:firebase.database.ServerValue.TIMESTAMP, countdownMs:BUZZ_COUNTDOWN_MS, names:{ a:nameOf('a'), b:nameOf('b') } })
+    fbRef.set({ state:'countdown', winner:null, countdownStart:firebase.database.ServerValue.TIMESTAMP, countdownMs:BUZZ_COUNTDOWN_MS, names:fbNames() })
       .then(()=>{ showToast('⏳ Cuenta regresiva…'); })
       .catch(e=>{ showToast('Error: '+e.message); });
     _bzCountdownTimer = setTimeout(()=>{
       if(!fbRef) return;
-      fbRef.set({ state:'open', winner:null, names:{ a:nameOf('a'), b:nameOf('b') } })
+      fbRef.set({ state:'open', winner:null, names:fbNames() })
         .then(()=>{ showToast('🔓 Buzzer habilitado — esperando'); })
         .catch(e=>{ showToast('Error: '+e.message); });
     }, BUZZ_COUNTDOWN_MS);
@@ -3029,7 +3632,7 @@ function fbToggle(){
 function fbLock(){
   clearTimeout(_bzCountdownTimer);
   if(!fbRef) return;
-  fbRef.set({ state:'locked', winner:null, names:{ a:nameOf('a'), b:nameOf('b') } });
+  fbRef.set({ state:'locked', winner:null, names:fbNames() });
 }
 
 function renderBzToggle(){
@@ -3119,14 +3722,16 @@ function snapshot() {
   return {
     t: Date.now(),
     screen: curScreen(),
-    names: { a: nameOf('a'), b: nameOf('b') },
-    score: { a: score.a, b: score.b },
+    names: fbNames(),
+    score: scoreAll(),
     target: targetScore,
     round: round ? {
       q: round.q,
       ans: round.a.map((x, i) => ({ t: x.t, v: x.v, rev: round.revealed[i], owner: round.owner[i] })),
       strikes: round.strikes, pot: round.pot, mult: round.mult,
       phase: round.phase, control: round.controlTeam, responder: round.responder, buzz: round.buzzWinner, winner: round.winner,
+      teams: round.teams, order: round.buzzOrder, turn: round.turnIdx, nTurns: round.turnOrder.length,
+      hold: Object.fromEntries(round.teams.map(t => [t, holdOf(t)])),
     } : null,
     fm: fm ? {
       stage: fm.stage, team: fm.team, idx: fm.idx || 0, qN: (fm.qs ? fm.qs.length : 0),
@@ -3172,11 +3777,11 @@ function startParticipant() {
   initFirebase();
 }
 
-function pName(snap, t) { return (snap && snap.names && snap.names[t]) || (t === 'a' ? 'Equipo 1' : 'Equipo 2'); }
+function pName(snap, t) { return (snap && snap.names && snap.names[t]) || ('Equipo ' + (Math.max(0, SLOTS.indexOf(t)) + 1)); }
 function pSlots(r) {
   return r.ans.map((a, i) => {
     const rev = a.rev, owner = a.owner;
-    const teamCls = rev ? (owner === 'a' ? ' team-a' : owner === 'b' ? ' team-b' : ' team-none') : '';
+    const teamCls = rev ? (owner ? ' team-' + owner : ' team-none') : '';
     const body = rev ? `<span class="slot-text">${escapeHtml(a.t)}</span>` : `<span class="slot-hidden-tiles"><i></i><i></i><i></i><i></i></span>`;
     const pts = rev ? `<span class="slot-pts">${a.v}</span>` : `<span class="slot-pts slot-pts-hidden">?</span>`;
     return `<div class="feud-slot${rev ? ' revealed' : ''}${teamCls} locked"><span class="slot-rank">${i + 1}</span><span class="slot-body">${body}</span>${pts}</div>`;
@@ -3184,17 +3789,21 @@ function pSlots(r) {
 }
 function pScoreRow(snap, r) {
   const ctrl = r ? r.control : null;
+  const teams = (r && r.teams) ? r.teams : ['a', 'b'];
   const pot = r ? r.pot : 0;
   const mult = r ? r.mult : 1;
   const badge = (mult > 1) ? `<div class="pot-mult-badge">vale ${mult} pts</div>` : '';
-  return `<div class="round-score">
-    <div class="rs-team rs-a${ctrl === 'a' ? ' in-control' : ''}"><div class="rs-name">${escapeHtml(pName(snap,'a'))}</div><div class="rs-score">${snap.score.a}</div></div>
-    <div class="pot-box"><div class="pot-label">Pozo</div><div class="pot-value">${pot}</div>${badge}</div>
-    <div class="rs-team rs-b${ctrl === 'b' ? ' in-control' : ''}"><div class="rs-name">${escapeHtml(pName(snap,'b'))}</div><div class="rs-score">${snap.score.b}</div></div>
-  </div>`;
+  const sc = (snap && snap.score) || {};
+  const cell = t => {
+    const h = (teams.length > 2 && r && r.hold && r.hold[t]) ? `<div class="rs-hold">+${r.hold[t]}</div>` : '';
+    return `<div class="rs-team rs-${t}${ctrl === t ? ' in-control' : ''}"><div class="rs-name">${escapeHtml(pName(snap, t))}</div><div class="rs-score">${sc[t] || 0}</div>${h}</div>`;
+  };
+  const potBox = `<div class="pot-box"><div class="pot-label">Pozo</div><div class="pot-value">${pot}</div>${badge}</div>`;
+  if (teams.length === 2) return `<div class="round-score">${cell(teams[0])}${potBox}${cell(teams[1])}</div>`;
+  return `<div class="round-score multi">${potBox}${teams.map(cell).join('')}</div>`;
 }
 function pStatus(snap, r) {
-  if (r.phase === 'faceoff') return { txt: r.buzz ? `Responde ${pName(snap, r.responder)}` : '🔔 Duelo — ¿quién toca el buzzer?', cls: r.buzz ? (r.responder === 'a' ? 'blue' : '') : '' };
+  if (r.phase === 'faceoff') return { txt: r.buzz ? (r.responder ? `Responde ${pName(snap, r.responder)}` : '🔔 ¿Quién apretó después?') : '🔔 Duelo — ¿quién toca el buzzer?', cls: r.buzz ? (r.responder === 'a' ? 'blue' : '') : '' };
   if (r.phase === 'faceoff2') return { txt: `Responde ${pName(snap, r.responder)}`, cls: '' };
   if (r.phase === 'choice') return { txt: `${pName(snap, r.control)} ganó el duelo`, cls: r.control === 'a' ? 'blue' : '' };
   if (r.phase === 'play') return { txt: `Juega ${pName(snap, r.control)}`, cls: r.control === 'a' ? 'blue' : '' };
@@ -3371,7 +3980,7 @@ function applyMode(m, team) {
 function maybeShowGate() { if (!MODE) document.getElementById('mode-gate').classList.add('open'); }
 
 // ── INIT ──
-loadState(); syncUI(); syncScoreUI(); renderMetaBtn();
+loadState(); gmLoad(); syncUI(); syncScoreUI(); renderMetaBtn(); gmRender();
 (function initMode() {
   // Chequear URL params primero (para links de buzzer compartidos)
   const params = new URLSearchParams(window.location.search);

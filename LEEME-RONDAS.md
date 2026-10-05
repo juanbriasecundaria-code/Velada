@@ -88,3 +88,17 @@ Los rankings de ambas fases usan el roster y los cruces que el conductor publica
 En **Palabras a Tiempo**, sin cruce activado siguen disponibles «Nombres», «Editar mazo», «PIN», «Reiniciar todo» y «Jugar sin cruce asignado (manual)». El marcador, el VAR y la revelación de categorías esperan a que se active un cruce o se elija el modo manual. Con un cruce activado, los nombres quedan fijados por el fixture del conductor y el botón lo indica.
 
 Las apuestas se validan en Firebase al guardarse: si la ronda ya se cerró, la elección no queda registrada. El celular distingue datos en vivo de datos guardados mientras está sin conexión. Para probarlo, publicá el fixture, activá un cruce, abrí el panel en otro dispositivo y comprobá la apuesta antes y después del cierre.
+
+## 100 Argentinos: grupos automáticos, 40 s por strike y puntos al ranking
+
+Solo cambia `100_Argentinos_Dicen.html`.
+
+**Modo grupos (🧩 grupos, debajo del marcador).** Toma los grupos originales del juego general (los lee de `velada.html` si se abrió en el mismo navegador, o se pegan uno por línea, integrantes separados con «/») y calcula cuántos equipos de juego formar sin separar nunca a los compañeros de grupo: solo se juntan grupos completos. Prueba de 2 hasta «Máx. equipos» (por defecto 3) y elige la opción con menor diferencia de integrantes; si empatan, la que tenga más equipos. Ejemplo: 12 personas en duplas (6 grupos) → 3 equipos de 4. La vista previa es editable: se renombran los equipos y se mueve cada grupo original a otro equipo.
+
+**Cada pregunta.** Antes de elegir integrantes se elige qué dos equipos juegan; la app propone el cruce que deja a todos jugando parejo. El puntaje de cada equipo (rondas ganadas) se acumula entre preguntas y se ve en la franja de arriba. Es solo el puntaje interno del juego.
+
+**🏁 Terminar juego.** Ordena por rondas ganadas (los empates se desempatan con ▲▼) y reparte los puntos del ranking: con 3 o más equipos 3 pts al 1.º, 1 al 2.º y 0 a los demás; con 2 equipos 3 y 0. Confirmar publica el resultado en `argentinos/grupos/resultado` (Firebase) y lo guarda en `cad_group_result` con los puntos por equipo, por grupo original y por integrante.
+
+**Turnos de 40 s.** Desde «jugar/pasar» al tablero, el equipo en turno tiene 40 s por strike (configurable en Meta → Timer; el valor guardado anterior se reemplaza por 40). Si se acaba el tiempo sin respuesta: strike automático y otros 40 s. Cada acierto reinicia los 40 s. Al 3.er strike el tablero pasa al otro equipo con la misma lógica; un acierto suyo roba el pozo y 3 strikes cierran la ronda. Si en todo el tablero nadie acertó, se muestran los resultados sin puntos y se cambia la pregunta.
+
+**Límites actuales.** El modo grupos no se usa con un cruce del fixture activo (el fixture sigue siendo 1 vs 1). El resultado de grupos queda publicado en Firebase pero `velada.html` todavía no lo importa a la tabla. Pruebas hechas con una simulación en el navegador (grupos, cruces, timeouts, robo, ronda sin respuestas y puntos 3/1/0); falta probarlo con celulares y Firebase reales.
