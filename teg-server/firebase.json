@@ -1,1 +1,5 @@
-{"functions":[{"source":"functions","codebase":"teg-express"}],"database":{"rules":"database.teg.rules.json"}}
+{
+  "database": {
+    "rules": "database.teg.rules.json"
+  }
+}

@@ -17,7 +17,7 @@ Para servirlo por HTTP: desde esta carpeta, `python3 -m http.server 8000`; abrí
 
 - El fixture incluye una sola ronda **🌍 TEG Express**, intercalada con las otras rondas comunes.
 - **Activar ronda** envía los equipos existentes al evento `principal` de guessmovie-905e2. No hay que cargarlos a mano en TEG.
-- **Abrir conductor** abre `teg.html?mode=host`: entrada con `100` validada por el servicio incluido. Abre la sala y después **Iniciar partida** sortea territorios, turnos y objetivos y arranca los relojes.
+- **Abrir conductor** abre `teg.html?mode=host`: entrada con `100` validada localmente en el navegador. Abre la sala y después **Iniciar partida** sortea territorios, turnos y objetivos y arranca los relojes.
 - Los jugadores entran desde **HUB → Complementos → TEG Express**, eligen su nombre dentro de su equipo y comparten los controles. Las acciones simultáneas se validan por versión de tablero y turno.
 - **Mapa en TV** abre `teg.html?mode=tv`. La TV general también muestra TEG al activarse su ronda y vuelve al ranking al activar otro juego.
 - El conductor debe mantener su pestaña abierta. Si pierde conexión, las acciones se bloquean y los relojes visibles se congelan al vencer su señal de actividad. Al recuperar el control, el conductor reanuda la partida pausada. No hay un cronómetro independiente por celular.
@@ -44,20 +44,20 @@ TEG está configurado para el proyecto existente `guessmovie-905e2`, con la conf
 
 Los demás juegos conservan sus conexiones originales a `guessmovie-905e2` y `cumple-598e7`, ambos confirmados como operativos por el organizador. No se migran sus rutas ni sus datos. El fixture continúa usando sus canales existentes y activa la partida en la ruta de TEG.
 
-La configuración del cliente está lista; la partida compartida requiere habilitar autenticación anónima, desplegar la función del conductor e integrar las reglas de TEG en el Firebase existente. Esta actualización no despliega ni verifica los servicios remotos.
+La configuración del cliente está lista; la partida compartida requiere habilitar autenticación anónima e integrar las reglas de TEG en el Firebase existente. Esta actualización no despliega ni verifica los servicios remotos.
 
-### Firebase para TEG
+### Firebase para TEG — sin Cloud Functions
 
-1. La configuración web de `guessmovie-905e2` ya está incluida en `teg-config.js`; `teg-server/.firebaserc` también selecciona ese proyecto.
-2. Habilitá **Authentication → Anonymous**. La autenticación es interna y transparente; no se pide Google ni registro.
-3. En `teg-server/functions`, instalá las dependencias con `npm install`.
-4. Desde `teg-server`, configurá el secreto con `firebase functions:secrets:set TEG_HOST_PASSWORD --project guessmovie-905e2` y asigná **100**.
-5. Desplegá la función con `firebase deploy --only functions:tegHostLogin --project guessmovie-905e2`. Cloud Functions puede requerir facturación habilitada en el proyecto.
-6. **Integrá** las ramas de `database.teg.rules.json` con las reglas existentes del evento. No reemplaces ciegamente las reglas de los otros juegos. El archivo es un ejemplo completo y restrictivo para un evento TEG aislado. No debe existir una autorización pública en un ancestro que permita leer las misiones o escribir el estado; en RTDB las concesiones de ancestros prevalecen.
-7. Publicá las reglas integradas en guessmovie-905e2. El conductor autenticado puede gestionar TEG; cada participante solo envía comandos vinculados a su UID y lee su objetivo/respuesta; TV solo lee el mapa público.
-8. Serví las páginas en HTTPS o un servidor de prueba y comprobá una partida con conductor, dos celulares y TV. No se requiere Storage para TEG.
+1. La configuración web de `guessmovie-905e2` ya está incluida.
+2. En Firebase → Authentication → Sign-in method, habilitá **Anónimo**. Los jugadores y el conductor se autentican automáticamente, sin registro.
+3. En Firebase → Realtime Database → Reglas, pegá el contenido completo de `teg-server/database.teg.rules.json` y tocá **Publicar**. Este archivo integra las reglas que proporcionaste: mantiene lectura pública en las otras ramas y escrituras públicas en `velada` y `argentinos`; excluye TEG de la lectura global.
+4. Publicá las páginas del ZIP en tu alojamiento habitual. Activá la ronda desde el fixture e ingresá **100**. Abrí el conductor, ingresá **100** e iniciá la partida; conectá celulares y TV.
 
-La función valida la clave en el servidor y emite el rol `tegConductor`. No se incluye una clave administrativa en el navegador. Las reglas aíslan la sesión privada y las misiones del mapa público. La clave 100 es deliberadamente simple; no implica seguridad absoluta ni identidad física verificada.
+No se requiere `tegHostLogin`, secretos, npm ni despliegue de Cloud Functions. El archivo `teg-server/firebase.json` configura únicamente las reglas de base de datos.
+
+**Clave local y alcance:** `100` está incrustada en `teg-cloud.js`; controla la entrada de la interfaz y no otorga un rol seguro en Firebase. Las reglas permiten a cualquier usuario autenticado anónimamente gestionar TEG y consultar su sesión (incluidos objetivos). Las pantallas de jugadores y TV muestran solo lo que les corresponde, pero alguien que inspeccione el código o consulte directamente la base puede acceder a las misiones o modificar la partida. Es el modo entre amigos acordado. La concesión del conductor sigue usando la transacción, el UID y la señal de actividad para evitar dos conductores simultáneos en el recorrido normal.
+
+Las reglas incluidas se prepararon a partir de las reglas enviadas por el organizador. Si las reglas remotas cambiaron después, integrá esas diferencias antes de publicar. No se verificó el acceso en Firebase real.
 
 ## Archivos e integraciones
 
@@ -67,7 +67,7 @@ La función valida la clave en el servidor y emite el rol `tegConductor`. No se 
 - `teg-config.js`, `teg-cloud.js`: proyecto guessmovie-905e2 para TEG, autenticación y conexión al evento compartido.
 - `teg-fixture.js`: activación de la ronda y recepción del resultado; usa guessmovie-905e2.
 - `teg-tv-bridge.js`: muestra TEG desde la TV existente según la ronda activa.
-- `teg-server/`: función de autorización y reglas de acceso propuestas.
+- `teg-server/`: reglas integradas y configuración de despliegue opcional de reglas.
 - `velada.html`: catálogo de 11 juegos, reglas, exclusión de TEG de los duelos y progreso de la noche.
 - `common-rounds.js`, `puntos.js`: ronda común, revisión y reemplazo de puntos.
 - `index.html`, `participante.html`: entrada desde Complementos y próxima ronda.

@@ -1,19 +1,77 @@
 {
- "rules": {
-  ".read": false,
-  ".write": false,
-  "velada_v2": {"events": {"principal": {
-   "velada": {"teg": {
-    "activation": {".read": "auth != null", ".write": "auth != null && auth.token.tegConductor === true"},
-    "public": {".read": "auth != null", ".write": "auth != null && auth.token.tegConductor === true"},
-    "result": {".read": "auth != null", ".write": "auth != null && auth.token.tegConductor === true"},
-    "session": {".read": "auth != null && auth.token.tegConductor === true", ".write": "auth != null && auth.token.tegConductor === true && (!newData.exists() || (newData.child('hostId').val() === auth.uid && (!data.exists() || data.child('hostId').val() === auth.uid || data.child('hostUntil').val() <= now)))"},
-    "objectives": {"$uid": {".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.token.tegConductor === true"}},
-    "replies": {"$uid": {".read": "auth != null && auth.uid === $uid", ".write": "auth != null && auth.token.tegConductor === true"}},
-    "presence": {".read": "auth != null && auth.token.tegConductor === true", "$uid": {".write": "auth != null && auth.uid === $uid", ".validate": "!newData.exists() || (newData.hasChildren(['team','name','seen']) && newData.child('name').isString() && newData.child('team').isNumber() && newData.child('seen').isNumber())"}},
-    "commands": {".read": "auth != null && auth.token.tegConductor === true", "$cmd": {".write": "auth != null && ((auth.token.tegConductor === true && !newData.exists()) || (!data.exists() && newData.child('client').val() === auth.uid))", ".validate": "!newData.exists() || (newData.hasChildren(['type','client','session','sentAt','seq','id']) && newData.child('type').isString() && newData.child('session').isString() && newData.child('sentAt').isNumber() && newData.child('sentAt').val() > now - 20000 && newData.child('sentAt').val() < now + 5000)"}}
-   }},
-   "veladaFixtureReserved": {".read": false, ".write": false}
-  }}}
- }
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "velada_v2": {
+      "events": {
+        "principal": {
+          "velada": {
+            "teg": {
+              "activation": {
+                ".read": "auth != null",
+                ".write": "auth != null"
+              },
+              "public": {
+                ".read": "auth != null",
+                ".write": "auth != null"
+              },
+              "result": {
+                ".read": "auth != null",
+                ".write": "auth != null"
+              },
+              "session": {
+                ".read": "auth != null",
+                ".write": "auth != null && (!newData.exists() || (newData.child('hostId').val() === auth.uid && (!data.exists() || data.child('hostId').val() === auth.uid || data.child('hostUntil').val() <= now)))"
+              },
+              "objectives": {
+                "$uid": {
+                  ".read": "auth != null && auth.uid === $uid",
+                  ".write": "auth != null"
+                }
+              },
+              "replies": {
+                "$uid": {
+                  ".read": "auth != null && auth.uid === $uid",
+                  ".write": "auth != null"
+                }
+              },
+              "presence": {
+                ".read": "auth != null",
+                "$uid": {
+                  ".write": "auth != null && auth.uid === $uid",
+                  ".validate": "!newData.exists() || (newData.hasChildren(['team','name','seen']) && newData.child('name').isString() && newData.child('team').isNumber() && newData.child('seen').isNumber())"
+                }
+              },
+              "commands": {
+                ".read": "auth != null",
+                "$cmd": {
+                  ".write": "auth != null && ((auth != null && !newData.exists()) || (!data.exists() && newData.child('client').val() === auth.uid))",
+                  ".validate": "!newData.exists() || (newData.hasChildren(['type','client','session','sentAt','seq','id']) && newData.child('type').isString() && newData.child('session').isString() && newData.child('sentAt').isNumber() && newData.child('sentAt').val() > now - 20000 && newData.child('sentAt').val() < now + 5000)"
+                }
+              }
+            }
+          },
+          "veladaFixtureReserved": {
+            ".read": false,
+            ".write": false
+          }
+        }
+      }
+    },
+    "$rama": {
+      ".read": "$rama !== 'velada_v2' && $rama !== 'tegAuthLimits'"
+    },
+    "velada": {
+      ".read": true,
+      ".write": true
+    },
+    "argentinos": {
+      ".read": true,
+      ".write": true
+    },
+    "tegAuthLimits": {
+      ".read": false,
+      ".write": false
+    }
+  }
 }
