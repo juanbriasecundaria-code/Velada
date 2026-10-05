@@ -15,12 +15,12 @@
       players.find(p=>p===full || (fullNames[p]||'')===full) || full);
   }
   function buildMatch(phase, match, ctx, id){
-    const [round,a,b,g]=match, labels=phase==='f1'?ctx.players:ctx.teams;
+    const [round,a,b,g]=match, labels=ctx.teams;
     const game=gameId(ctx.games[g]);
     if(!game || !labels[a] || !labels[b]) throw new Error('Cruce o juego inválido');
     const names={a:labels[a],b:labels[b]}, players=[];
     ['a','b'].forEach(side=>{
-      const list=phase==='f1'?[names[side]]:members(names[side],ctx.players,ctx.fullNames||{});
+      const list=members(names[side],ctx.players,ctx.fullNames||{});
       list.forEach(name=>players.push({name,side,teamLabel:names[side]}));
     });
     if(!players.length || new Set(players.map(p=>p.name)).size!==players.length) throw new Error('Hay nombres repetidos en el cruce. Corregí los equipos antes de activarlo.');

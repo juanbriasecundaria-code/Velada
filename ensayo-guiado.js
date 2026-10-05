@@ -12,7 +12,7 @@
   const byId = id => document.getElementById(id);
   function matches() {
     const rows = [];
-    ['f1', 'f2'].forEach(phase => {
+    ['f2'].forEach(phase => {
       const fixture = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
       const roster = phase === 'f1' ? PLAYERS : TEAMS;
       const games = phase === 'f1' ? GAMES_F1 : GAMES_F2;

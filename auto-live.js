@@ -11,7 +11,7 @@
     function choose(){
       if(!fixture || results===null)return;
       const candidates=[];
-      ['f1','f2'].forEach(phase=>{
+      ['f2'].forEach(phase=>{
         const d=fixture[phase];
         if(!d || !Array.isArray(d.fixture))return;
         d.fixture.forEach(entry=>{

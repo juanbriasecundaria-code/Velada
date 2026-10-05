@@ -19,7 +19,7 @@
     if(!fixtureRaw) return null;
     const resultados=resultadosRaw||{};
     const candidates=[];
-    ['f1','f2'].forEach(phase=>{
+    ['f2'].forEach(phase=>{
       const data=fixtureRaw[phase];
       if(!data||!Array.isArray(data.fixture)) return;
       const ctx={players:data.players,teams:data.teams,fullNames:data.fullNames,games:data.games};
@@ -45,8 +45,8 @@
     if(!m||!m.active)return;
     let last;try{last=localStorage.getItem('palabras_fixture_match');}catch(e){}
     if(last!==m.id){
-      document.querySelectorAll('.cover-overlay,.sheet-overlay,.var-overlay,.names-overlay').forEach(e=>e.classList.remove('open'));
-      score={a:0,b:0};varUses={a:3,b:3};comodinUsed={a:false,b:false,shared:false};selectedCat=null;
+      document.querySelectorAll('.cover-overlay,.sheet-overlay,.names-overlay').forEach(e=>e.classList.remove('open'));
+      score={a:0,b:0};comodinUsed={a:false,b:false,shared:false};selectedCat=null;
       roundsLog=[];roundBaseline=null;
       saveScore();saveState();
       try{localStorage.setItem('palabras_fixture_match',m.id);}catch(e){}
@@ -97,7 +97,7 @@
     document.querySelectorAll('#main-screen .footer-links button').forEach(b=>{b.disabled=!!stale;});
     // Solo las acciones de partida necesitan un cruce. Los ajustes, el
     // reinicio y el propio acceso al modo manual tienen que seguir activos.
-    document.querySelectorAll('#scoreboard button,#reveal-btn,#var-section button').forEach(b=>{
+    document.querySelectorAll('#scoreboard button,#reveal-btn').forEach(b=>{
       if(!enabled){if(!disabledByGate.has(b))disabledByGate.set(b,b.disabled);b.disabled=true;}
       else if(disabledByGate.has(b)){b.disabled=disabledByGate.get(b);disabledByGate.delete(b);}
     });
@@ -120,7 +120,7 @@
   }
   const oldSave=saveNames;
   saveNames=function(){if(match&&match.active){closeNameEditor();return;}return oldSave();};
-  ['addPoint','revealCategory','requestVAR','varVerdict','applyComodinTeam','rerollShared'].forEach(name=>{
+  ['addPoint','revealCategory','applyComodinTeam','rerollShared'].forEach(name=>{
     const original=window[name];if(typeof original==='function')window[name]=function(...args){if(enabled)return original.apply(this,args);};
   });
   window.palabrasGateRefresh=render;

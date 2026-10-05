@@ -7,7 +7,7 @@
   window.buzzerRoundButton=function(phase,round){
     return '<button class="fixture-edit-toggle" style="margin-left:10px" onclick="activateBuzzerRound(\''+phase+'\','+round+',this)">▶ Activar ronda '+round+'</button>';
   };
-  function ctx(phase){return {players:PLAYERS,teams:TEAMS,fullNames:FULL_NAMES,games:phase==='f1'?GAMES_F1:GAMES_F2};}
+  function ctx(phase){return {players:PLAYERS,teams:TEAMS,fullNames:FULL_NAMES,games:GAMES_F2};}
   async function publish(phase,matches,button,wholeRound){
     if(busy) return;
     const db=window._rtdb;
@@ -42,11 +42,11 @@
     finally{busy=false;if(button)button.disabled=false;}
   }
   window.activateBuzzerRound=function(phase,round,button){
-    const fx=phase==='f1'?F1_FIXTURE:F2_FIXTURE;
+    const fx=F2_FIXTURE;
     return publish(phase,fx.filter(m=>m[0]===round),button,true);
   };
   window.activateBuzzerMatch=function(phase,index,button){
-    const fx=phase==='f1'?F1_FIXTURE:F2_FIXTURE;
+    const fx=F2_FIXTURE;
     if(fx[index]) return publish(phase,[fx[index]],button,false);
   };
 })();

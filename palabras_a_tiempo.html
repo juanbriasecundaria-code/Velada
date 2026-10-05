@@ -154,60 +154,6 @@
     max-width: 340px;
   }
 
-  /* ── VAR BUTTONS ── */
-  .var-btn {
-    flex: 1;
-    padding: 0.65rem 0.6rem;
-    border-radius: calc(var(--radius) - 2px);
-    border: 1.5px solid rgba(255,95,95,0.45);
-    background: rgba(255,95,95,0.1);
-    color: var(--red);
-    font-family: inherit;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-    transition: opacity 0.15s, transform 0.1s;
-  }
-  .var-btn:active { transform: scale(0.96); opacity: 0.8; }
-  .var-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
-  .var-btn-label {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    line-height: 1;
-  }
-  .var-btn-name {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text);
-    opacity: 0.85;
-    line-height: 1;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .var-dots-row {
-    display: flex;
-    gap: 4px;
-    align-items: center;
-  }
-  .var-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--red);
-    transition: background 0.2s, opacity 0.2s;
-    box-shadow: 0 0 5px rgba(255,95,95,0.5);
-  }
-  .var-dot.spent {
-    background: transparent;
-    border: 1.5px solid rgba(255,95,95,0.35);
-    box-shadow: none;
-  }
 
   /* ── RESET LINK ── */
   .reset-link {
@@ -484,11 +430,6 @@
     opacity: 0.85;
     align-self: flex-start;
   }
-  .var-btn-row {
-    display: flex;
-    gap: 0.6rem;
-    width: 100%;
-  }
 
   .team-comodin-btn {
     flex: 1;
@@ -538,112 +479,17 @@
   .team-comodin-icon { font-size: 18px; line-height: 1; }
   .team-comodin-status { font-size: 10px; font-weight: 600; opacity: 0.8; }
 
-  /* ── VAR EN REVISIÓN (overlay) ── */
-  .var-overlay {
-    position: fixed; inset: 0; z-index: 460;
-    display: none; flex-direction: column; align-items: center; justify-content: center;
-    gap: 1.1rem; overflow-y: auto;
-    padding: max(1.5rem, env(safe-area-inset-top)) 1.25rem max(1.5rem, env(safe-area-inset-bottom));
-    background: radial-gradient(120% 90% at 50% 38%, rgba(255,95,95,0.16), rgba(6,6,9,0.985) 65%);
-    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-  }
-  .var-overlay.open { display: flex; animation: varFadeIn 0.2s ease-out; }
-  .var-overlay.closing { animation: varFadeOut 0.4s ease forwards; }
-  @keyframes varFadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes varFadeOut { from { opacity: 1; } to { opacity: 0; } }
-
-  .var-box {
-    position: relative; width: min(70vw, 260px); aspect-ratio: 5 / 3; flex-shrink: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem;
-  }
-  .var-frame { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-  .var-frame rect {
-    fill: none; stroke: var(--red); stroke-width: 3; stroke-linejoin: round;
-    filter: drop-shadow(0 0 9px rgba(255,95,95,0.55));
-    stroke-dasharray: 620; stroke-dashoffset: 620;
-    animation: varDraw 0.7s cubic-bezier(.5,.05,.25,1) 0.1s forwards;
-  }
-  @keyframes varDraw { to { stroke-dashoffset: 0; } }
-
-  .var-scan {
-    position: absolute; left: 5%; right: 5%; height: 2px; top: 10%;
-    background: linear-gradient(90deg, transparent, var(--red), transparent);
-    box-shadow: 0 0 12px var(--red); opacity: 0;
-    animation: varScan 1.05s ease-in-out 0.85s 2;
-  }
-  @keyframes varScan {
-    0% { top: 10%; opacity: 0; }
-    12% { opacity: 0.9; }
-    88% { opacity: 0.9; }
-    100% { top: 90%; opacity: 0; }
-  }
-
-  .var-mark {
-    position: relative; z-index: 1;
-    font-size: clamp(2.4rem, 15vw, 3.8rem); font-weight: 900; letter-spacing: 0.14em;
-    color: var(--red); line-height: 1; text-shadow: 0 0 28px rgba(255,95,95,0.5);
-    opacity: 0; transform: scale(0.8);
-    animation: varPop 0.42s cubic-bezier(.2,.9,.3,1.35) 0.55s forwards;
-  }
-  .var-status {
-    position: relative; z-index: 1;
-    font-size: 13px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--text); opacity: 0;
-    animation: varRise 0.4s ease 0.8s forwards;
-  }
-  @keyframes varPop { to { opacity: 1; transform: scale(1); } }
-  @keyframes varRise { from { opacity: 0; transform: translateY(6px); } to { opacity: 0.88; transform: translateY(0); } }
-  .var-dots span { animation: varBlink 1s infinite; }
-  .var-dots span:nth-child(2) { animation-delay: 0.18s; }
-  .var-dots span:nth-child(3) { animation-delay: 0.36s; }
-  @keyframes varBlink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
-
-  /* ── VAR VEREDICTO ── */
-  .var-verdicts {
-    display: flex; gap: 0.6rem;
-  }
-  .var-verdict {
-    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
-    padding: 1rem 0.5rem; border-radius: var(--radius);
-    border: 2px solid; background: var(--surface2);
-    cursor: pointer; font-family: inherit;
-    transition: transform 0.1s, filter 0.12s;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.35);
-  }
-  .var-verdict:active { transform: scale(0.96); }
-  .var-verdict.right { border-color: var(--success); background: linear-gradient(160deg, rgba(78,203,126,0.16), var(--surface2) 65%); }
-  .var-verdict.right:hover { background: linear-gradient(160deg, rgba(78,203,126,0.24), var(--surface2) 65%); }
-  .var-verdict.wrong { border-color: var(--red); background: linear-gradient(160deg, rgba(255,95,95,0.16), var(--surface2) 65%); }
-  .var-verdict.wrong:hover { background: linear-gradient(160deg, rgba(255,95,95,0.24), var(--surface2) 65%); }
+    
+  
+  
+  
   .vv-emoji { font-size: 1.8rem; line-height: 1; }
   .vv-main { font-size: 14px; font-weight: 800; letter-spacing: -0.01em; }
-  .var-verdict.right .vv-main { color: var(--success); }
-  .var-verdict.wrong .vv-main { color: var(--red); }
   .vv-sub { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.3; }
-  .var-cancel {
-    padding: 0.75rem; border-radius: var(--radius);
-    border: 1px solid var(--border2); background: var(--surface2);
-    color: var(--muted); font-size: 12px; font-weight: 600;
-    cursor: pointer; font-family: inherit; text-align: center;
-    transition: color 0.12s, border-color 0.12s;
-  }
-  .var-cancel:active { color: var(--text); border-color: var(--text); }
 
-  /* Panel de decisión del VAR */
-  .var-decision {
-    width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 0.7rem; flex-shrink: 0;
-    opacity: 0; transform: translateY(10px); pointer-events: none;
-    transition: opacity 0.35s ease, transform 0.35s ease;
-  }
-  .var-overlay.reviewing .var-decision { opacity: 1; transform: none; pointer-events: auto; }
-  .var-decision-title {
-    text-align: center; font-size: 13px; font-weight: 800; letter-spacing: 0.04em;
-    color: var(--muted); text-transform: uppercase;
-  }
   @keyframes scoreBump { 0% { transform: scale(1); } 40% { transform: scale(1.4); } 100% { transform: scale(1); } }
 
   @media (prefers-reduced-motion: reduce) {
-    .var-frame rect, .var-mark, .var-status, .var-scan { animation: none !important; opacity: 1 !important; transform: none !important; stroke-dashoffset: 0 !important; }
   }
 
   /* ── MARCADOR ── */
@@ -1014,111 +860,6 @@ body.vb-clean .vb-peek { display: flex; }
 <script src="round-host.js"></script>
 </head>
 <body>
-<!-- ══════════════════════════════════════════════════════════════════
-     INTERRUPTOR GLOBAL DEL VAR
-     Se prende/apaga desde velada.html (pestaña Reglamento).
-     Se sincroniza por Firebase RTDB (velada/config/varEnabled) y,
-     como respaldo, por localStorage entre pestañas del mismo navegador.
-     ══════════════════════════════════════════════════════════════════ -->
-<script>
-window.VarSwitch = (function () {
-  const LS_KEY    = 'velada_var_enabled';
-  const RTDB_PATH = 'velada/config/varEnabled';
-  const CFG = {
-    apiKey: "AIzaSyB37WkRQqBWVYkZ84AE2u17pAOs_9ZCgCg",
-    authDomain: "guessmovie-905e2.firebaseapp.com",
-    databaseURL: "https://guessmovie-905e2-default-rtdb.firebaseio.com",
-    projectId: "guessmovie-905e2",
-    appId: "1:313601369235:web:f8b28a2ec187a934fa1966"
-  };
-
-  let enabled = true;          // por defecto el VAR viene activado
-  let _ref    = null;
-  const subs  = [];
-
-  function readInitial() {
-    try {
-      const q = new URLSearchParams(location.search).get('var');
-      if (q === '0' || q === '1') {
-        localStorage.setItem(LS_KEY, q);
-        return q === '1';
-      }
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw === null) return true;
-      return raw === '1';
-    } catch (e) { return true; }
-  }
-
-  function emit() {
-    subs.forEach(fn => { try { fn(enabled); } catch (e) {} });
-  }
-
-  function set(v, opts) {
-    v = !!v;
-    const push    = !!(opts && opts.push);
-    const changed = (v !== enabled);
-    enabled = v;
-    try { localStorage.setItem(LS_KEY, v ? '1' : '0'); } catch (e) {}
-    if (push && _ref) { try { _ref.set(v); } catch (e) {} }
-    if (changed) emit();
-  }
-
-  enabled = readInitial();
-
-  // Otras pestañas del mismo navegador
-  window.addEventListener('storage', function (e) {
-    if (e.key === LS_KEY) set(e.newValue === '1');
-  });
-
-  function attachRef(ref) {
-    _ref = ref;
-    ref.on('value', function (snap) {
-      const v = snap.val();
-      if (v === null || v === undefined) return;
-      set(v === true || v === 1 || v === '1');
-    });
-  }
-
-  // Conexión propia a Firebase (solo si la página no la maneja por su cuenta)
-  function loadScript(src) {
-    return new Promise(function (res, rej) {
-      const s = document.createElement('script');
-      s.src = src; s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-    });
-  }
-  if (!window.VAR_SWITCH_MANUAL) {
-    (async function () {
-      const _connDot = document.getElementById('velada-conn-dot');
-      try {
-        if (typeof firebase === 'undefined' || !firebase.database) {
-          await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
-          await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js');
-        }
-        let app;
-        try { app = firebase.app('varcfg'); } catch (e) { app = firebase.initializeApp(CFG, 'varcfg'); }
-        attachRef(app.database().ref(RTDB_PATH));
-        window._palabrasDb=app.database();
-        window.dispatchEvent(new Event('palabras-db-ready'));
-        if (_connDot) _connDot.classList.add('on');
-      } catch (e) {
-        console.warn('VarSwitch: sin sincronización remota, se usa localStorage', e);
-        if (_connDot) _connDot.classList.add('err');
-      }
-    })();
-  }
-
-  return {
-    get enabled() { return enabled; },
-    set: set,
-    attachRef: attachRef,
-    onChange: function (fn) {
-      subs.push(fn);
-      try { fn(enabled); } catch (e) {}
-    }
-  };
-})();
-</script>
 
 <div class="velada-bar"></div>
 <div class="velada-bar-title"><span class="vb-icon">⏱️</span>Palabras a Tiempo</div>
@@ -1140,7 +881,7 @@ window.VarSwitch = (function () {
 <div id="pin-overlay">
   <div class="pin-box">
     <div class="pin-title">🔒 Código árbitro</div>
-    <div class="pin-sub" id="pin-sub-pat">Ingresá el PIN para validar el VAR</div>
+    <div class="pin-sub" id="pin-sub-pat">Ingresá el PIN</div>
     <div class="pin-dots" id="pin-dots-pat">
       <span class="pin-dot" id="pin-d-0"></span>
       <span class="pin-dot" id="pin-d-1"></span>
@@ -1237,35 +978,8 @@ window.VarSwitch = (function () {
     🎲 Revelar categoría
   </button>
 
-  <!-- VAR por equipo (3 usos cada uno) — visible solo si está activado en velada.html -->
-  <div class="action-section" id="var-section">
-    <div class="action-section-label">📺 Disputar una palabra ya dicha</div>
-    <div class="var-btn-row">
-      <button class="var-btn" id="var-btn-a" onclick="requestVAR('a')">
-        <span class="var-btn-label">VAR</span>
-        <span class="var-btn-name" id="var-btn-name-a">Equipo 1</span>
-        <span class="var-dots-row" id="var-dots-a">
-          <span class="var-dot"></span>
-          <span class="var-dot"></span>
-          <span class="var-dot"></span>
-        </span>
-      </button>
-      <button class="var-btn" id="var-btn-b" onclick="requestVAR('b')">
-        <span class="var-btn-label">VAR</span>
-        <span class="var-btn-name" id="var-btn-name-b">Equipo 2</span>
-        <span class="var-dots-row" id="var-dots-b">
-          <span class="var-dot"></span>
-          <span class="var-dot"></span>
-          <span class="var-dot"></span>
-        </span>
-      </button>
-    </div>
-  </div>
-
   <div class="footer-links">
     <button class="reset-link" onclick="openDeckEditor()">✏️ editar mazo</button>
-    <span class="footer-sep">·</span>
-    <button class="reset-link" onclick="openPinConfig()">🔒 PIN</button>
     <span class="footer-sep">·</span>
     <button class="reset-link" onclick="resetAll()">reiniciar todo</button>
   </div>
@@ -1338,36 +1052,6 @@ window.VarSwitch = (function () {
   </div>
 </div>
 
-<!-- ── VAR EN REVISIÓN ── -->
-<div class="var-overlay" id="var-overlay">
-  <div class="var-box">
-    <svg class="var-frame" viewBox="0 0 200 120" preserveAspectRatio="none" aria-hidden="true">
-      <rect x="5" y="5" width="190" height="110" rx="7"/>
-    </svg>
-    <div class="var-scan"></div>
-    <div class="var-mark">VAR</div>
-    <div class="var-status">En revisión<span class="var-dots"><span>.</span><span>.</span><span>.</span></span></div>
-  </div>
-
-  <!-- Panel de veredicto: aparece al terminar la animación -->
-  <div class="var-decision" id="var-decision">
-    <div class="var-decision-title">VAR pedido por <span id="var-requester-name">Equipo 1</span></div>
-    <div class="var-verdicts">
-      <button class="var-verdict right" onclick="varVerdict('right')">
-        <span class="vv-emoji">✅</span>
-        <span class="vv-main">Acertaron</span>
-        <span class="vv-sub">Se sigue con otra carta</span>
-      </button>
-      <button class="var-verdict wrong" onclick="varVerdict('wrong')">
-        <span class="vv-emoji">❌</span>
-        <span class="vv-main">Se equivocaron</span>
-        <span class="vv-sub">Pierden la ronda · suma <span id="vv-wrong-team">Equipo 2</span></span>
-      </button>
-    </div>
-    <button class="var-cancel" onclick="cancelVAR()">Cancelar (no descuenta el uso)</button>
-  </div>
-</div>
-
 <!-- ── EDITOR DE NOMBRES ── -->
 <div class="sheet-overlay" id="names-overlay">
   <div class="comodin-sheet">
@@ -1405,7 +1089,6 @@ const SK_COMODIN  = 'pat_comodin';
 const SK_DECK     = 'pat_deck';
 const SK_SCORE    = 'pat_score';
 const SK_NAMES    = 'pat_names';
-const SK_VAR      = 'pat_var';
 const SK_ROUNDS     = 'pat_rounds';      // historial de categorías jugadas (para el bonus)
 const SK_ROUND_BASE = 'pat_round_base';  // puntaje al momento de revelar la categoría actual
 
@@ -1416,8 +1099,6 @@ let isSpinning  = false;
 let deck        = []; // mazo editable: [{ name, enabled }]
 let score       = { a: 0, b: 0 };
 let teamNames   = { a: 'Equipo 1', b: 'Equipo 2' };
-let varUses     = { a: 3, b: 3 };  // chances de VAR por equipo
-let _varTeam    = null;             // equipo que pidió el VAR activo
 let roundsLog     = []; // [{cat, deltaA, deltaB, winner:'a'|'b'|'empate'}] — 1 entrada por categoría jugada
 let roundBaseline = null; // {a,b}: puntaje al momento de revelar la categoría en curso
 
@@ -1452,8 +1133,6 @@ function loadState() {
     if (sc) score = Object.assign({ a: 0, b: 0 }, JSON.parse(sc));
     const nm = localStorage.getItem(SK_NAMES);
     if (nm) teamNames = Object.assign({ a: 'Equipo 1', b: 'Equipo 2' }, JSON.parse(nm));
-    const vr = localStorage.getItem(SK_VAR);
-    if (vr) varUses = Object.assign({ a: 3, b: 3 }, JSON.parse(vr));
     const rl = localStorage.getItem(SK_ROUNDS);
     if (rl) roundsLog = JSON.parse(rl) || [];
     const rb = localStorage.getItem(SK_ROUND_BASE);
@@ -1466,7 +1145,6 @@ function saveState() {
     ? localStorage.setItem(SK_SELECTED, selectedCat)
     : localStorage.removeItem(SK_SELECTED);
   localStorage.setItem(SK_COMODIN, JSON.stringify(comodinUsed));
-  localStorage.setItem(SK_VAR, JSON.stringify(varUses));
   localStorage.setItem(SK_ROUNDS, JSON.stringify(roundsLog));
   roundBaseline
     ? localStorage.setItem(SK_ROUND_BASE, JSON.stringify(roundBaseline))
@@ -1498,27 +1176,6 @@ function syncScoreUI() {
   // Marcador principal
   _setText('sb-name-a', a);  _setText('sb-name-b', b);
   _setText('sb-score-a', score.a); _setText('sb-score-b', score.b);
-  // Panel del VAR
-  _setText('var-requester-name', _varTeam ? (teamNames[_varTeam] || 'Equipo') : '');
-  _setText('vv-wrong-team', _varTeam === 'a' ? b : a);
-  // Nombres en botones VAR
-  _setText('var-btn-name-a', a);
-  _setText('var-btn-name-b', b);
-  // Dots de chances VAR
-  syncVarDots();
-}
-
-function syncVarDots() {
-  ['a', 'b'].forEach(t => {
-    const row = document.getElementById('var-dots-' + t);
-    const btn = document.getElementById('var-btn-' + t);
-    if (!row) return;
-    const uses = varUses[t];
-    row.querySelectorAll('.var-dot').forEach((dot, i) => {
-      dot.classList.toggle('spent', i >= uses);
-    });
-    if (btn) btn.disabled = uses <= 0;
-  });
 }
 
 function addPoint(team, delta) {
@@ -1819,90 +1476,6 @@ function closeComodin() {
   document.getElementById('comodin-overlay').classList.remove('open');
 }
 
-// ── VAR ──────────────────────────────────────
-let _varTimer = null;
-
-// Muestra u oculta todo el bloque del VAR según el interruptor de velada.html
-function applyVarSwitch(on) {
-  const sec = document.getElementById('var-section');
-  if (sec) sec.style.display = on ? '' : 'none';
-  if (!on) { try { cancelVAR(); } catch (e) {} }
-}
-try { VarSwitch.onChange(applyVarSwitch); } catch (e) {}
-document.addEventListener('DOMContentLoaded', function () {
-  try { applyVarSwitch(VarSwitch.enabled); } catch (e) {}
-});
-
-function requestVAR(team) {
-  if (!VarSwitch.enabled) return;   // VAR desactivado desde velada.html
-  if (team !== 'a' && team !== 'b') return;
-  if (varUses[team] <= 0) return;
-  _varTeam = team;
-  const a = teamNames.a || 'Equipo 1';
-  const b = teamNames.b || 'Equipo 2';
-  _setText('var-requester-name', team === 'a' ? a : b);
-  _setText('vv-wrong-team', team === 'a' ? b : a);
-  const ov = document.getElementById('var-overlay');
-  if (!ov) return;
-  ov.classList.remove('open', 'closing', 'reviewing');
-  void ov.offsetWidth;
-  ov.classList.add('open');
-  playWhistle();
-  if (navigator.vibrate) navigator.vibrate([60, 40, 60, 40, 140]);
-  clearTimeout(_varTimer);
-  // Primero se ve la animación completa; recién al terminar se pide el PIN (o se revela el veredicto)
-  _varTimer = setTimeout(() => {
-    const pin = getStoredPin();
-    if (pin) {
-      openPinOverlay(team);
-    } else {
-      revealVarVerdicts();
-    }
-  }, 1150);
-}
-
-function revealVarVerdicts() {
-  const ov = document.getElementById('var-overlay');
-  if (!ov || !ov.classList.contains('open')) return;
-  ov.classList.add('reviewing');
-}
-
-function varVerdict(result) {
-  if (result === 'wrong' && _varTeam) {
-    // Descuenta la chance: se equivocaron al pedir el VAR
-    varUses[_varTeam] = Math.max(0, varUses[_varTeam] - 1);
-    saveState();
-    syncVarDots();
-    // Suma un punto al equipo contrario
-    const other = _varTeam === 'a' ? 'b' : 'a';
-    score[other] = (score[other] || 0) + 1;
-    saveScore();
-    const el = document.getElementById('sb-score-' + other);
-    if (el) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
-    if (navigator.vibrate) navigator.vibrate([30, 20, 80]);
-  } else {
-    // Acertaron: el VAR salió a favor, no se pierde ninguna chance
-    if (navigator.vibrate) navigator.vibrate(40);
-  }
-  _varTeam = null;
-  closeVAR();
-  syncScoreUI();
-}
-
-function cancelVAR() {
-  // Cancelar nunca descuenta (ni siquiera había descontado)
-  _varTeam = null;
-  closeVAR();
-}
-
-function closeVAR() {
-  const ov = document.getElementById('var-overlay');
-  if (!ov || !ov.classList.contains('open')) return;
-  clearTimeout(_varTimer);
-  ov.classList.add('closing');
-  setTimeout(() => ov.classList.remove('open', 'closing', 'reviewing'), 400);
-}
-
 // ── AUDIO (Web Audio API — todo sintetizado, sin archivos) ──
 // AudioContext lazy: se instancia solo en el primer gesto (obligatorio en iOS/WKWebView)
 let _audioCtx = null;
@@ -2196,12 +1769,10 @@ function dismissSplash() {
 
 // ── RESET ────────────────────────────────────
 function resetAll() {
-  customConfirm('¿Reiniciar todo? Se vuelven a habilitar todas las categorías, los comodines, el VAR y se restaura el puntaje a 0 – 0.', () => {
+  customConfirm('¿Reiniciar todo? Se vuelven a habilitar todas las categorías, los comodines y se restaura el puntaje a 0 – 0.', () => {
   usedCats    = new Set();
   selectedCat = null;
   comodinUsed = { a: false, b: false, shared: false };
-  varUses     = { a: 3, b: 3 };
-  _varTeam    = null;
   isSpinning  = false;
   score       = { a: 0, b: 0 };
   roundsLog     = [];
@@ -2282,8 +1853,7 @@ function openPinOverlay(team) {
   _pinBuffer = '';
   updatePinDots();
   const sub = document.getElementById('pin-sub-pat');
-  const tName = team === 'a' ? (teamNames.a || 'Equipo 1') : (teamNames.b || 'Equipo 2');
-  if (sub) sub.textContent = 'VAR pedido por ' + tName + ' — ingresá el PIN';
+  if (sub) sub.textContent = 'Ingresá el PIN';
   document.getElementById('pin-overlay').classList.add('open');
 }
 
@@ -2301,13 +1871,11 @@ function openPinConfig() {
 }
 
 function closePinOverlay() {
-  const wasVarRequest = !_pinConfigMode && !!_pinPendingTeam;
   document.getElementById('pin-overlay').classList.remove('open');
   _pinBuffer = '';
   _pinPendingTeam = null;
   _pinConfigMode = false;
   updatePinDots();
-  if (wasVarRequest) cancelVAR();
 }
 
 function updatePinDots() {
@@ -2350,7 +1918,6 @@ function checkPin() {
     _pinBuffer = '';
     _pinPendingTeam = null;
     updatePinDots();
-    revealVarVerdicts();
   } else {
     for (let i = 0; i < 4; i++) {
       const dot = document.getElementById('pin-d-' + i);

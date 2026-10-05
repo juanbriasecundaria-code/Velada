@@ -788,7 +788,7 @@ function renderIndividualPlayers(list){
   if(!wrap) return;
   wrap.innerHTML = list.map(p => `<button class="team-btn team-indiv" onclick="selectTeam('${p.replace(/'/g,"\\'")}')">${indivAvatarHtml(p)}<span class="indiv-name">${p}</span></button>`).join('');
 }
-// Avatar circular con la foto del participante (cargada en Fase 1 desde
+// Avatar circular con la foto del participante (cargada desde
 // velada.html); si todavía no tiene foto, cae a un círculo con su inicial.
 function indivAvatarHtml(name){
   const photo = (window.qldPhotos || {})[name];
@@ -1399,7 +1399,6 @@ function dismissSplash(){
   const CARDS = [
     { icon:'🎬', name:'MOVIES',   bg:'rgba(245,200,66,.12)',  border:'rgba(245,200,66,.35)', color:'#f5c842' },
     { icon:'🎵', name:'SONGS',    bg:'rgba(192,96,232,.12)',  border:'rgba(192,96,232,.35)', color:'#c060e8' },
-    { icon:'🎯', name:'VAR',      bg:'rgba(255,95,95,.12)',   border:'rgba(255,95,95,.35)',  color:'#ff5f5f' },
     { icon:'🎤', name:'100 ARG',  bg:'rgba(96,180,240,.12)',  border:'rgba(96,180,240,.35)', color:'#60b4f0' },
     { icon:'⏰', name:'TIEMPO',   bg:'rgba(200,240,96,.12)',  border:'rgba(200,240,96,.35)', color:'#c8f060' },
     { icon:'🏆', name:'VELADA',   bg:'rgba(245,200,66,.10)',  border:'rgba(245,200,66,.30)', color:'#f5c842' },
