@@ -1,11 +1,11 @@
-/* Paste the real web configuration from la-velada-equipos here.
-   Missing values are intentionally empty; no key is invented or borrowed from deleted projects. */
+/* Configuración web del proyecto existente guessmovie-905e2. */
 window.TEG_FIREBASE=window.VELADA_FIREBASE||{
- apiKey:'',
- authDomain:'la-velada-equipos.firebaseapp.com',
- databaseURL:'https://la-velada-equipos-default-rtdb.firebaseio.com',
- projectId:'la-velada-equipos',
- storageBucket:'la-velada-equipos.firebasestorage.app',
- appId:''
+ apiKey:'AIzaSyB37WkRQqBWVYkZ84AE2u17pAOs_9ZCgCg',
+ authDomain:'guessmovie-905e2.firebaseapp.com',
+ databaseURL:'https://guessmovie-905e2-default-rtdb.firebaseio.com',
+ projectId:'guessmovie-905e2',
+ storageBucket:'guessmovie-905e2.firebasestorage.app',
+ messagingSenderId:'313601369235',
+ appId:'1:313601369235:web:f8b28a2ec187a934fa1966'
 };
 window.TEG_EVENT_ROOT='velada_v2/events/principal';

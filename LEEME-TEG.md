@@ -16,7 +16,7 @@ Para servirlo por HTTP: desde esta carpeta, `python3 -m http.server 8000`; abrí
 ## Partida compartida
 
 - El fixture incluye una sola ronda **🌍 TEG Express**, intercalada con las otras rondas comunes.
-- **Activar ronda** envía los equipos existentes al evento `principal` del Firebase nuevo. No hay que cargarlos a mano en TEG.
+- **Activar ronda** envía los equipos existentes al evento `principal` de guessmovie-905e2. No hay que cargarlos a mano en TEG.
 - **Abrir conductor** abre `teg.html?mode=host`: entrada con `100` validada por el servicio incluido. Abre la sala y después **Iniciar partida** sortea territorios, turnos y objetivos y arranca los relojes.
 - Los jugadores entran desde **HUB → Complementos → TEG Express**, eligen su nombre dentro de su equipo y comparten los controles. Las acciones simultáneas se validan por versión de tablero y turno.
 - **Mapa en TV** abre `teg.html?mode=tv`. La TV general también muestra TEG al activarse su ronda y vuelve al ranking al activar otro juego.
@@ -38,23 +38,23 @@ Para servirlo por HTTP: desde esta carpeta, `python3 -m http.server 8000`; abrí
 - Si vence el reloj, gana por cantidad de países y luego tropas. Un empate exacto comparte victoria. Ganadores: **3 puntos**; demás: **0**. Sin tarjetas de países ni canjes.
 - El juego publica su resultado, pero el conductor **lo revisa y confirma** desde el fixture (cargar → usar resultado publicado) o desde la revisión de resultados. Reemplazar la carga reemplaza los puntos; no los duplica.
 
-## Conexión pendiente y alcance del ZIP
+## Conexión y alcance del ZIP
 
-Este ZIP de partida todavía contiene conexiones antiguas en las otras pantallas de la velada. No contiene `firebase-config.js` con la configuración web nueva completa. No se certifica que la plataforma completa ya esté migrada o funcione en producción.
+TEG está configurado para el proyecto existente `guessmovie-905e2`, con la configuración web completa recuperada del ZIP original, y usa la ruta propia `velada_v2/events/principal`. No hace falta completar `apiKey` ni `appId`.
 
-**TEG no se conecta a los proyectos eliminados:** usa `la-velada-equipos` y la ruta `velada_v2/events/principal`. `teg-config.js` tiene el proyecto y la URL conocidos; `apiKey` y `appId` se dejan vacíos porque no fueron aportados en este ZIP. Pegá la configuración web real allí, o proporcioná `window.VELADA_FIREBASE` antes de cargar ese archivo. No uses una clave de otro proyecto ni una cuenta de servicio.
+Los demás juegos conservan sus conexiones originales a `guessmovie-905e2` y `cumple-598e7`, ambos confirmados como operativos por el organizador. No se migran sus rutas ni sus datos. El fixture continúa usando sus canales existentes y activa la partida en la ruta de TEG.
 
-Para una velada realmente compartida, las otras pantallas también deben usar ese evento del proyecto nuevo. Este paquete agrega TEG a la versión adjunta; no reconstruye ni certifica la migración general anterior. Si ya tenés un ZIP migrado, las piezas nuevas son `teg*.js`, `teg.html`, `teg.css`, `teg-server/` y las integraciones identificadas aquí.
+La configuración del cliente está lista; la partida compartida requiere habilitar autenticación anónima, desplegar la función del conductor e integrar las reglas de TEG en el Firebase existente. Esta actualización no despliega ni verifica los servicios remotos.
 
 ### Firebase para TEG
 
-1. Completá la configuración web del proyecto `la-velada-equipos` en `teg-config.js`.
+1. La configuración web de `guessmovie-905e2` ya está incluida en `teg-config.js`; `teg-server/.firebaserc` también selecciona ese proyecto.
 2. Habilitá **Authentication → Anonymous**. La autenticación es interna y transparente; no se pide Google ni registro.
 3. En `teg-server/functions`, instalá las dependencias con `npm install`.
-4. Desde `teg-server`, configurá el secreto con `firebase functions:secrets:set TEG_HOST_PASSWORD --project la-velada-equipos` y asigná **100**.
-5. Desplegá la función con `firebase deploy --only functions:tegHostLogin --project la-velada-equipos`. Cloud Functions puede requerir facturación habilitada en el proyecto.
+4. Desde `teg-server`, configurá el secreto con `firebase functions:secrets:set TEG_HOST_PASSWORD --project guessmovie-905e2` y asigná **100**.
+5. Desplegá la función con `firebase deploy --only functions:tegHostLogin --project guessmovie-905e2`. Cloud Functions puede requerir facturación habilitada en el proyecto.
 6. **Integrá** las ramas de `database.teg.rules.json` con las reglas existentes del evento. No reemplaces ciegamente las reglas de los otros juegos. El archivo es un ejemplo completo y restrictivo para un evento TEG aislado. No debe existir una autorización pública en un ancestro que permita leer las misiones o escribir el estado; en RTDB las concesiones de ancestros prevalecen.
-7. Publicá las reglas integradas en el proyecto nuevo. El conductor autenticado puede gestionar TEG; cada participante solo envía comandos vinculados a su UID y lee su objetivo/respuesta; TV solo lee el mapa público.
+7. Publicá las reglas integradas en guessmovie-905e2. El conductor autenticado puede gestionar TEG; cada participante solo envía comandos vinculados a su UID y lee su objetivo/respuesta; TV solo lee el mapa público.
 8. Serví las páginas en HTTPS o un servidor de prueba y comprobá una partida con conductor, dos celulares y TV. No se requiere Storage para TEG.
 
 La función valida la clave en el servidor y emite el rol `tegConductor`. No se incluye una clave administrativa en el navegador. Las reglas aíslan la sesión privada y las misiones del mapa público. La clave 100 es deliberadamente simple; no implica seguridad absoluta ni identidad física verificada.
@@ -64,8 +64,8 @@ La función valida la clave en el servidor y emite el rol `tegConductor`. No se 
 - `teg-map.js`: contornos originales, nombres, continentes y conexiones simétricas explícitas, incluidos puentes.
 - `teg-engine.js`: reglas puras, objetivos, turnos, tiempos, dados, movimientos y resultado.
 - `teg.html`, `teg.css`, `teg-app.js`: splash, conductor, celulares, TV y ensayo local.
-- `teg-config.js`, `teg-cloud.js`: único proyecto nuevo para TEG, autenticación y conexión al evento compartido.
-- `teg-fixture.js`: activación de la ronda y recepción del resultado; usa el Firebase nuevo.
+- `teg-config.js`, `teg-cloud.js`: proyecto guessmovie-905e2 para TEG, autenticación y conexión al evento compartido.
+- `teg-fixture.js`: activación de la ronda y recepción del resultado; usa guessmovie-905e2.
 - `teg-tv-bridge.js`: muestra TEG desde la TV existente según la ronda activa.
 - `teg-server/`: función de autorización y reglas de acceso propuestas.
 - `velada.html`: catálogo de 11 juegos, reglas, exclusión de TEG de los duelos y progreso de la noche.

@@ -23,7 +23,7 @@
    showToast('🌍','Ronda activada. Abrí el conductor de TEG para preparar la sala e iniciar.',false);
   }catch(e){showToast('⚠️','No se pudo activar TEG: '+e.message,false);}finally{button.disabled=false;}
  };
- // TEG listens to the new project; the existing ZIP's other Firebase modules stay separate.
+ // TEG uses guessmovie-905e2; other games retain their existing configurations.
  if(window.TEG_FIREBASE?.apiKey && window.TEG_FIREBASE?.appId){
   TegCloud.connect('fixture').then(c=>c.db.ref('velada/teg/result').on('value',snap=>{
    const data=FirebaseTeamMaps.fromWire(snap.val());window._commonResults=window._commonResults||{};window._commonResults.teg=data;
