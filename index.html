@@ -972,6 +972,64 @@ function hideBzCountdown(){
   document.getElementById('bz-countdown').classList.remove('show');
 }
 
+// ── BUZZER GRUPAL (cola de orden) ────────────────────────────────
+// d.queue = [{team,name,ms}] en el orden en que apretaron; d.turn = a quién
+// le toca responder ahora (lo publica el conductor). Cada equipo entra una vez.
+let _gTurnBuzzed = null;
+function applyGroupBuzz(d, btn, statusEl){
+  const state = d.state || 'locked';
+  const queue = Array.isArray(d.queue) ? d.queue : [];
+  const pos = queue.findIndex(q=>q && q.team===bzTeam);
+  const turn = (typeof d.turn === 'number' && d.turn >= 0) ? d.turn : 0;
+  const cur = queue[turn] || null;
+  hideResult(); _resultShownFor = null;
+  if(state === 'countdown'){
+    _bzPhase = 'countdown'; _earlyTaps = 0; _gTurnBuzzed = null;
+    btn.classList.add('locked'); btn.classList.remove('open','won-me');
+    statusEl.textContent = 'Preparate…'; statusEl.className = 'bz-status';
+    showBzCountdown(d.countdownStart, d.countdownMs);
+    return;
+  }
+  hideBzCountdown();
+  if(state === 'open' && pos < 0){
+    var _eraOpen = (_bzPhase === 'open');
+    _bzPhase = 'open';
+    if(!_eraOpen) _openedAt = nowServer();
+    _earlyTaps = 0;
+    btn.classList.remove('locked','won-me'); btn.classList.add('open');
+    statusEl.textContent = queue.length
+      ? ('¡Todavía podés buzzear! Vas ' + (queue.length+1) + '°')
+      : '¡Tocá cuando sepas la respuesta!';
+    statusEl.className = 'bz-status open';
+    if(!queue.length && navigator.vibrate) navigator.vibrate(30);
+    return;
+  }
+  if(pos >= 0){
+    // Ya buzzeé: veo mi lugar en la cola y a quién le toca.
+    _bzPhase = 'won';
+    btn.classList.add('locked'); btn.classList.remove('open');
+    if(pos === turn){
+      btn.classList.add('won-me');
+      statusEl.textContent = '🎤 ¡Te toca responder! (' + (pos+1) + '°)';
+      statusEl.className = 'bz-status won';
+      if(_gTurnBuzzed !== d.turn+'/'+pos && navigator.vibrate){ navigator.vibrate([80,40,80,40,80]); }
+      _gTurnBuzzed = d.turn+'/'+pos;
+    } else if(pos < turn){
+      btn.classList.remove('won-me');
+      statusEl.textContent = 'Ya pasó tu turno (' + (pos+1) + '°)';
+      statusEl.className = 'bz-status lost';
+    } else {
+      btn.classList.remove('won-me');
+      statusEl.textContent = 'Buzzeaste ' + (pos+1) + '° — responde ' + (cur ? (cur.name || cur.team) : '…');
+      statusEl.className = 'bz-status';
+    }
+    return;
+  }
+  _bzPhase = 'waiting'; _openedAt = null; _gTurnBuzzed = null;
+  btn.classList.add('locked'); btn.classList.remove('open','won-me');
+  statusEl.textContent = 'Esperando al conductor…'; statusEl.className = 'bz-status';
+}
+
 // ── BUZZER LISTENER ──────────────────────────────────────────────
 function startBuzzListener(){
   if(!fbRef) return;
@@ -1001,6 +1059,12 @@ function startBuzzListener(){
       } else if(mine){
         showVerdict(d.verdict.ok, d.verdict.pts);
       }
+    }
+
+    // Ronda grupal (Guess): un solo buzzer para todos los equipos, con cola de orden.
+    if(d.fixture && d.fixture.group){
+      applyGroupBuzz(d, btn, statusEl);
+      return;
     }
 
     if(d.winner){
