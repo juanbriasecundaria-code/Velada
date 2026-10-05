@@ -6,8 +6,8 @@
     let order=Array.isArray(state.roundOrder)?state.roundOrder.filter(id=>ids.includes(id)):[];
     const missing=ids.filter(id=>!order.includes(id));
     if(!order.length || shuffle){
-      order=ids.filter(id=>id.startsWith('duel:'));
-      const common=ids.filter(id=>!id.startsWith('duel:'));
+      order=ids.filter(id=>id.startsWith('duel:')&&!RoundPlan.isMarioRound(id,F2_FIXTURE,GAMES_F2));
+      const common=ids.filter(id=>!id.startsWith('duel:')||RoundPlan.isMarioRound(id,F2_FIXTURE,GAMES_F2));
       for(let i=common.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[common[i],common[j]]=[common[j],common[i]];}
       common.forEach(id=>order.splice(Math.floor(Math.random()*(order.length+1)),0,id));
     }else missing.forEach(id=>order.splice(Math.floor(Math.random()*(order.length+1)),0,id));

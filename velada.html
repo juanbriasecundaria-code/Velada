@@ -4227,7 +4227,7 @@ const RULES_DEFAULT = {
   f1: [
   ],
   f2: [
-    { name: 'Mario Party', icon: '🎲', desc: 'Minijuegos rápidos 2v2. Cada equipo compite en una tanda de minijuegos, gana el que acumule más victorias.', format: 'Primero en ganar 5 minijuegos', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Ganar por 3+ de diferencia (Por ej.: 5-2)', allow_draw: true, rules: ['Gana el primer equipo en llegar a 5 victorias de minijuego','Si se acaba el tiempo (15 min) antes, gana quien lleve más victorias','En caso de empate al acabar el tiempo, se juega un minijuego desempate','Puntaje máximo: 4pts'] },
+    { name: 'Mario Party', icon: '🎲', desc: 'Minijuegos rápidos 2v2, máximo 4 jugadores (2 representantes por equipo). Se sortean los cruces y todas las partidas se juegan seguidas en una única ronda.', format: 'Primero en ganar 5 minijuegos', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Ganar por 3+ de diferencia (Por ej.: 5-2)', allow_draw: true, rules: ['Gana el primer equipo en llegar a 5 victorias de minijuego','Si se acaba el tiempo (15 min) antes, gana quien lleve más victorias','En caso de empate al acabar el tiempo, se juega un minijuego desempate','Puntaje máximo: 4pts'] },
     { name: "Time's Up", icon: '⏰', desc: 'Juego de adivinanza por pistas. El equipo intenta adivinar la mayor cantidad de personajes/famosos en 1 minuto.', format: 'Turnos de 1 min (hasta que terminen las demás mesas o se cansen)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Si duplican la cantidad de personajes/famosos adivinados del rival', allow_draw: true, rules: ['Si es una celebridad o famoso, NO se puede decir ni el nombre ni ninguna parte del mismo.','Turnos de 1 minuto por equipo.','Gana el equipo que más adivina en su minuto.','Puntaje máximo: 4pts'] },
     { name: 'Beer Pong', icon: '🍺', desc: 'Formato clásico adaptado. Cada equipo tiene 6 vasos de su lado.', format: 'Hasta vaciar los vasos o por tiempo (depende de las demás mesas)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: '3+ vasos en pie', allow_draw: true, rules: ['6 vasos por lado.','Cada jugador tira 1 vez por turno.','Si emboca, se retira el vaso.','Si un equipo emboca dos pelotas seguidas, puede cambiar la posición de un vaso propio o del rival.','Gana el equipo que elimine todos los vasos del rival.','Tiempo máximo: 7 minutos (o hasta que terminen las demás estaciones).','Puntaje máximo: 4pts','Puntaje mínimo (empate): 1pts'] },
     { name: 'Guess Movie/Song', icon: '🎬', desc: 'Juego de cultura pop con todos los equipos juntos. Se muestra una imagen o se reproduce un fragmento de audio. Cada participante usa su nombre y foto; el buzzer ordena las respuestas por equipo.', format: 'Hasta que terminen las demás mesas o por tiempo (mayormente 10 minutos / 15 minutos)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: '5 o más adivinados de diferencia', allow_draw: true, rules: ['Ronda común en posición aleatoria del fixture: todos los equipos juntos.','El buzzer arma una cola: si el primero falla, responde el siguiente equipo.','Al finalizar: 1.º 3 pts, 2.º 1 pt y resto 0; con dos equipos: 3 y 0. Empates en aciertos comparten puesto.','Bonus de 1 pt al primero si supera por 5 o más aciertos a todos los demás.','1 punto por canción o película adivinada.','Tiempo máximo para adivinar: 15 segundos.','Puntaje máximo: 4pts'] },
@@ -5350,24 +5350,12 @@ function computeF2Byes(fixture, numTeams) {
   return computeGenericByes(fixture, numTeams);
 }
 
-// Fixture grupal (Fase grupal): la cantidad de rondas NO es fija — se calcula
-// dinámicamente en función de cuántos equipos haya. El objetivo siempre es el
-// mismo: TODOS los equipos tienen que pasar por las 6 estaciones, aunque para
-// lograrlo algún cruce entre los mismos dos equipos tenga que repetirse (o,
-// si un equipo ya completó su recorrido, que "preste" una revancha a otro que
-// todavía necesita esa estación).
-//
-// Para exactamente 6 equipos se usa el fixture fijo hecho a mano (el mismo
-// ORIGINAL_F2_FIXTURE con el que arranca la app), que ya cumple la condición
-// y además evita que "Guess Movie/Song" coincida en la misma ronda con "Mario
-// Party" (comparten TV/árbitro).
-// Estaciones que la Fase grupal reparte entre todos los equipos (cualquier cantidad).
-// 100 Argentinos y Guess tienen ronda propia con todos juntos, así que no entran
-// en el fixture de a pares.
+// Estaciones en paralelo. Mario Party se sortea como bloque exclusivo 2v2;
+// Guess y 100 Argentinos conservan sus rondas propias con todos juntos.
 function f2StationIndices() {
   const argIdx = GAMES_F2.indexOf('100 Argentinos Dicen');
   const guessIdx = GAMES_F2.indexOf('Guess Movie/Song');
-  return GAMES_F2.map((_, i) => i).filter(i => i !== argIdx && i !== guessIdx);
+  return GAMES_F2.map((_, i) => i).filter(i => i !== argIdx && i !== guessIdx && GAMES_F2[i] !== 'Mario Party');
 }
 
 // ¿El fixture ya tiene al menos una ronda para cada estación vigente?
@@ -5387,18 +5375,37 @@ function f2TeamsOk(fix, n) {
   return seen.size === n;
 }
 
+// Mario Party: un bloque exclusivo, duplas 2v2, partidas consecutivas.
+function generateMarioPartyMatches(n, round) {
+  const gi = GAMES_F2.indexOf('Mario Party');
+  if (n < 2 || gi < 0) return [];
+  const teams = shuffleArr(Array.from({length:n}, (_,i)=>i));
+  const matches = [];
+  for (let i=0;i+1<n;i+=2) matches.push([round,teams[i],teams[i+1],gi]);
+  // Impar: un equipo sorteado vuelve a jugar para completar el último 2v2.
+  if (n%2) matches.push([round,teams[n-1],teams[Math.floor(Math.random()*(n-1))],gi]);
+  return matches;
+}
+
+function marioPartyFixtureIsValid(fix,n) {
+  const gi=GAMES_F2.indexOf('Mario Party');
+  if(gi<0) return true;
+  const matches=fix.filter(m=>m[3]===gi);
+  if(matches.length!==Math.ceil(n/2) || new Set(matches.map(m=>m[0])).size!==1) return false;
+  if(fix.some(m=>m[0]===matches[0][0] && m[3]!==gi)) return false;
+  const counts=Array(n).fill(0);
+  matches.forEach(m=>{counts[m[1]]++;counts[m[2]]++;});
+  return counts.every(c=>c===1 || (n%2 && c===2)) && counts.filter(c=>c===2).length===n%2;
+}
+
 function generateF2Fixture(n) {
-  if (n === 6 && GAMES_F2.length === 6) {
-    return { fixture: ORIGINAL_F2_FIXTURE.map(m => m.slice()), byes: {} };
-  }
-  // 100 Argentinos Dicen NO se juega de a pares: va en una ronda propia con
-  // todos los equipos (ver argentinosRoundHtml en velada-rounds.js).
-  // Guess Movie/Song tampoco: juegan todos los equipos juntos con un solo
-  // buzzer, en su propia ronda (ver guessRoundHtml en velada-rounds.js). Al no
-  // ser una estación, ya no hace falta evitar que coincida con Mario Party.
+  if(n<2) return {fixture:[],byes:{}};
   const stations = f2StationIndices();
   const r = generateCoverageFixture(n, stations.length, []);
-  return { fixture: r.fixture.map(m => [m[0], m[1], m[2], stations[m[3]], ...m.slice(4)]), byes: r.byes };
+  const fixture = r.fixture.map(m => [m[0], m[1], m[2], stations[m[3]], ...m.slice(4)]);
+  const marioRound=fixture.reduce((mx,m)=>Math.max(mx,m[0]),0)+1;
+  fixture.push(...generateMarioPartyMatches(n,marioRound));
+  return {fixture,byes:computeF2Byes(fixture,n)};
 }
 
 
@@ -5413,7 +5420,7 @@ function f2FixtureIsValid(fix, nTeams, nGames) {
     if (!(a >= 0 && a < nTeams && b >= 0 && b < nTeams && a !== b && g >= 0 && g < nGames)) return false;
     seen.add(a); seen.add(b);
   }
-  return seen.size === nTeams && f2CoversStations(fix);
+  return seen.size === nTeams && f2CoversStations(fix) && marioPartyFixtureIsValid(fix,nTeams);
 }
 
 // Regenera el fixture grupal si falta o quedó desfasado (solo mientras no haya
@@ -6834,6 +6841,9 @@ function saveFixtureMatch(phase, matchIdx, selectA, selectB, selectG) {
     return;
   }
   const match = fixture[matchIdx];
+  if(phase==='f2' && (GAMES_F2[match[3]]==='Mario Party' || GAMES_F2[newG]==='Mario Party')) {
+    showToast('🔒','Mario Party se distribuye al generar el fixture para mantener su ronda única.',false); return;
+  }
   const oldKey = `${match[0]}-${match[1]}-${match[2]}`;
   // Update fixture entry
   match[1] = newA;
@@ -7479,6 +7489,7 @@ function renderFixtureF2() {
     if(!id.startsWith('duel:')) { html+=commonRoundHtml(id,ordinal+1); continue; }
     const r=Number(id.slice(5));
     const matches = F2_FIXTURE.filter(m => m[0] === r);
+    const marioBlock = RoundPlan.isMarioRound(id,F2_FIXTURE,GAMES_F2);
     const byeArrRaw = F2_BYES[r];
     const byeArr = Array.isArray(byeArrRaw) ? byeArrRaw : (typeof byeArrRaw === 'number' ? [byeArrRaw] : []);
     const byeTag = byeArr.length
@@ -7489,8 +7500,8 @@ function renderFixtureF2() {
           return `<span class="bye-tag">😴 Descansa: ${name}${missingTxt}</span>`;
         }).join(' ')
       : '';
-    html += `<div class="fixture-round"><div class="round-label">Ronda ${ordinal+1} ${byeTag} ${buzzerRoundButton('f2',r)}</div>`;
-    matches.forEach(([round, a, b, g]) => {
+    html += `<div class="fixture-round"><div class="round-label">Ronda ${ordinal+1} ${byeTag} ${marioBlock ? `<span class="bye-tag">🎲 ${matches.length} partidas seguidas · 2v2 · máximo 4 jugadores</span><button class="fixture-edit-toggle" onclick="activateCommonRound('duel:${r}',${ordinal+1},this)">▶ Activar ronda ${ordinal+1}</button>` : buzzerRoundButton('f2',r)}</div>`;
+    matches.forEach(([round, a, b, g], partida) => {
       const key = `${round}-${a}-${b}`;
       const res = state.f2[key];
       const game = GAMES_F2[g];
@@ -7499,7 +7510,7 @@ function renderFixtureF2() {
       const tB = TEAMS[b];
       const matchIdx = F2_FIXTURE.indexOf(F2_FIXTURE.find(m => m[0]===round && m[1]===a && m[2]===b));
 
-      if (editing && canEdit) {
+      if (editing && canEdit && !marioBlock) {
         const teamOptsA = TEAMS.map((t,ti) => `<option value="${ti}" ${ti===a?'selected':''}>${t.split('/')[0].trim()}</option>`).join('');
         const teamOptsB = TEAMS.map((t,ti) => `<option value="${ti}" ${ti===b?'selected':''}>${t.split('/')[0].trim()}</option>`).join('');
         const gameOpts = GAMES_F2.map((gn,gi) => `<option value="${gi}" ${gi===g?'selected':''}>${gn}</option>`).join('');
@@ -7525,7 +7536,7 @@ function renderFixtureF2() {
         const rowCls2 = `${res ? 'done' : ''} ${isMine2 ? 'row-me' : ''} ${hasFilter2 && !isMine2 ? 'row-dim' : ''}`.trim();
         html += `<div class="match-row ${rowCls2}" onclick="openModal('f2','${key.replace(/'/g,"\\'")}','${game.replace(/'/g,"\\'")}','${tA.replace(/'/g,"\\'")}','${tB.replace(/'/g,"\\'")}',${a},${b})">
           <span class="match-game-badge" style="background:${gbg};color:${gcol};font-weight:600">${game}</span>
-          <span class="match-players" style="font-size:12px">${tA.split('/')[0].trim()} vs ${tB.split('/')[0].trim()}</span>
+          <span class="match-players" style="font-size:12px">${marioBlock ? `Partida ${partida+1}/${matches.length} · ` : ''}${tA.split('/')[0].trim()} vs ${tB.split('/')[0].trim()}${marioBlock && matches.some((m,i)=>i<partida && (m[1]===a || m[2]===a || m[1]===b || m[2]===b)) ? ' · un equipo repite para completar el 2v2' : ''}</span>
           <span class="match-result ${res ? 'set' : ''}">${res ? resultText : 'Cargar'}</span>
         </div>${buzzerMatchButton('f2',matchIdx,game)}`;
       }
@@ -7548,7 +7559,7 @@ function generateF2FixtureNow() {
   ensureCommonRoundOrder(true);
   renderFase2();
   const r = F2_FIXTURE.reduce((m, x) => Math.max(m, x[0]), 0);
-  showToast('🎲', `Fixture generado: ${r} rondas, ${F2_FIXTURE.length} duelos`, false);
+  showToast('🎲', `Fixture generado: ${ensureCommonRoundOrder().length} rondas, ${F2_FIXTURE.length} partidas`, false);
 }
 
 // ============================================================

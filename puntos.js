@@ -16,6 +16,11 @@
     }
   };
   root.RoundPlan = {
+    isMarioRound: function(id,fixture,games) {
+      if(!id.startsWith('duel:'))return false;
+      const matches=(fixture||[]).filter(m=>m[0]===Number(id.slice(5)));
+      return matches.length>0 && matches.every(m=>(games||[])[m[3]]==='Mario Party') && !(fixture||[]).some(m=>m[0]!==Number(id.slice(5)) && (games||[])[m[3]]==='Mario Party');
+    },
     ids: function(fixture,games) {
       const ids=Array.from(new Set((fixture||[]).map(m=>'duel:'+m[0]))).sort((a,b)=>Number(a.slice(5))-Number(b.slice(5)));
       if((games||[]).includes('Guess Movie/Song'))ids.push('guess');
