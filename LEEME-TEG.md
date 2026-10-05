@@ -88,3 +88,14 @@ SVG aportado: `margodth-TEG.svg`, autor declarado margodth, Openclipart. El arch
 ## Corrección del control del conductor
 
 Se mantiene una lectura de la sesión mientras está abierta la pestaña del conductor y se espera su carga antes de las transacciones. Si su señal vence sin que otro conductor haya tomado el control, el mismo conductor puede renovarla; una partida en curso queda pausada en el último instante confirmado para preservar el tiempo. La sala previa permite iniciar después de un retraso. Las pruebas simulan caché vacía, retraso en sala y partida, conservación del tablero y rechazo de un segundo conductor activo. No se verificó esta corrección en el Firebase remoto.
+
+## Vista móvil y recuperación de partidas
+
+- En horizontal el mapa completo se ajusta al ancho y alto disponibles, con tiempos y acción del turno visibles. En vertical se sugiere girar el celular.
+- Zoom opcional con dos dedos o botones identificados como Zoom; «Ver mapa completo» vuelve al encuadre. Cuando está ampliado se puede desplazar el tablero con el dedo.
+- Tocá un país para abrir sus controles. El panel se cierra con ×. «País / tropas» permite abrir el selector sin tocar territorios pequeños. Los refuerzos usan botones «− Tropa» y «+ Tropa», separados del zoom.
+- Objetivo desplegable y controles de país aparecen sobre el tablero sin cambiar su tamaño. El resumen general y el historial se ocultan en móvil.
+- La espera distingue entre el turno de otro equipo y la falta de conexión del conductor.
+- Se corrige la recuperación de sesiones donde Firebase omite objetos vacíos, incluido `budget.continents`, que provocaba «Cannot convert undefined or null to object».
+
+Pruebas: simulación de serialización Firebase, recuperación con refuerzos vencidos, mapa ajustado al ancho/alto, zoom y reinicio, gesto de dos dedos y envío de tropas. No se realizó QA visual ni prueba táctil en navegador real: el navegador no pudo instalarse en este entorno. Sigue pendiente comprobar la web publicada en los dispositivos reales.

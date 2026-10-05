@@ -11,7 +11,7 @@ const own=t=>pub?.board?.filter(p=>p.owner===t)||[];
 const active=()=>!!(pub&&player&&pub.current===player.team&&pub.status==='running'&&connected&&(demo||pub.hostUntil>=now()));
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),4500);}
 function splashOff(){$('splash').classList.add('exit');setTimeout(()=>$('splash').hidden=true,600);}
-function normalize(s){if(!s)return s;s.clients=s.clients||{};s.processed=s.processed||{};s.history=s.history||[];s.draft=s.draft||{};s.movable=s.movable||{};s.order=s.order||[];s.goals=s.goals||[];s.captures=s.teams.map((_,i)=>s.captures?.[i]||0);return s;}
+function normalize(s){if(!s)return s;s.clients=s.clients||{};s.processed=s.processed||{};s.history=s.history||[];s.draft=s.draft||{};s.movable=s.movable||{};s.order=s.order||[];s.goals=s.goals||[];if(s.budget)s.budget.continents=s.budget.continents||{};s.captures=s.teams.map((_,i)=>s.captures?.[i]||0);return s;}
 function teams(){return pub?.teams||((activation?.teams||roster?.teams||[]).map((name,i)=>({name,color:['#c8f060','#60b4f0','#ff7979','#c060e8','#f5c842','#4cdbc3'][i%6]})));}
 function renderLobby(){
  const ts=teams();$('team-select').innerHTML=ts.map((t,i)=>'<div class="team-card" style="--team:'+t.color+'"><div class="eyebrow"><i class="team-dot"></i>EQUIPO '+(i+1)+'</div><b>'+esc(t.name)+'</b><small>Un color · una misión · decisiones compartidas</small><div class="member-buttons">'+members(t.name).map(p=>'<button data-join="'+i+'" data-name="'+esc(p)+'">'+esc(p)+'</button>').join('')+'</div></div>').join('');
@@ -21,7 +21,18 @@ function mapSvg(s){
  const board=s?.board||M.territories.map(p=>({id:p.id,owner:-1,troops:1})),near=selected===null?[]:M.territories[selected].neighbors;
  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="'+M.viewBox+'" role="img" aria-label="Mapa de TEG, 50 países"><defs><radialGradient id="sea"><stop stop-color="#213739"/><stop offset="1" stop-color="#152329"/></radialGradient></defs><g transform="'+M.translate+'"><path d="'+M.sea+'" fill="url(#sea)" stroke="#61736a" stroke-width=".8"/>'+M.bridgePaths.map(p=>'<path d="'+p.d+'" transform="'+p.transform+'" fill="none" stroke="#a79069" stroke-width="1" stroke-dasharray="2 2" opacity=".65"/>').join('')+M.territories.map(p=>{const b=board[p.id],color=s?.teams[b.owner]?.color||'#8b9985';return '<path data-country="'+p.id+'" id="country-'+p.id+'" class="territory '+(selected===p.id?'selected':'')+' '+(near.includes(p.id)?'neighbor':'')+'" d="'+p.d+'" transform="'+p.transform+'" fill="'+color+'"><title>'+esc(p.name)+' · '+esc(s?.teams[b.owner]?.name||p.continent)+' · '+b.troops+' tropas</title></path>';}).join('')+'</g><g>'+M.territories.map(p=>{const b=board[p.id],plus=s?.draft?.[p.id]||0;return '<g data-country="'+p.id+'" class="country-node"><text class="country-label" x="'+p.x+'" y="'+(p.y-2)+'">'+esc(p.name)+'</text><circle class="army-bg" cx="'+p.x+'" cy="'+(p.y+5)+'" r="4.8"/><text class="army-count" x="'+p.x+'" y="'+(p.y+6.7)+'">'+b.troops+'</text>'+(plus?'<text class="army-count" x="'+(p.x+8)+'" y="'+(p.y+6.7)+'" style="fill:#c8f060">+'+plus+'</text>':'')+'</g>';}).join('')+'</g></svg>';
 }
-function renderMap(){const wrap=$('map-wrap'),left=wrap.scrollLeft,top=wrap.scrollTop;wrap.innerHTML=mapSvg(pub);wrap.firstElementChild.style.width=(Math.max(wrap.clientWidth||590,!tv&&window.innerWidth<650?1000:590)*zoom)+'px';wrap.scrollLeft=left;wrap.scrollTop=top;}
+function renderMap(){
+ const wrap=$('map-wrap'),left=wrap.scrollLeft,top=wrap.scrollTop;
+ const dims=M.viewBox.split(/\s+/).map(Number),ratio=dims[2]/dims[3];
+ const width=wrap.clientWidth||590,height=wrap.clientHeight||width/ratio;
+ const base=Math.min(width,height*ratio);
+ wrap.innerHTML=mapSvg(pub);const svg=wrap.firstElementChild;
+ svg.style.width=(base*zoom)+'px';svg.style.height=(base*zoom/ratio)+'px';
+ wrap.scrollLeft=zoom===1?0:left;wrap.scrollTop=zoom===1?0:top;
+ $('zoom-reset').textContent=zoom===1?'Mapa completo':'Ver mapa completo';
+}
+function setZoom(value){zoom=Math.max(1,Math.min(4,value));renderMap();}
+
 function renderStats(){const rows=pub?.stats||E.stats(normalize(session));$('scoreboard').innerHTML=rows.map(t=>'<div class="score-card '+(pub.current===t.team?'active':'')+'" style="--team:'+t.color+'"><b><i class="team-dot"></i>'+esc(t.name)+'</b><div class="score-values"><div><strong>'+t.countries+'</strong><small>PAÍSES</small></div><div><strong>'+t.troops+'</strong><small>TROPAS</small></div></div></div>').join('');$('history').innerHTML=(pub.history||[]).slice(-3).reverse().map(h=>'<div>'+esc(h.text)+'</div>').join('');}
 function renderGoal(){
  $('mission').hidden=tv||isHost&&!demo||!myGoal||pub?.status==='lobby';
@@ -34,6 +45,7 @@ function renderActions(){
  if(pub.status==='lobby')html='<div class="eyebrow">SALA PREVIA</div><h3>Prepará tu estrategia.</h3><p>El conductor inicia la partida. El mapa y tu objetivo se sortean al dar la salida.</p>';
  else if(pub.status==='paused')html='<span class="phase-tag">EN PAUSA</span><h3>Un respiro en la batalla.</h3><p>Ambos relojes están detenidos. El conductor reanuda la partida.</p>';
  else if(pub.status==='finished')html='<div class="eyebrow">PARTIDA FINALIZADA</div><h3>La conquista terminó.</h3><p>El resultado ya está listo para el fixture.</p>';
+ else if(!demo&&(!connected||pub.hostUntil<now()))html='<span class="phase-tag">ESPERANDO AL CONDUCTOR</span><p>Las acciones se habilitan cuando el conductor recupera la conexión y reanuda.</p>';
  else if(!can)html='<span class="phase-tag">'+(connected?'ESPERANDO TURNO':'SIN CONEXIÓN')+'</span><h3>'+esc(pub.teams[pub.current]?.name||'')+'</h3><p>'+(connected?'Podés explorar el mapa mientras decide el otro equipo.':'Las acciones están bloqueadas hasta reconectar.')+'</p>';
  else if(phase==='reinforce')html='<span class="phase-tag">1 / REFUERZOS</span><h3>'+own(player.team).length+' países → +'+pub.budget.total+' tropas</h3><p>Base: '+pub.budget.base+(Object.keys(pub.budget.continents||{}).length?' · Continentes: '+Object.entries(pub.budget.continents).map(([c,n])=>esc(c)+' +'+n).join(', '):'')+'. Elegí tus países y repartí con + y −.</p><div class="big-number">'+left+' <small style="font-size:12px;color:var(--muted)">por colocar</small></div><button class="primary" data-action="deploy">Confirmar refuerzos</button><p>Al confirmar o vencer el tiempo, los restantes se distribuyen automáticamente.</p>';
  else if(pub.pendingMove)html='<span class="phase-tag">CONQUISTA</span><h3>'+esc(M.territories[pub.pendingMove.to].name)+' es tuyo.</h3><p>Ya avanzó 1 tropa. Podés sumar hasta '+pub.pendingMove.max+' más, dejando una en origen.</p><select id="advance-amount">'+Array.from({length:pub.pendingMove.max+1},(_,i)=>'<option value="'+i+'">'+(i+1)+' tropa'+(i?'s':'')+' en total</option>').join('')+'</select><button class="primary" data-action="advance">Confirmar avance</button>';
@@ -47,7 +59,7 @@ function renderCountry(){
  if(selected===null){box.innerHTML='<div class="eyebrow">EXPLORÁ EL MAPA</div>'+list+'<p>También podés tocar un país en el mapa. Deslizá para recorrerlo.</p>';return;}
  const p=M.territories[selected],b=pub.board[selected],can=active(),my=b.owner===player?.team;
  let actions='';
- if(can&&my&&pub.phase==='reinforce')actions='<div class="split-actions"><button data-draft="-1">−</button><button data-draft="1">+</button></div><p>'+(pub.draft?.[selected]||0)+' refuerzos asignados a este país.</p>';
+ if(can&&my&&pub.phase==='reinforce')actions='<div class="split-actions"><button data-draft="-1" aria-label="Quitar una tropa">− Tropa</button><button data-draft="1" aria-label="Agregar una tropa">+ Tropa</button></div><p>'+(pub.draft?.[selected]||0)+' refuerzos asignados a este país.</p>';
  if(can&&my&&(pub.phase==='attack'||pub.phase==='regroup')&&!pub.pendingMove){
   const valid=p.neighbors.filter(i=>pub.phase==='attack'?pub.board[i].owner!==player.team:pub.board[i].owner===player.team),attack=pub.phase==='attack';
   if(valid.length&&b.troops>1){if(!valid.includes(target))target=valid[0];const options=valid.map(i=>'<option value="'+i+'" '+(i===target?'selected':'')+'>'+esc(M.territories[i].name)+' · '+pub.board[i].troops+' tropas</option>').join('');actions='<label class="muted">'+(attack?'Atacar a':'Trasladar a')+'</label><select id="target-picker">'+options+'</select>';
@@ -55,7 +67,7 @@ function renderCountry(){
    actions+='<button class="primary" data-action="'+(attack?'attack':'move')+'" '+((attack?pub.attacks>=2:(pub.movable?.[selected]||0)<1)||busy?'disabled':'')+'>'+(attack?'🎲 Tirar dados y atacar':'Mover tropas')+'</button>';
   }else actions='<p>No hay '+(attack?'ataques':'traslados')+' disponibles desde este país.</p>';
  }
- box.innerHTML='<div class="eyebrow">'+esc(p.continent)+'</div><h3>'+esc(p.name)+'</h3>'+list+'<div class="country-stats"><span class="big-number">'+b.troops+'</span><span class="muted">tropas<br>'+esc(pub.teams[b.owner]?.name||'Sin repartir')+'</span></div>'+actions+'<p>Vecinos: '+p.neighbors.map(i=>esc(M.territories[i].name)).join(' · ')+'</p>';
+ box.innerHTML='<button class="country-close" data-close-country aria-label="Cerrar país">×</button><div class="eyebrow">'+esc(p.continent)+'</div><h3>'+esc(p.name)+'</h3>'+list+'<div class="country-stats"><span class="big-number">'+b.troops+'</span><span class="muted">tropas<br>'+esc(pub.teams[b.owner]?.name||'Sin repartir')+'</span></div>'+actions+'<p>Vecinos: '+p.neighbors.map(i=>esc(M.territories[i].name)).join(' · ')+'</p>';
 }
 function renderFinished(){
  const box=$('finish-panel');box.hidden=pub?.status!=='finished';if(box.hidden)return;
@@ -64,10 +76,11 @@ function renderFinished(){
 }
 function render(){
  renderLobby();const show=!!pub&&(player||isHost||tv);$('lobby').hidden=show;$('arena').hidden=!show;if(!pub)return;
- $('host-panel').hidden=!isHost;$('start-game').hidden=pub.status!=='lobby';$('pause-game').hidden=!['running','paused'].includes(pub.status);$('pause-game').textContent=pub.status==='paused'?'▶ Reanudar':'⏸ Pausar';$('finish-game').hidden=!['running','paused'].includes(pub.status);
+ document.body.classList.toggle?.('host-view',isHost);$('host-panel').hidden=!isHost;$('start-game').hidden=pub.status!=='lobby';$('pause-game').hidden=!['running','paused'].includes(pub.status);$('pause-game').textContent=pub.status==='paused'?'▶ Reanudar':'⏸ Pausar';$('finish-game').hidden=!['running','paused'].includes(pub.status);
  $('round-caption').textContent=(demo?'ENSAYO LOCAL · ':'')+'RONDA '+(pub.round||'ÚNICA')+' · TODOS CONTRA TODOS';
  $('turn-title').textContent=pub.status==='lobby'?'El mundo está por repartirse.':pub.status==='finished'?'La conquista terminó.':pub.status==='paused'?'Partida en pausa.':'Turno de '+(pub.teams[pub.current]?.name||'');
  $('turn-sub').textContent=pub.status==='lobby'?pub.teams.length+' equipos · reparto y objetivos automáticos':pub.status==='running'?({reinforce:'Colocando refuerzos',attack:'Ataque · hasta 2 tiradas',regroup:'Reagrupando tropas'}[pub.phase]||''):'🌍 TEG Express · una ronda, todos contra todos';
+ $('mobile-team').textContent=player?'Tu equipo: '+pub.teams[player.team]?.name:isHost?'Modo conductor':'';
  $('identity').innerHTML=player?'<b><i class="team-dot" style="--team:'+pub.teams[player.team]?.color+'"></i>'+esc(player.name)+'</b><small>'+esc(pub.teams[player.team]?.name)+' · controles compartidos</small>':'<b>🎙️ Conductor</b><small>El mapa público no muestra las misiones secretas.</small>';
  if(demo)$('identity').innerHTML+='<div class="demo-badge">ENSAYO LOCAL · no publica puntos. <button data-demo-switch>Controlar equipo del turno</button></div>';
  renderMap();renderStats();renderGoal();renderActions();renderFinished();updateClocks();if(pub.battle)showBattle(pub.battle);
@@ -177,21 +190,27 @@ async function init(){
 function demoStart(){
  demo=true;connected=true;isHost=true;const names=teams().map(t=>t.name);session=E.create(names.length>=2?names:['Equipo Lima / Jugador 2','Equipo Azul / Jugador 4','Equipo Coral / Jugador 6','Equipo Violeta / Jugador 8'],now());session.round=1;session=E.apply(session,{type:'start'},now()).state;pub=E.publicState(session);player={team:session.current,name:members(session.teams[session.current].name)[0]};myGoal={...session.goals[player.team],progress:E.goalProgress(session,player.team)};$('connection').textContent='Ensayo local';render();splashOff();
 }
-$('enter').onclick=splashOff;$('rules-open').onclick=()=>$('rules').showModal();$('rules-close').onclick=$('rules-ok').onclick=()=>$('rules').close();$('host-open').onclick=()=>$('host-dialog').showModal();$('host-cancel').onclick=()=>$('host-dialog').close();
-$('host-form').onsubmit=async e=>{e.preventDefault();try{if(!demo)await TegCloud.login($('host-password').value.trim());await claimHost();$('host-dialog').close();splashOff();}catch(e){$('host-error').textContent=e.message;}};
+$('enter').onclick=splashOff;$('rules-open').onclick=()=>$('rules').showModal();$('rules-close').onclick=$('rules-ok').onclick=()=>$('rules').close();$('host-open').onclick=()=>{$('host-error').textContent='';$('host-dialog').showModal();};$('host-cancel').onclick=()=>$('host-dialog').close();
+$('host-form').onsubmit=async e=>{e.preventDefault();$('host-error').textContent='';try{if(!demo)await TegCloud.login($('host-password').value.trim());await claimHost();$('host-dialog').close();splashOff();}catch(e){$('host-error').textContent=e.message;}};
 $('start-game').onclick=()=>send('start');$('pause-game').onclick=()=>send(pub.status==='paused'?'resume':'pause');$('finish-game').onclick=()=>{if(confirm('¿Finalizar la partida y publicar el resultado por países y tropas?'))send('finish');};
 $('reset-game').onclick=()=>{if(!confirm('¿Preparar otra partida? Se borra el resultado TEG anterior y se vuelven a sortear países y objetivos al iniciar.'))return;
  if(demo){demoStart();return;}enqueue(async()=>{await transact((s,t)=>{const next=E.create(activation.teams,t);next.activationId=activation.id;next.round=activation.round;return {state:next};});await db.ref('velada/teg/result').remove();});};
 $('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch(e){toast('Usá pantalla completa desde el navegador.');}};
 $('demo-start').onclick=demoStart;$('change-team').onclick=()=>{player=null;myGoal=null;$('mission').open=false;render();};
-$('zoom-in').onclick=()=>{zoom=Math.min(2.5,zoom+.25);renderMap();};$('zoom-out').onclick=()=>{zoom=Math.max(1,zoom-.25);renderMap();};
+$('zoom-in').onclick=()=>setZoom(zoom+.25);$('zoom-out').onclick=()=>setZoom(zoom-.25);$('zoom-reset').onclick=()=>setZoom(1);
+$('mobile-country').onclick=()=>{document.body.classList.toggle('country-open');};
+window.addEventListener?.('resize',()=>{if(pub)renderMap();});
+let pinch=null,lastGesture=0;const mapWrap=$('map-wrap');
+mapWrap.addEventListener?.('touchstart',e=>{if(e.touches.length===2){pinch={distance:Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY),zoom};lastGesture=Date.now();}}, {passive:true});
+mapWrap.addEventListener?.('touchmove',e=>{if(pinch&&e.touches.length===2){e.preventDefault();const distance=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);setZoom(pinch.zoom*distance/pinch.distance);lastGesture=Date.now();}}, {passive:false});
+mapWrap.addEventListener?.('touchend',()=>{if(pinch)lastGesture=Date.now();pinch=null;}, {passive:true});
 $('team-select').onclick=e=>{const b=e.target.closest('[data-join]');if(b)join(Number(b.dataset.join),b.dataset.name);};
-$('map-wrap').onclick=e=>{const p=e.target.closest('[data-country]');if(!p)return;const country=Number(p.dataset.country);
+$('map-wrap').onclick=e=>{if(Date.now()-lastGesture<350)return;const p=e.target.closest('[data-country]');if(!p)return;const country=Number(p.dataset.country);document.body.classList.add('country-open');
  if(selected!==null&&active()&&(pub.phase==='attack'||pub.phase==='regroup')&&M.territories[selected].neighbors.includes(country)&&pub.board[selected].owner===player.team&&(pub.phase==='attack'?pub.board[country].owner!==player.team:pub.board[country].owner===player.team)){target=country;renderCountry();}
  else{selected=country;target=null;renderMap();renderCountry();}};
-$('country-info').onchange=e=>{if(e.target.id==='country-picker'){selected=e.target.value===''?null:Number(e.target.value);target=null;renderMap();renderCountry();}if(e.target.id==='target-picker')target=Number(e.target.value);};
+$('country-info').onchange=e=>{if(e.target.id==='country-picker'){document.body.classList.add('country-open');selected=e.target.value===''?null:Number(e.target.value);target=null;renderMap();renderCountry();}if(e.target.id==='target-picker')target=Number(e.target.value);};
 $('country-info').oninput=e=>{if(e.target.id==='move-amount'){draftAmount=Number(e.target.value);$('move-value').textContent=draftAmount;}};
-function actionClick(e){const b=e.target.closest('[data-action],[data-draft],[data-demo-switch]');if(!b)return;
+function actionClick(e){if(e.target.closest('[data-close-country]')?.dataset.closeCountry!==undefined){document.body.classList.remove('country-open');return;}const b=e.target.closest('[data-action],[data-draft],[data-demo-switch]');if(!b)return;
  if(b.hasAttribute('data-demo-switch')){player={team:session.current,name:members(session.teams[session.current].name)[0]};myGoal={...session.goals[player.team],progress:E.goalProgress(session,player.team)};selected=null;target=null;render();return;}
  if(b.hasAttribute('data-draft'))return send('draft',{country:selected,delta:Number(b.dataset.draft)});
  const type=b.dataset.action;if(type==='attack'||type==='move')return send(type,{from:selected,to:target,...(type==='move'?{amount:Number($('move-amount').value)}:{})});
