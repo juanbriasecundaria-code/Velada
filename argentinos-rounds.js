@@ -13,7 +13,7 @@ window.connectArgentinosRound=function(ref){
           const origs=(m.teams||[]).map(label=>({label,members:m.players.filter(p=>p.teamLabel===label).map(p=>p.name),size:m.players.filter(p=>p.teamLabel===label).length}));
           const proposal=gmPropose(origs.map(o=>o.size),3);
           if(proposal){
-            gm={active:true,fixtureId:m.id,maxTeams:3,origs,teams:Array.from({length:proposal.k},(_,t)=>({name:'Equipo '+(t+1),origs:origs.map((_,i)=>i).filter(i=>proposal.assign[i]===t),size:proposal.totals[t]})),scores:Array(proposal.k).fill(0),plays:Array(proposal.k).fill(0),last:null,cur:null,finished:false,result:null};
+            gm={active:true,fixtureId:m.id,maxTeams:3,origs,teams:Array.from({length:proposal.k},(_,t)=>({name:origs.filter((_,i)=>proposal.assign[i]===t).map(o=>o.label).join(' + '),origs:origs.map((_,i)=>i).filter(i=>proposal.assign[i]===t),size:proposal.totals[t]})),scores:Array(proposal.k).fill(0),plays:Array(proposal.k).fill(0),last:null,cur:null,finished:false,result:null};
           }
         }
         if(gm)gmApplyTeams(gm.teams.map((_,i)=>i));

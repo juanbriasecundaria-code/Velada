@@ -669,10 +669,10 @@ body.guess-all-teams .part-gscore{font-size:clamp(28px,3.6vw,46px);line-height:1
  body.guess-all-teams #participant .part-main{width:100%}
  .guess-team-photo{width:32px;height:32px}
 }
-</style><script src="buzzer-rounds.js?v=20261005b"></script><script src="auto-live.js"></script>
-<script src="round-host.js?v=20261005b"></script>
-<script src="guess-rounds.js?v=20261005b"></script>
-<script src="guess-teams.js?v=3"></script>
+</style><script src="team-maps.js?v=20261005c"></script><script src="buzzer-rounds.js?v=20261005b"></script><script src="auto-live.js"></script>
+<script src="round-host.js?v=20261005c"></script>
+<script src="guess-rounds.js?v=20261005c"></script>
+<script src="guess-teams.js?v=20261005c"></script>
 </head>
 <body>
 <div class="velada-bar"></div>
@@ -1194,7 +1194,7 @@ let _buzzCountdownTimer = null;
 async function fbOpenBuzzer(blocked){
   if(typeof GROUP!=='undefined' && GROUP) gResetQueue();
   _buzzBlocked = blocked || null;
-  if(!fbRef) return;
+  if(!fbRef){initFirebase();if(!fbRef){showToast('No hay conexión con el buzzer. Revisá el estado de conexión.');return;}}
   clearTimeout(_buzzCountdownTimer);
   // countdownStart va como ServerValue.TIMESTAMP (lo resuelve el servidor
   // de Firebase, no el reloj de este celu) para que el 3-2-1 quede
@@ -1205,7 +1205,7 @@ async function fbOpenBuzzer(blocked){
   }catch(e){showToast('No se pudo habilitar el buzzer: '+e.message);return;}
   _buzzCountdownTimer = setTimeout(()=>{
     if(!fbRef) return;
-    fbRef.set({ state:'open',queue:[],turn:0,winner:null, blocked:_buzzBlocked, names:{ a:nameA, b:nameB } });
+    fbRef.set({ state:'open',queue:[],turn:0,winner:null, blocked:_buzzBlocked, names:{ a:nameA, b:nameB } }).catch(e=>showToast('No se pudo abrir el buzzer: '+e.message));
   }, BUZZ_COUNTDOWN_MS);
 }
 
@@ -1240,6 +1240,7 @@ function startCondListener(){
       const t=w.team, n=w.name||(t==='a'?nameA:nameB);
       setFbStatus('winner-'+t,'🏆 Buzzeó: '+n);
       if(phase==='idle'){
+        timerLeft=timerDefault;syncTimerUI();
         activeBuzzer=t; phase='playing_'+t;
         startTimer(); syncPhaseUI(); sendState();
         showToast('🏆 '+n+' buzzó primero!', 3000);
@@ -1604,6 +1605,7 @@ function cardImageInfo(c){
   return{src:(c.imgData||c.img)||null,isFrame:false,frameCount:0};
 }
 function sendState(){
+  if(MODE!=='conductor')return;
   const cur=currentCard();
   const imgInfo=cardImageInfo(cur);
   const st={type:'state',cardIdx,scoreA,scoreB,nameA,nameB,timerLeft,timerActive,phase,activeBuzzer,revealed,
@@ -1640,7 +1642,7 @@ function sendState(){
 // (celulares) reciban carta, revelado, blur/zoom, frames, grid, letra y timer, no solo el buzzer.
 function fbPushState(st){
   if(!fbStateRef)return;
-  const safe={...st};
+  const safe=FirebaseTeamMaps.toWire(st);
   // Las imágenes locales (data URLs) no se mandan por Firebase: son pesadas y ya son solo del conductor.
   if(typeof safe.imgUrl==='string'&&safe.imgUrl.startsWith('data:')){safe.imgUrl='';safe.imgLocal=true;}
   if(safe.gridRevealed&&!safe.gridRevealed.length)safe.gridRevealed=null; // RTDB no guarda arrays vacíos
@@ -1651,7 +1653,7 @@ function fbPushState(st){
 }
 function startPartStateListener(){
   if(!fbStateRef)return;
-  fbStateRef.on('value',snap=>{const d=snap.val();if(d&&d.type==='state')renderParticipant(d);});
+  fbStateRef.on('value',snap=>{const d=snap.val();if(d&&d.type==='state')renderParticipant(FirebaseTeamMaps.fromWire(d));});
 }
 function startHeartbeat(){if(_hb)clearInterval(_hb);_hb=setInterval(sendState,200);sendState();}
 function onLive(raw){try{const d=typeof raw==='string'?JSON.parse(raw):raw;if(d.type==='state')renderParticipant(d);else if(d.type==='yt_play')partResumeSong({youtubeId:d.youtubeId,startAt:d.startAt||0});else if(d.type==='yt_restart')partPlaySong({youtubeId:d.youtubeId,startAt:d.startAt||0});else if(d.type==='yt_pause')partPauseSong();else if(d.type==='yt_stop')partStopSong();else if(d.type==='local_play'||d.type==='local_stop'){/* audio local: suena solo en la compu del conductor */};}catch(e){}}
@@ -2145,7 +2147,7 @@ function gRenderBoard(){
   const b=document.getElementById('g-board'),q=document.getElementById('g-queue');
   if(!b||!GROUP)return;
   const cur=(phase==='playing_g')?gQueue[gTurn]:null;
-  b.innerHTML=gTeams.map((t,i)=>`<div class="g-team${cur&&cur.team===t?' turn':''}"><div class="g-name">${esc(t)}</div><div class="g-score" id="g-s${i}">${gScores[t]||0}</div><div class="g-adj"><button class="sbt-adj-btn" onclick="adjScore(gTeams[${i}],-1)">−</button><button class="sbt-adj-btn" onclick="adjScore(gTeams[${i}],1)">+</button></div></div>`).join('');
+  b.innerHTML=gTeams.map((t,i)=>`<div class="g-team${cur&&cur.team===t?' turn':''}"><div class="guess-team-photos">${GuessTeams.avatars(t)}</div><div class="g-name">${esc(t)}</div><div class="g-score" id="g-s${i}">${gScores[t]||0}</div><div class="g-adj"><button class="sbt-adj-btn" onclick="adjScore(gTeams[${i}],-1)">−</button><button class="sbt-adj-btn" onclick="adjScore(gTeams[${i}],1)">+</button></div></div>`).join('');
   if(!document.getElementById('g-finish'))b.insertAdjacentHTML('afterend','<button id="g-finish" class="cta-btn" onclick="gFinishRound()">🏁 Finalizar ronda y publicar resultado</button>');
   if(q)q.innerHTML=gQueue.map((x,i)=>`<span class="g-chip${i===gTurn&&phase==='playing_g'?' now':(i<gTurn||(i===gTurn&&phase==='idle'))?' done':''}">${i+1}° ${esc(x.name)} · ${esc(x.team)}</span>`).join('');
 }
@@ -2163,7 +2165,7 @@ async function gFinishRound(){
   const result={game:'guess',byTeam,scores:Object.assign({},gScores),fixtureId:gFixtureId,ts:Date.now()};
   try{
     if(!fbDb)throw new Error('Sin conexión con Firebase');
-    await fbDb.ref('velada/guess/groupResult').set(result);
+    await fbDb.ref('velada/guess/groupResult').set(FirebaseTeamMaps.toWire(result));
     localStorage.setItem('guess_group_result',JSON.stringify(result));
     showToast('🏁 Resultado publicado. Cargalo desde el hub.');
   }catch(e){showToast('No se pudo publicar: '+e.message);}
@@ -2216,7 +2218,7 @@ function gMaybeStartTurn(){
 function gAdvance(timeout){
   if(phase!=='playing_g')return;
   const failed=gQueue[gTurn];
-  stopTimer();phase='idle';activeBuzzer=null;
+  stopTimer();phase='idle';activeBuzzer=null;timerLeft=timerDefault;syncTimerUI();
   if(failed)gPatch({verdict:{team:failed.team,name:failed.name,ok:false,pts:0,ts:Date.now()},turn:gTurn+1});
   if(gTurn+1<gQueue.length){
     showToast((timeout?'⏱ Se acabó el tiempo':'✗ Incorrecto')+' — sigue '+gQueue[gTurn+1].name,2600);
@@ -2373,7 +2375,7 @@ function syncPhaseUI(){
 
 // ─── CONDUCTOR: TIMER ────────────────────────────────────────────
 let timerDefault=15; // segundos configurables
-function startTimer(){if(timerActive)return;timerActive=true;document.getElementById('tbtn-start').style.display='none';document.getElementById('tbtn-stop').style.display='';document.getElementById('timer-display').classList.add('running');timerInterval=setInterval(()=>{timerLeft=Math.max(0,timerLeft-1);syncTimerUI();if(timerLeft<=5&&timerLeft>0)sfxTick();if(timerLeft<=0){stopTimer();sfxBuzz();if(navigator.vibrate)navigator.vibrate([80,40,80]);if(GROUP&&phase==='playing_g'){setTimeout(()=>gAdvance(true),0);return;}}sendState();},1000);sendState();}
+function startTimer(){if(timerActive)return;timerActive=true;document.getElementById('tbtn-start').style.display='none';document.getElementById('tbtn-stop').style.display='';document.getElementById('timer-display').classList.add('running');timerInterval=setInterval(()=>{timerLeft=Math.max(0,timerLeft-1);syncTimerUI();if(timerLeft<=5&&timerLeft>0)sfxTick();if(timerLeft<=0){stopTimer();sfxBuzz();if(navigator.vibrate)navigator.vibrate([80,40,80]);if(GROUP&&phase==='playing_g'){gAdvance(true);return;}if(!GROUP&&/^playing_[ab]$/.test(phase)){const failed=activeBuzzer;phase='idle';activeBuzzer=null;timerLeft=timerDefault;syncTimerUI();syncPhaseUI();fbOpenBuzzer(failed);sendState();return;}}sendState();},1000);sendState();}
 function stopTimer(){if(!timerActive&&!timerInterval)return;timerActive=false;if(timerInterval){clearInterval(timerInterval);timerInterval=null;}document.getElementById('tbtn-start').style.display='';document.getElementById('tbtn-stop').style.display='none';document.getElementById('timer-display').classList.remove('running','low');sendState();}
 function resetTimer(){stopTimer();timerLeft=timerDefault;syncTimerUI();sendState();}
 function adjTimer(d){timerDefault=Math.max(5,Math.min(120,timerDefault+d));stopTimer();timerLeft=timerDefault;syncTimerUI();sendState();showToast('⏱ Timer: '+timerDefault+'s');}

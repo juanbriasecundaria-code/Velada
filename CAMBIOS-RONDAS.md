@@ -37,3 +37,17 @@ Palabras a Tiempo inicia su conexión a la misma base de rondas del hub. El pozo
 Subir el proyecto completo, incluido index.html (buzzer), y recargar las pantallas de conductor, participantes y celulares. Los scripts actualizados incluyen una nueva versión en su URL para evitar usar copias en caché.
 
 Prueba del flujo: `node tests/integracion.cjs`. Usa las funciones reales del conductor y celular con una base simulada: cuenta regresiva, orden de tres equipos, rechazo de duplicados, rondas obsoletas, publicación de Guess e importación sin bloquear por una ronda previa. También renderiza el editor con el catálogo completo. Estas pruebas no reemplazan una comprobación con celulares conectados a Firebase en la web publicada.
+
+## Guess y 100 Argentinos: buzzer, participantes y JSON
+
+Se conservan los dos proyectos Firebase existentes. No se trasladan datos ni se cambian sus configuraciones: las rondas y buzzers siguen en guessmovie y las fotos se leen de cumple, documento ndj/photos, igual que ¿Quién lo dijo?.
+
+Las escrituras de Guess toleran que Firebase elimine los objetos vacíos. Los nombres de equipos con barras u otros caracteres se codifican únicamente en los mapas enviados a Realtime Database y se decodifican al recibirlos. Esto corrige tanto la publicación de cartas/puntajes para participantes como la carga de resultados de Guess y 100 Argentinos. Cada turno de Guess dispone de un contador nuevo de 15 segundos, incluido el segundo y el tercero.
+
+El marcador principal de 100 Argentinos muestra todos los grupos con controles de suma y resta. Al confirmar el cierre, se espera la publicación y el hub incorpora el resultado válido al fixture/ranking una sola vez; repetir una publicación reemplaza el aporte anterior.
+
+100 Argentinos inicia con el banco vacío. No incluye preguntas predefinidas ni un banco separado para la final. Cargá tus preguntas con Importar JSON; se conservan al recargar y la final usa ese mismo banco. La nueva versión no carga automáticamente el banco mezclado de versiones anteriores: reimportá el JSON que querés utilizar. Los datos locales anteriores se conservan en su clave original, sin usarse ni borrarse. “Vaciar banco importado” nunca restaura preguntas originales.
+
+Subir también team-maps.js, guess-teams.js y los HTML actualizados. Recargar el hub y ambas pantallas del juego con Ctrl+F5, y recargar el buzzer en los celulares.
+
+Pruebas: `node tests/turnos-banco.cjs` y `node tests/integracion.cjs`, además de las anteriores. Cubren objetos vacíos eliminados por Firebase, claves de equipos con / y otros caracteres, cartas y resultados publicados, cambio automático de turnos, puntaje/cierre del tercer grupo, fotos desde el proyecto correcto y persistencia de preguntas importadas. Se ejecutan con conexiones simuladas: la entrega no acredita una prueba en la web publicada.

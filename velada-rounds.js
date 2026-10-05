@@ -92,6 +92,7 @@
     let res=null;
     try{if(window._rtdb){const s=await window._rtdb.ref('argentinos/grupos/resultado').once('value');res=s.val();}}catch(e){}
     if(!res){try{res=JSON.parse(localStorage.getItem('cad_group_result')||'null');}catch(e){}}
+    res=FirebaseTeamMaps.fromWire(res);
     if(!res||!res.byGroup){showToast('ℹ️','Todavía no hay resultado: en 100 Argentinos cerrá la ronda y confirmá el podio.',false);return;}
     const rows=TEAMS.filter(t=>typeof res.byGroup[t]==='number').map(t=>({name:t,pts:res.byGroup[t]}));
     if(!rows.length){showToast('⚠️','Los grupos del resultado no coinciden con los equipos de la velada.',false);return;}

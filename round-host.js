@@ -9,7 +9,7 @@
         if(!loaded || (current&&current.fixture&&current.fixture.id)!==expected)return;
         if(match && (!match.active || !current?.fixture?.active))return;
         const next=Object.assign({},value);
-        if(current&&current.fixture){next.fixture=current.fixture;next.names=current.fixture.names;}
+        if(current&&current.fixture){next.fixture=current.fixture;next.names=current.fixture.names||{};}
         return next;
       },(err,committed,snap)=>{
         if(err && typeof showToast==='function')showToast('⚠️ No se pudo actualizar el juego: '+err.message);

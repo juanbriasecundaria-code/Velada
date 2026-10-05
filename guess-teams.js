@@ -38,11 +38,13 @@
       if(!root.firebase.firestore){
         await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script);});
       }
-      root.firebase.firestore().collection('ndj').doc('photos').onSnapshot(s=>{
+      const photosConfig={apiKey:'AIzaSyB-1B426OH2ZYKHT1n8VVzmv0h_10186Zo',authDomain:'cumple-598e7.firebaseapp.com',projectId:'cumple-598e7',storageBucket:'cumple-598e7.firebasestorage.app',messagingSenderId:'92890914103',appId:'1:92890914103:web:ab78f983eee410e6eb8eb2'};
+      let app;try{app=root.firebase.app('photos');}catch(e){app=root.firebase.initializeApp(photosConfig,'photos');}
+      app.firestore().collection('ndj').doc('photos').onSnapshot(s=>{
         if(!s.exists)return;
-        try{model.photos=JSON.parse(s.data().data||'{}');render(model.last||{});}catch(e){console.warn('Fotos de Guess inválidas',e);}
+        try{model.photos=JSON.parse(s.data().data||'{}');root.qldPhotos=model.photos;render(model.last||{});if(typeof gRenderBoard==='function' && typeof GROUP!=='undefined' && GROUP)gRenderBoard();}catch(e){console.warn('Fotos de Guess inválidas',e);}
       });
     })().catch(e=>console.warn('No se pudieron cargar las fotos de Guess',e));
   }
-  root.GuessTeams={setRoster,html,render,bind,setPhotos:photos=>{model.photos=photos||{};render(model.last||{});}};
+  root.GuessTeams={setRoster,html,render,bind,avatars:team=>String(team).split('/').map(n=>avatar(n.trim())).join(''),setPhotos:photos=>{model.photos=photos||{};render(model.last||{});}};
 })(typeof window==='undefined'?globalThis:window);

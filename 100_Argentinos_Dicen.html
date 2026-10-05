@@ -831,9 +831,9 @@ body.vb-clean .vb-peek { display: flex; }
   .gm-fin .mv button:disabled { opacity:0.25; }
   .gm-tie { font-size:11px; color:var(--gold); font-weight:700; text-align:center; }
 </style>
-<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="buzzer-rounds.js?v=20261005b"></script><script src="auto-live.js"></script>
-<script src="round-host.js?v=20261005b"></script>
-<script src="argentinos-rounds.js?v=20261005b"></script>
+<style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style><script src="team-maps.js?v=20261005c"></script><script src="buzzer-rounds.js?v=20261005b"></script><script src="auto-live.js"></script>
+<script src="round-host.js?v=20261005c"></script>
+<script src="argentinos-rounds.js?v=20261005c"></script>
 </head>
 <body>
 <div class="velada-bar"></div>
@@ -1185,8 +1185,8 @@ body.vb-clean .vb-peek { display: flex; }
 <div class="sheet-overlay" id="deck-overlay">
   <div class="comodin-sheet">
     <div class="sheet-title">✏️ Editar preguntas</div>
-    <div class="sheet-sub">Activá, desactivá o borrá las que ya están. Para agregar una nueva, completá la tarjeta: la pregunta y las respuestas en orden, de la más votada a la menos.</div>
-    <div class="deck-add-row qform-card">
+    <div class="sheet-sub">Activá, desactivá o borrá las que ya están. Las preguntas nuevas se cargan exclusivamente con Importar JSON.</div>
+    <div class="deck-add-row qform-card" hidden style="display:none">
       <input id="qform-q" class="deck-add-input" placeholder="Pregunta (ej: Una fruta)">
       <div class="qform-answers" id="qform-answers"></div>
       <button class="deck-add-btn qform-add-ans-btn" onclick="qformAddAnswerRow()">+ Agregar respuesta</button>
@@ -1195,7 +1195,7 @@ body.vb-clean .vb-peek { display: flex; }
     <div class="deck-list" id="deck-list"></div>
     <input type="file" id="bank-import-input" accept="application/json,.json" style="display:none" onchange="importBankFile(event)">
     <div class="deck-footer" style="flex-wrap:wrap">
-      <button class="sheet-cancel deck-restore" onclick="restoreBank()">Restaurar originales</button>
+      <button class="sheet-cancel deck-restore" onclick="restoreBank()">Vaciar banco importado</button>
       <button class="sheet-cancel deck-restore" onclick="exportBank()">⬇️ Exportar JSON</button>
       <button class="sheet-cancel deck-restore" onclick="document.getElementById('bank-import-input').click()">⬆️ Importar JSON</button>
       <button class="btn-primary deck-done" onclick="closeDeckEditor()">Listo</button>
@@ -1291,159 +1291,15 @@ body.vb-clean .vb-peek { display: flex; }
 <script>
 // ── BANCO DE PREGUNTAS ──
 // cat: '🏠 Cotidiano' | '🇦🇷 Argentina' | '⚽ Fútbol' | '🍕 Comida' | '🎬 Pop'
-const DEFAULT_BANK = [
-  // ── 🏠 COTIDIANO ──
-  { cat:'🏠 Cotidiano', q: 'Algo que hacés apenas te despertás', a: [['Ir al baño',28],['Tomar mate o café',25],['Mirar el celular',22],['Lavarte los dientes',14],['Desayunar',11]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que siempre tenés en la heladera', a: [['Leche',24],['Huevos',20],['Manteca',16],['Agua / gaseosa',15],['Queso',14],['Verdura',11]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que perdés siempre', a: [['Las llaves',32],['El celular',24],['El control remoto',18],['Los anteojos',14],['La billetera',12]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que da miedo', a: [['Arañas',26],['La oscuridad',22],['Fantasmas',18],['Las alturas',18],['Víboras',16]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hacés cuando llueve', a: [['Quedarte en casa',30],['Mirar series',24],['Dormir',20],['Tomar mate',16],['Tomar sopa',10]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que se rompe fácil', a: [['Un vaso',30],['El celular',24],['Un plato',20],['Un foco',14],['Un juguete',12]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hacés un domingo a la tarde', a: [['Dormir la siesta',28],['Mirar fútbol',22],['Asado',18],['Salir a pasear',16],['Nada',16]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que tarda en cargar', a: [['El celular',34],['La compu',24],['La página web',18],['Un video',14],['La batería del auto',10]] },
-  { cat:'🏠 Cotidiano', q: 'Una excusa para no estudiar', a: [['Mañana lo hago',30],['Me distraje con el celu',24],['Estoy cansado',20],['No tengo ganas',16],['Después arranco',10]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hacés cuando no podés dormir', a: [['Mirar el celular',34],['Dar vueltas en la cama',24],['Tomar algo',16],['Contar ovejas',14],['Levantarte',12]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que se ensucia rápido', a: [['La ropa blanca',28],['Las zapatillas',24],['El piso',18],['Las manos',16],['El auto',14]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hacés en la ducha', a: [['Cantar',30],['Pensar',24],['Lavarte el pelo',18],['Relajarte',16],['Perder la noción del tiempo',12]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que prestás y nunca te devuelven', a: [['Plata',34],['Un libro',22],['Ropa',16],['Herramientas',16],['El cargador',12]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que decís cuando te enojás manejando', a: [['Una puteada',38],['Bocinazo',26],['"¡Andá a...!"',18],['Gesto con la mano',10],['Nada, me aguanto',8]] },
-  { cat:'🏠 Cotidiano', q: 'Una excusa para llegar tarde al trabajo', a: [['El tránsito',34],['Se cortó el transporte',24],['Me quedé dormido',20],['El despertador no sonó',12],['Tema familiar',10]] },
-  { cat:'🏠 Cotidiano', q: 'Una excusa para no ir a una fiesta', a: [['Estoy cansado',30],['Tengo que trabajar',24],['Me siento mal',20],['No tengo plata',14],['Tema familiar',12]] },
-  { cat:'🏠 Cotidiano', q: 'Un trabajo peligroso', a: [['Bombero',30],['Policía',24],['Albañil',18],['Electricista',16],['Minero',12]] },
-  { cat:'🏠 Cotidiano', q: 'Un apodo cariñoso', a: [['Amor',28],['Gordo/a',24],['Mi vida',18],['Cariño',14],['Bebé',10],['Tesoro',6]] },
-  { cat:'🏠 Cotidiano', q: 'Una profesión de la salud', a: [['Médico',36],['Enfermero',24],['Dentista',18],['Psicólogo',12],['Kinesiólogo',10]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hay en una oficina', a: [['Computadora',28],['Escritorio',22],['Sillas',18],['Impresora',16],['Café',10],['Papeles',6]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que regalás para un cumpleaños', a: [['Ropa',24],['Plata',22],['Un perfume',18],['Algo tecnológico',16],['Un juguete',12],['Un libro',8]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que tenés en el auto', a: [['Documentos',24],['Mate',20],['Cargador',18],['Matafuego',16],['Música',12],['Basura',10]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que tiene un auto', a: [['Volante',26],['Ruedas',22],['Motor',18],['Espejos',16],['Asientos',10],['Bocina',8]] },
-  { cat:'🏠 Cotidiano', q: 'Un electrodoméstico', a: [['Heladera',26],['Lavarropas',22],['Microondas',18],['Licuadora',14],['Tostadora',12],['Batidora',8]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hay en un baño', a: [['Inodoro',26],['Ducha',22],['Espejo',18],['Toalla',14],['Papel higiénico',12],['Jabón',8]] },
-  { cat:'🏠 Cotidiano', q: 'Una parte de la casa', a: [['Cocina',26],['Baño',22],['Dormitorio',20],['Living',18],['Cochera',14]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hace ruido', a: [['Bocina',26],['Despertador',22],['Sirena',20],['Perro',18],['Bebé llorando',14]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que se infla', a: [['Globo',34],['Una pelota',24],['La rueda del auto',18],['Colchoneta',14],['Salvavidas',10]] },
-  { cat:'🏠 Cotidiano', q: 'Un animal de mascota', a: [['Perro',42],['Gato',30],['Pez',10],['Tortuga',8],['Pájaro',6],['Hámster',4]] },
-  { cat:'🏠 Cotidiano', q: 'Un animal que hace ruido de noche', a: [['Perro',30],['Gato',24],['Grillo',18],['Gallo',14],['Sapo',8],['Búho',6]] },
-  { cat:'🏠 Cotidiano', q: 'Una fobia común', a: [['A las arañas',26],['A las alturas',24],['A los lugares cerrados',18],['A las víboras',16],['A volar',16]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que da asco', a: [['Las cucarachas',28],['Una rata',22],['El olor a podrido',18],['El vómito',18],['La mugre',14]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hay en una plaza', a: [['Juegos / hamacas',28],['Bancos',22],['Árboles',20],['Perros',16],['Una fuente',14]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que tiene ruedas', a: [['Auto',34],['Bicicleta',24],['Moto',18],['Camión',14],['Skate',10]] },
-  { cat:'🏠 Cotidiano', q: 'Un color', a: [['Rojo',24],['Azul',22],['Verde',18],['Negro',14],['Amarillo',12],['Blanco',10]] },
-  { cat:'🏠 Cotidiano', q: 'Un mes del año', a: [['Diciembre',24],['Enero',22],['Julio',16],['Mayo',14],['Septiembre',12],['Marzo',12]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que llevás al colegio', a: [['Mochila',30],['Cuadernos',24],['Cartuchera',20],['Vianda',16],['Útiles',10]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que encontrás en una cartera', a: [['Maquillaje',24],['Celular',22],['Llaves',18],['Billetera',16],['Pañuelos',12],['Caramelos',8]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que llevás a la playa', a: [['Sombrilla',26],['Protector solar',23],['Mate',19],['Reposera',16],['Pelota',9],['Heladerita',7]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hacés en vacaciones', a: [['Ir a la playa',26],['Descansar',22],['Viajar',20],['Pileta',18],['Dormir',14]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hacés cuando salís de joda', a: [['Bailar',30],['Tomar',26],['Cantar',18],['Reírte',16],['Sacarte fotos',10]] },
-  { cat:'🏠 Cotidiano', q: 'Algo típico de un cumpleaños infantil', a: [['Torta',30],['Globos',22],['Piñata',18],['Sorpresitas',16],['Payaso',14]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hacés en Año Nuevo', a: [['Brindar',28],['Fuegos artificiales',24],['Comer',18],['Abrazar a todos',16],['Pedir deseos',14]] },
-  { cat:'🏠 Cotidiano', q: 'Un feriado argentino', a: [['Navidad',28],['Año Nuevo',24],['9 de Julio',20],['25 de Mayo',16],['Día de la Madre',12]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que siempre se olvida al salir de casa', a: [['Las llaves',34],['El celular',28],['La billetera',18],['El cargador',12],['Los auriculares',8]] },
-  { cat:'🏠 Cotidiano', q: 'Un motivo para no atender el teléfono', a: [['Estaba ocupado',30],['No escuché',26],['Era un número desconocido',18],['Estaba manejando',14],['No quería hablar',12]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que no falta en una fiesta', a: [['Música',30],['Alcohol',26],['Comida',20],['Gente conocida',14],['Baile',10]] },
-  { cat:'🏠 Cotidiano', q: 'Un regalo que no querés recibir', a: [['Ropa que no va',28],['Un libro aburrido',22],['Algo de cocina',18],['Una vela',16],['Perfume barato',12],['Nada',4]] },
-  { cat:'🏠 Cotidiano', q: 'Algo que hacés cuando estás aburrido', a: [['Mirar el celular',34],['Ver tele',22],['Dormir',18],['Escuchar música',12],['Comer',8],['Salir a caminar',6]] },
-  { cat:'🏠 Cotidiano', q: 'Un animal peligroso', a: [['Víbora',28],['León',24],['Tiburón',18],['Araña',14],['Cocodrilo',10],['Toro',6]] },
-  // ── 🇦🇷 ARGENTINA ──
-  { cat:'🇦🇷 Argentina', q: 'Algo que no puede faltar en un asado', a: [['Chorizo / achuras',30],['Vino o Fernet',24],['Amigos / familia',18],['Ensalada',15],['Pan',13]] },
-  { cat:'🇦🇷 Argentina', q: 'Una cosa típica argentina', a: [['El mate',30],['El asado',24],['El dulce de leche',18],['El tango',14],['El fútbol',8],['El Fernet',6]] },
-  { cat:'🇦🇷 Argentina', q: 'Una palabra muy argentina', a: [['Che',34],['Boludo',28],['Posta',14],['Quilombo',14],['Laburo',10]] },
-  { cat:'🇦🇷 Argentina', q: 'Una marca de cerveza', a: [['Quilmes',40],['Brahma',20],['Stella Artois',16],['Heineken',14],['Andes',10]] },
-  { cat:'🇦🇷 Argentina', q: 'Una pizza que pedís siempre', a: [['Muzzarella',38],['Napolitana',20],['Fugazzeta',16],['Especial',12],['Calabresa',8],['Jamón y morrón',6]] },
-  { cat:'🇦🇷 Argentina', q: 'Algo que llevás a la cancha', a: [['La camiseta',32],['Bandera',22],['Bombo',18],['Termo y mate',16],['La radio',12]] },
-  { cat:'🇦🇷 Argentina', q: 'Una bebida caliente', a: [['Mate',38],['Café',26],['Té',18],['Café con leche',10],['Chocolate caliente',8]] },
-  { cat:'🇦🇷 Argentina', q: 'Algo que pedís en un bar', a: [['Cerveza',32],['Fernet',24],['Café',18],['Vino',14],['Gaseosa',12]] },
-  { cat:'🇦🇷 Argentina', q: 'Una marca de gaseosa', a: [['Coca-Cola',45],['Sprite',18],['Pepsi',16],['Fanta',13],['Manaos',8]] },
-  { cat:'🇦🇷 Argentina', q: 'Un postre argentino', a: [['Flan',24],['Queso y dulce',20],['Panqueque con dulce de leche',18],['Helado',16],['Budín',12],['Arroz con leche',10]] },
-  { cat:'🇦🇷 Argentina', q: 'Una provincia argentina', a: [['Buenos Aires',30],['Córdoba',22],['Santa Fe',16],['Mendoza',14],['Tucumán',10],['Salta',8]] },
-  { cat:'🇦🇷 Argentina', q: 'Una frase que dice todo argentino', a: [['¡La puta madre!',26],['Che boludo',22],['¿Cómo andás?',18],['Dale',16],['¡Qué quilombo!',10],['Re copado',8]] },
-  { cat:'🇦🇷 Argentina', q: 'Algo que los argentinos discuten siempre', a: [['El fútbol',34],['La política',28],['La economía',18],['Boca o River',12],['El dólar',8]] },
-  { cat:'🇦🇷 Argentina', q: 'Un personaje histórico argentino', a: [['San Martín',34],['Evita',26],['Sarmiento',16],['Belgrano',14],['Maradona',10]] },
-  { cat:'🇦🇷 Argentina', q: 'Un relleno de empanada', a: [['Carne cortada a cuchillo',32],['Pollo',22],['Jamón y queso',18],['Humita',14],['Verdura',8],['Caprese',6]] },
-  { cat:'🇦🇷 Argentina', q: 'Un sabor de alfajor', a: [['Dulce de leche',42],['Mousse de chocolate',24],['Fruta',14],['Menta',10],['Maicena con glaseado',10]] },
-  { cat:'🇦🇷 Argentina', q: 'Algo que simboliza a Argentina en el mundo', a: [['El tango',28],['El fútbol / Messi',26],['El mate',20],['La Patagonia',14],['El dulce de leche',8],['El asado',4]] },
-  // ── ⚽ FÚTBOL ──
-  { cat:'⚽ Fútbol', q: 'Un equipo de fútbol argentino', a: [['Boca',32],['River',30],['Independiente',12],['Racing',11],['San Lorenzo',9],['Vélez',6]] },
-  { cat:'⚽ Fútbol', q: 'Cómo le decís a alguien que juega mal al fútbol', a: [['Burro',30],['Patadura',24],['Perro',18],['Muerto',16],['Queso',12]] },
-  { cat:'⚽ Fútbol', q: 'Cómo festejás un gol', a: [['Gritarlo',34],['Saltar',24],['Abrazar a alguien',18],['Sacarte la remera',14],['Putear',10]] },
-  { cat:'⚽ Fútbol', q: 'Un jugador de fútbol argentino histórico', a: [['Maradona',40],['Messi',30],['Kempes',10],['Batistuta',10],['Riquelme',6],['Ortega',4]] },
-  { cat:'⚽ Fútbol', q: 'Algo que pasa en un partido de fútbol', a: [['Un gol',28],['Un penal',22],['Una tarjeta roja',18],['Un offside',16],['Un lesionado',10],['Un festejo',6]] },
-  { cat:'⚽ Fútbol', q: 'Algo que hacés si tu equipo pierde', a: [['Te enojás',30],['Retás al árbitro',24],['Llorás',18],['No hablás con nadie',16],['Te resignás',12]] },
-  { cat:'⚽ Fútbol', q: 'Una posición en el fútbol', a: [['Delantero',28],['Arquero',24],['Defensor',18],['Mediocampista',16],['Lateral',10],['9',4]] },
-  { cat:'⚽ Fútbol', q: 'Lo que más te molesta de un árbitro', a: [['Que cobre penal',30],['Que saque tarjeta roja',26],['Que no vea la falta',20],['Que pare el juego',14],['Que hable de más',10]] },
-  { cat:'⚽ Fútbol', q: 'Algo que hace un hincha en la cancha', a: [['Cantá',30],['Grita',26],['Tira papelitos',18],['Insulta al árbitro',14],['Llora',8],['Saca la bandera',4]] },
-  // ── 🍕 COMIDA ──
-  { cat:'🍕 Comida', q: 'Nombrá una fruta', a: [['Manzana',26],['Banana',22],['Naranja',17],['Frutilla',13],['Pera',11],['Uva',11]] },
-  { cat:'🍕 Comida', q: 'Una verdura', a: [['Papa',24],['Tomate',20],['Lechuga',16],['Cebolla',14],['Zanahoria',14],['Zapallo',12]] },
-  { cat:'🍕 Comida', q: 'Una comida rápida', a: [['Hamburguesa',28],['Pizza',26],['Pancho',18],['Empanadas',16],['Lomito',12]] },
-  { cat:'🍕 Comida', q: 'Algo dulce', a: [['Chocolate',28],['Dulce de leche',22],['Caramelo',18],['Torta',18],['Helado',14]] },
-  { cat:'🍕 Comida', q: 'Algo que se come con la mano', a: [['Pizza',24],['Empanada',22],['Hamburguesa',18],['Pancho',16],['Sándwich',12],['Asado',8]] },
-  { cat:'🍕 Comida', q: 'Algo que pedís en un kiosco', a: [['Cigarrillos',26],['Golosinas',24],['Gaseosa',20],['Alfajor',18],['Chicles',12]] },
-  { cat:'🍕 Comida', q: 'Algo que comprás en la verdulería', a: [['Tomate',22],['Papa',20],['Lechuga',18],['Cebolla',16],['Banana',14],['Manzana',10]] },
-  { cat:'🍕 Comida', q: 'Un sabor de helado', a: [['Dulce de leche',34],['Chocolate',24],['Frutilla',16],['Vainilla',12],['Limón',8],['Menta granizada',6]] },
-  { cat:'🍕 Comida', q: 'Algo que tomás con hielo', a: [['Fernet con cola',28],['Cerveza',24],['Gaseosa',18],['Vino',14],['Agua',10],['Whisky',6]] },
-  { cat:'🍕 Comida', q: 'Una salsa que usás en el asado', a: [['Chimichurri',40],['Salsa criolla',28],['Mostaza',14],['Ketchup',10],['Mayonesa',8]] },
-  { cat:'🍕 Comida', q: 'Algo que le ponés a la pasta', a: [['Tuco / salsa de tomate',30],['Estofado',22],['Crema',18],['Pesto',14],['Manteca',10],['Fileto',6]] },
-  { cat:'🍕 Comida', q: 'Un tipo de pasta', a: [['Fideos',28],['Ñoquis',22],['Ravioles',18],['Tallarines',16],['Canelones',10],['Lasagna',6]] },
-  { cat:'🍕 Comida', q: 'Algo que cocinás cuando no sabés qué hacer', a: [['Huevos fritos',28],['Pasta',24],['Arroz',18],['Una milanesa',16],['Tostadas',8],['Un sándwich',6]] },
-  { cat:'🍕 Comida', q: 'Una marca de golosina argentina', a: [['Milka',28],['Garoto',18],['Arcor',16],['Bon o Bon',14],['Shot',12],['Mogul',12]] },
-  // ── 🎬 POP ──
-  { cat:'🎬 Pop', q: 'Un superhéroe', a: [['Superman',28],['Batman',26],['Spiderman',22],['Hulk',14],['Iron Man',10]] },
-  { cat:'🎬 Pop', q: 'Una red social', a: [['Instagram',32],['WhatsApp',26],['TikTok',18],['Facebook',14],['X (Twitter)',10]] },
-  { cat:'🎬 Pop', q: 'Un dibujo animado', a: [['Bob Esponja',30],['Los Simpson',24],['Mickey',18],['Pikachu',16],['Tom y Jerry',12]] },
-  { cat:'🎬 Pop', q: 'Un instrumento musical', a: [['Guitarra',34],['Piano',22],['Batería',18],['Violín',16],['Flauta',10]] },
-  { cat:'🎬 Pop', q: 'Algo que hay en el celular', a: [['Apps',24],['Fotos',22],['WhatsApp',20],['Música',16],['Juegos',10],['Contactos',8]] },
-  { cat:'🎬 Pop', q: 'Una serie que todo el mundo vio', a: [['Breaking Bad',24],['Stranger Things',22],['Game of Thrones',20],['La Casa de Papel',18],['Friends',10],['Narcos',6]] },
-  { cat:'🎬 Pop', q: 'Un tipo de película que te gusta', a: [['De acción',28],['De terror',22],['Comedia',20],['Romántica',14],['Animada',10],['De suspenso',6]] },
-  { cat:'🎬 Pop', q: 'Un cantante o banda argentina', a: [['Soda Stereo',26],['Los Redondos',22],['Miranda!',16],['Wos',14],['Abel Pintos',12],['Los Palmeras',10]] },
-  { cat:'🎬 Pop', q: 'Un personaje de videojuego', a: [['Mario',32],['Sonic',22],['Link (Zelda)',16],['Pikachu',14],['Lara Croft',8],['Master Chief',8]] },
-  { cat:'🎬 Pop', q: 'Una canción que todo el mundo conoce', a: [['Bohemian Rhapsody',22],['Despacito',20],['Thriller',18],['La Bamba',14],["Don't Stop Believin'",10],['Macarena',10],['Shape of You',6]] },
-  { cat:'🎬 Pop', q: 'Un programa de televisión argentino', a: [['Showmatch / Bailando',28],['Gran Hermano',26],['El Noticiero',16],['MasterChef',14],['La Peña de Morfi',10],['80 Millones',6]] },
-  { cat:'🎬 Pop', q: 'Algo que se filma en una película de acción', a: [['Una persecución en auto',28],['Una explosión',24],['Una pelea',18],['Un disparo',16],['Una huida',10],['Un héroe en moto',4]] },
-]
-
-// ── BANCO EXCLUSIVO RONDA FINAL ──
-// Preguntas distintas a las del juego principal, pensadas para respuesta rápida individual
-const FM_BANK = [
-  { q: 'Nombrá una capital del mundo',        a: [['París',28],['Madrid',22],['Londres',18],['Roma',16],['Tokio',10],['Buenos Aires',6]] },
-  { q: 'Un número de la suerte',               a: [['7',42],['3',18],['13',14],['11',12],['21',8],['4',6]] },
-  { q: 'Una película de Disney',               a: [['El Rey León',30],['Frozen',26],['Toy Story',20],['Cenicienta',12],['Moana',8],['Enredados',4]] },
-  { q: 'Algo que ves en el cielo',             a: [['Nubes',30],['El sol',26],['Estrellas',20],['La luna',14],['Avión',6],['Arcoíris',4]] },
-  { q: 'Un deporte olímpico',                  a: [['Natación',28],['Atletismo',24],['Gimnasia',18],['Fútbol',14],['Tenis',10],['Básquet',6]] },
-  { q: 'Algo que hacés antes de dormir',       a: [['Lavarte los dientes',30],['Mirar el celular',26],['Leer',18],['Mirar tele',14],['Tomar agua',8],['Rezar',4]] },
-  { q: 'Una cosa que encontrás en la cocina',  a: [['La heladera',28],['El horno',22],['Una olla',18],['El microondas',16],['Un cuchillo',10],['La licuadora',6]] },
-  { q: 'Un animal salvaje',                    a: [['León',30],['Tigre',24],['Elefante',18],['Gorila',12],['Lobo',10],['Cocodrilo',6]] },
-  { q: 'Algo que hacés en la playa',           a: [['Nadar',30],['Tomar sol',26],['Jugar con la pelota',18],['Comer',12],['Caminar',8],['Leer',6]] },
-  { q: 'Un tipo de música',                    a: [['Cumbia',28],['Rock',24],['Pop',18],['Reggaeton',16],['Cuarteto',8],['Tango',6]] },
-  { q: 'Una marca de zapatillas',              a: [['Nike',38],['Adidas',30],['Puma',12],['Topper',10],['Reebok',6],['Converse',4]] },
-  { q: 'Algo que hacés cuando estás aburrido', a: [['Mirar el celular',34],['Ver tele',22],['Dormir',18],['Escuchar música',12],['Comer',8],['Salir a caminar',6]] },
-  { q: 'Una materia de la escuela',            a: [['Matemática',30],['Lengua',24],['Historia',18],['Educación Física',14],['Geografía',8],['Inglés',6]] },
-  { q: 'Algo que comprás en la farmacia',      a: [['Remedios',34],['Ibuprofeno',22],['Shampoo',16],['Preservativos',12],['Vitaminas',10],['Anticonceptivos',6]] },
-  { q: 'Un personaje de Mafalda',              a: [['Mafalda',34],['Felipe',24],['Susanita',18],['Manolito',12],['Miguelito',8],['Libertad',4]] },
-  { q: 'Algo que usás todos los días',         a: [['El celular',40],['El cepillo de dientes',22],['La ropa',18],['Shampoo',10],['El transporte',6],['Los lentes',4]] },
-  { q: 'Un país de Europa',                    a: [['España',30],['Italia',24],['Francia',20],['Alemania',14],['Portugal',8],['Inglaterra',4]] },
-  { q: 'Algo que te ponés en los pies',        a: [['Medias',34],['Zapatillas',26],['Chinelas',18],['Botas',12],['Ojotas',6],['Zapatos',4]] },
-  { q: 'Una cosa que tiene pantalla',          a: [['El celular',36],['La tele',28],['La computadora',18],['La tablet',10],['El microondas',4],['El GPS',4]] },
-  { q: 'Algo que hacés cuando estás nervioso', a: [['Morderme las uñas',28],['Transpirar',22],['Hablar mucho',18],['Comer',14],['Moverme',10],['Reírme',8]] },
-  { q: 'Una parte del cuerpo',                  a: [['Brazo',24],['Pierna',22],['Mano',18],['Cabeza',16],['Pie',12],['Ojo',8]] },
-  { q: 'Una flor',                              a: [['Rosa',40],['Margarita',20],['Girasol',16],['Tulipán',12],['Clavel',8],['Jazmín',4]] },
-  { q: 'Un planeta',                            a: [['Marte',28],['Júpiter',22],['Saturno',18],['Venus',14],['Mercurio',10],['Neptuno',8]] },
-  { q: 'Una fruta de color rojo',               a: [['Frutilla',30],['Manzana',26],['Sandía',18],['Cereza',14],['Frambuesa',8],['Granada',4]] },
-  { q: 'Un medio de transporte',                a: [['Auto',28],['Colectivo',24],['Tren',18],['Avión',14],['Bici',10],['Moto',6]] },
-  { q: 'Un idioma',                             a: [['Inglés',34],['Español',22],['Portugués',16],['Francés',12],['Italiano',10],['Chino',6]] },
-  { q: 'Un día festivo',                        a: [['Navidad',32],['Año Nuevo',26],['Pascua',16],['Día del Niño',14],['Halloween',8],['Reyes',4]] },
-  { q: 'Una profesión',                         a: [['Médico',24],['Maestro',20],['Abogado',16],['Ingeniero',14],['Policía',14],['Bombero',12]] },
-  { q: 'Algo de color amarillo',                a: [['El sol',30],['Una banana',24],['Un limón',18],['Un taxi',14],['Un pollito',8],['El oro',6]] },
-  { q: 'Un sabor de helado',                    a: [['Dulce de leche',34],['Chocolate',24],['Frutilla',16],['Vainilla',12],['Limón',8],['Menta granizada',6]] },
-  { q: 'Un deporte con pelota',                 a: [['Fútbol',38],['Básquet',20],['Tenis',16],['Vóley',12],['Handball',8],['Rugby',6]] },
-];
-
+// No hay preguntas precargadas: el banco se alimenta exclusivamente por JSON.
 function normBankItem(item) {
   const ans = (item.a || []).map(x => Array.isArray(x) ? { t: String(x[0]), v: +x[1] || 0 } : { t: String(x.t), v: +x.v || 0 });
   ans.sort((p, n) => n.v - p.v);
-  return { q: String(item.q), a: ans, enabled: item.enabled !== false };
+  if(typeof item.q!=='string' || !item.q.trim())throw new Error('Pregunta sin texto');
+  return { q: item.q.trim(), a: ans.filter(x=>x.t.trim()), enabled: item.enabled !== false, ...(typeof item.cat==='string'?{cat:item.cat}:{}) };
 }
 
-const SK_BANK  = 'cad_bank';
+const SK_BANK  = 'cad_bank_imported_v1';
 const SK_USED  = 'cad_used';
 const SK_SCORE = 'cad_score';
 const SK_NAMES = 'cad_names';
@@ -1487,23 +1343,8 @@ let varPendingValid = false;
 let winState = null;   // {team} cuando hay campeón (para sincronizar al TV)
 
 // ── PERSISTENCIA ──
-function loadBank() {
-  try {
-    const d = localStorage.getItem(SK_BANK);
-    if (d) { const arr = JSON.parse(d); if (Array.isArray(arr) && arr.length) { bank = arr.map(normBankItem).filter(x => x.q && x.a.length); mergeNewDefaults(); return; } }
-  } catch (e) {}
-  bank = DEFAULT_BANK.map(normBankItem);
-}
-// Incorpora preguntas nuevas del banco por defecto que todavía no estén en el banco guardado,
-// sin pisar las preguntas propias ni los activados/desactivados del usuario.
-function mergeNewDefaults() {
-  const have = new Set(bank.map(c => c.q));
-  let added = 0;
-  DEFAULT_BANK.forEach(item => {
-    const norm = normBankItem(item);
-    if (!have.has(norm.q)) { bank.push(norm); have.add(norm.q); added++; }
-  });
-  if (added > 0) saveBank();
+function loadBank(){
+  bank=[];try{const arr=JSON.parse(localStorage.getItem(SK_BANK)||'[]');if(Array.isArray(arr))bank=arr.map(normBankItem).filter(x=>x.q&&x.a.length);}catch(e){}
 }
 function saveBank() { try { localStorage.setItem(SK_BANK, JSON.stringify(bank)); } catch (e) {} }
 function activeBank() { return bank.filter(c => c.enabled); }
@@ -1911,11 +1752,19 @@ function gmNamesEdited() {
   });
   gmSave(); gmRender();
 }
+function gmAdjustScore(index,delta){
+  if(!gm?.teams[index])return;gm.scores[index]=Math.max(0,(gm.scores[index]||0)+delta);gm.finished=false;gm.result=null;
+  Object.entries(gm.cur||{}).forEach(([side,i])=>{if(i===index)score[side]=gm.scores[index];});
+  gmSave();saveScore();syncScoreUI();gmRender();writeSync();
+}
 function gmRender() {
   const strip = document.getElementById('gm-strip'), btn = document.getElementById('gm-open-btn');
   if (btn) btn.textContent = gm ? '🧩 grupos (' + gm.teams.length + ')' : '🧩 grupos';
   if (!strip) return;
-  if (!gm) { strip.classList.remove('on'); strip.innerHTML = ''; return; }
+  const board=document.getElementById('scoreboard');
+  if(board && !window._cadPairScoreboard)window._cadPairScoreboard=board.innerHTML;
+  if (!gm) { strip.classList.remove('on'); strip.innerHTML = '';if(board&&window._cadGroupBoard){board.innerHTML=window._cadPairScoreboard;window._cadGroupBoard=false;syncScoreUI();}return; }
+  if(board){window._cadGroupBoard=true;board.style.flexWrap='wrap';board.innerHTML=gm.teams.map((t,i)=>{const side=Object.keys(gm.cur||{}).find(s=>gm.cur[s]===i);return `<div class="sb-team" style="flex:1 1 140px;border-color:${TEAM_COLORS[SLOTS[i]]||'#c8f060'}"><div class="sb-name" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div><div class="sb-score" id="${side?'sb-score-'+side:'gm-score-'+i}">${gm.scores[i]||0}</div><div class="sb-adj"><button onclick="gmAdjustScore(${i},-1)">−</button><button class="sb-plus" onclick="gmAdjustScore(${i},1)">+1</button></div></div>`;}).join('');}
   const cur = gm.cur || {};
   strip.innerHTML = gm.teams.map((t, i) =>
     `<span class="gm-chip${Object.values(cur).includes(i) ? ' cur' : ''}">${escapeHtml(t.name)} <b>${gm.scores[i] || 0}</b></span>`).join('') +
@@ -1963,6 +1812,8 @@ function gmRenderFinal() {
   document.getElementById('gm-final-tie').textContent = tie ? '⚖️ Hay empate en rondas ganadas: desempatá con las flechas ▲▼ antes de confirmar.' : '';
 }
 async function gmConfirmFinal() {
+  if(!fbDb)initFirebase();
+  if(!fbDb){showToast('Sin conexión: no se publicó el resultado. Reconectá y volvé a confirmar.',4500);return;}
   const n = _gmOrder.length;
   const teams = _gmOrder.map((t, pos) => {
     const tm = gm.teams[t], groups = tm.origs.map(i => gm.origs[i].label);
@@ -1972,10 +1823,10 @@ async function gmConfirmFinal() {
   const byGroup = {}, byMember = {};
   teams.forEach(t => { t.groups.forEach(g => { byGroup[g] = t.pts; }); t.members.forEach(m => { byMember[m] = t.pts; }); });
   const result = { fixtureId: window.currentFixtureMatch?.()?.id || null, ts: Date.now(), game: 'argentinos', mode: 'grupos', teams, byGroup, byMember };
-  gm.finished = true; gm.result = result; gmSave();
-  try { localStorage.setItem('cad_group_result', JSON.stringify(result)); } catch (e) {}
   let sent = false;
-  if (fbDb) { try { await fbDb.ref('argentinos/grupos/resultado').set(result); sent = true; } catch (e) {showToast('No se pudo publicar: '+e.message,4000);return;} }
+  if (fbDb) { try { await fbDb.ref('argentinos/grupos/resultado').set(FirebaseTeamMaps.toWire(result)); sent = true; } catch (e) {showToast('No se pudo publicar: '+e.message,4000);return;} }
+  gm.finished=true;gm.result=result;gmSave();
+  try{localStorage.setItem('cad_group_result',JSON.stringify(result));}catch(e){}
   gmCloseFinal();
   showToast((sent ? '🏁 Puntos publicados: ' : '🏁 Puntos calculados (sin conexión): ') + teams.map(t => t.name + ' +' + t.pts).join(' · '), 5200);
 }
@@ -2785,7 +2636,7 @@ function kbBlockingOverlayOpen() {
 }
 
 document.addEventListener('keydown', function (e) {
-  if (MODE !== 'conductor') return;
+  if (MODE !== 'conductor' && MODE !== 'local') return;
   if (kbIsTypingTarget(e.target)) return;
   const k = e.key;
 
@@ -2921,21 +2772,10 @@ function qformRemoveAnswer(i) {
   _qform.answers.splice(i, 1);
   qformRenderAnswers();
 }
-function qformSubmit() {
-  const qInput = document.getElementById('qform-q');
-  const q = ((qInput && qInput.value) || '').trim();
-  const a = _qform.answers
-    .map(x => ({ t: (x.t || '').trim(), v: parseInt(x.v, 10) || 0 }))
-    .filter(x => x.t);
-  if (!q || a.length < 2) { alert('Falta la pregunta o hay menos de 2 respuestas con texto.'); return; }
-  bank.push(normBankItem({ q, a, enabled: true }));
-  saveBank(); renderDeckList(); qformReset();
-  const list = document.getElementById('deck-list'); if (list) list.scrollTop = list.scrollHeight;
-}
+function qformSubmit(){alert('Cargá las preguntas desde Importar JSON.');}
 qformReset();
-function restoreBank() {
-  if (!confirm('¿Restaurar las preguntas originales? Se pierden tus cambios y las agregadas.')) return;
-  bank = DEFAULT_BANK.map(normBankItem); saveBank(); renderDeckList();
+function restoreBank(){
+  if(!confirm('¿Vaciar el banco de preguntas importadas?'))return;bank=[];saveBank();renderDeckList();syncUI();
 }
 
 // ── EXPORTAR / IMPORTAR BANCO (JSON) ──
@@ -2995,8 +2835,8 @@ function importBankFile(event) {
       });
       alert(`Se agregaron ${added} pregunta(s) nueva(s).`);
     }
-    saveBank();
-    renderDeckList();
+    usedQ=new Set();saveUsed();saveBank();
+    renderDeckList();syncUI();
   };
   reader.onerror = () => alert('No se pudo leer el archivo.');
   reader.readAsText(file, 'utf-8');
@@ -3231,7 +3071,7 @@ let fmDuelScore = null;
 function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 function fmStart() {
-  if (FM_BANK.length === 0) { alert('No hay preguntas de Ronda final.'); return; }
+  if (activeBank().length === 0) { alert('No hay preguntas de Ronda final.'); return; }
   fmLiveWinner = null;
   fmDuelScore = {a:score.a||0,b:score.b||0};
   fm = { stage: 'setup', order: null, ci: 0, results: { a: null, b: null } };
@@ -3247,7 +3087,7 @@ function fmClose() {
 }
 
 function fmBeginTeam(team, memberIdx) {
-  const pool = shuffle(FM_BANK).slice(0, FM_Q_COUNT).map(c => normBankItem(c));
+  const pool = shuffle(activeBank()).slice(0, FM_Q_COUNT).map(c => normBankItem(c));
   fm.team = team;
   fm.qs = pool;
   fm.stage = 'p1_oral';
@@ -3762,7 +3602,7 @@ function snapshot() {
 // El contador (tm) cambia cada segundo: se excluye de la firma para no redibujar todo el tablero.
 function sigOf(s) { const c = Object.assign({}, s); delete c.t; delete c.tm; return JSON.stringify(c); }
 function writeSync() {
-  if (MODE !== 'conductor') return;
+  if (MODE !== 'conductor' && MODE !== 'local') return;
   const json = JSON.stringify(snapshot());
   try { localStorage.setItem(SYNC_KEY, json); } catch (e) {}
   if (bc) { try { bc.postMessage(json); } catch (e) {} }
@@ -3999,6 +3839,7 @@ function applyMode(m, team) {
     syncMuteBtn();
   } else {
     document.body.classList.add('is-conductor');
+    initFirebase();startCondBuzzerListener();
     startHeartbeat();
     syncMuteBtn();
   }
