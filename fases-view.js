@@ -19,8 +19,8 @@
       var r = res[key(m)], A = rows[m[1]], B = rows[m[2]]; if (!r || !A || !B) return;
       A.pj++; B.pj++;
       if (r.winner === 'empate') { A.e++; B.e++; A.pts += P.draw; B.pts += P.draw; }
-      else if (r.winner === m[1]) { A.g++; B.p++; A.pts += P.win; }
-      else if (r.winner === m[2]) { B.g++; A.p++; B.pts += P.win; }
+      else if (r.winner === m[1]) { A.g++; B.p++; A.pts += P.win + (r.bonus ? (+r.bp || 1) : 0); }
+      else if (r.winner === m[2]) { B.g++; A.p++; B.pts += P.win + (r.bonus ? (+r.bp || 1) : 0); }
     });
     // Apuestas: cada acierto suma 1 al equipo del apostador (o a él mismo en fases individuales).
     // Si apuesta a un duelo propio y lo pierde, se le anulan todos los puntos de apuestas.

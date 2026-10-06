@@ -68,10 +68,25 @@ Pruebas nuevas: `node tests/qld-roster-modales.cjs`, `node tests/qld-widget.cjs`
 
 ## Fases nuevas conectadas a los juegos, apuestas y comodines
 
-**Juegos digitales.** El fixture de cada fase nueva tiene "▶ Activar ronda N" (en las rondas con algún juego digital) y "🔄 Cargar resultados automáticamente". Activar publica el cruce en la estación del juego con la fase correspondiente (f3, f4…) y cierra las otras estaciones, igual que en la Fase grupal. El fixture de las fases nuevas se publica en `velada/fixture/<idFase>` con el mismo formato que `f2`. La carga automática usa el mismo modal: respeta el orden de rondas (no muestra la 2 hasta cargar la 1), no duplica resultados ya aplicados y muestra el nombre de la fase. En las fases nuevas solo se registra ganador o empate; los puntos salen de la configuración de la fase (sin bonus por juego). Los juegos físicos quedan como carga manual.
+**Juegos digitales.** El fixture de cada fase nueva tiene "▶ Activar ronda N" (en las rondas con algún juego digital) y "🔄 Cargar resultados automáticamente". Activar publica el cruce en la estación del juego con la fase correspondiente (f3, f4…) y cierra las otras estaciones, igual que en la Fase grupal. El fixture de las fases nuevas se publica en `velada/fixture/<idFase>` con el mismo formato que `f2`. La carga automática usa el mismo modal: respeta el orden de rondas (no muestra la 2 hasta cargar la 1), no duplica resultados ya aplicados y muestra el nombre de la fase. En las fases nuevas se registra ganador o empate; los puntos salen de la configuración de la fase y, con el bonus por juego, se suma el bonus del juego (mismo criterio y mismos puntos que en la Fase grupal; el empate nunca lleva bonus). Los juegos físicos quedan como carga manual.
 
 **Apuestas.** Cada fase nueva tiene su ventana de apuestas (abrir/cerrar la primera ronda pendiente). Los invitados apuestan desde su celular; las apuestas se guardan en el documento `ndj/betsX` (`{idFase: {"r-a-b": {apostador: idxGanador}}}`) y el conductor las importa como las de la Fase grupal. Cada acierto suma 1 punto al equipo del apostador (al apostador si la fase es individual); si apuesta a su propio duelo y lo pierde, se anulan sus puntos de apuestas de esa fase. Reiniciar apuestas, Reiniciar todo y Restaurar backup también cubren `betsX`.
 
 **Comodines (ruleta).** Cada fase nueva tiene su botón "🎰 Ruleta de comodines" y su lista (`state.comodines_<idFase>`). Un comodín pendiente se resuelve al cargar el resultado del cruce (a mano o automático). Los comodines resueltos y las apuestas suman a la clasificación de la fase (columnas 🃏 y 🎰), que también ven la TV y los celulares.
 
 **Pruebas.** `node tests/fases-juegos.cjs` (conexión simulada): botón de activar, publicación del fixture, resultados automáticos, apuestas y comodines. Falta comprobarlo con celulares conectados a Firebase en la web publicada. Subir todo el proyecto y recargar con Ctrl+F5 (los scripts cambiaron de versión).
+
+## Fases nuevas: bonus, wrapped/créditos y backup
+
+- **Bonus por juego.** La carga automática calcula el bonus igual que en la Fase grupal (Erudito, Guess, Palabras a Tiempo, Time's Up, Carrera) y el modal permite tildar "+bonus". En la carga manual de cada cruce hay un botón "+bonus" para los juegos que lo tienen. El puntaje del bonus sale de la configuración del juego en Fase grupal. El resultado guarda `bonus` y `bp`.
+- **Wrapped y créditos.** El número de comodines de la ruleta cuenta Impostor, Fase grupal y todas las fases nuevas.
+- **Restaurar backup.** Se republican las apuestas de Impostor (`bets`), Fase grupal (`betsF2`) y fases nuevas (`betsX`).
+- **Pendiente a propósito.** Las fases nuevas se siguen activando a mano con "Activar ronda". Las referencias a `f1` que quedan son claves de datos (`state.f1`, `RULES_CONFIG.f1`, snapshot del fixture) que forman parte de los backups: renombrarlas necesita una migración.
+
+Pruebas: `node tests/fases-juegos.cjs` cubre bonus automático, ranking con bonus, empate sin bonus y conteo de comodines.
+
+## Crear fases desde el Panel de control
+
+- El formulario "＋ Nueva fase" está en **Reglas → 🎛️ Panel de control** (ya no hay pestaña "＋ Fase").
+- Cada fase nueva usa el mismo esqueleto que la Fase grupal: tarjetas de estadísticas, "Configuración" colapsable, tabla de clasificación con columnas por ronda (R1, R2…), 🃏, 🎰 y Total, y fixture con las mismas filas y chips de color por juego. Los resultados se cargan con el mismo modal (ganador, empate, bonus, borrar y deshacer).
+- Todavía no tiene el podio animado de la Fase grupal.

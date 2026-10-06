@@ -3665,7 +3665,7 @@ body:has(.pc-overlay) .hub-link,body:has(.tr-overlay) .hub-link{display:none}
   -webkit-backdrop-filter:blur(10px);border:1px solid var(--border2);
   border-radius:13px;padding:.5rem .55rem;box-shadow:0 6px 26px rgba(0,0,0,.5);
   font-size:12px;transition:border-color .3s}
-.mini-board.ph-f1{border-color:rgba(200,240,96,.35)}
+.mini-board.ph-impostor{border-color:rgba(200,240,96,.35)}
 .mini-board.ph-f2{border-color:rgba(96,180,240,.35)}
 .mini-board.collapsed{width:auto;padding:0;background:transparent;border:none;box-shadow:none;backdrop-filter:none}
 .mb-open{width:40px;height:40px;border-radius:50%;border:1px solid var(--border2);
@@ -3674,7 +3674,7 @@ body:has(.pc-overlay) .hub-link,body:has(.tr-overlay) .hub-link{display:none}
 .mb-head{display:flex;align-items:center;justify-content:space-between;
   margin-bottom:.35rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
 .mb-tag{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-.ph-f1 .mb-tag{color:var(--accent)}
+.ph-impostor .mb-tag{color:var(--accent)}
 .ph-f2 .mb-tag{color:var(--info)}
 .mb-hide{background:none;border:none;color:var(--muted);cursor:pointer;
   font-size:16px;line-height:1;padding:0 2px;font-family:inherit}
@@ -4066,7 +4066,7 @@ body.solo-impostor #tv-btn{ opacity:.42 }
   cursor:pointer; font-family:inherit; padding:1px }
 </style>
 <style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style><script src="team-maps.js?v=20261005d"></script><script src="buzzer-rounds.js?v=20261005e"></script>
-<script src="velada-rounds.js?v=20261007fx3"></script>
+<script src="velada-rounds.js?v=20261007fx5"></script>
 <script src="common-rounds.js?v=20261005teg1"></script>
 </head>
 <body>
@@ -4796,6 +4796,8 @@ function renderReglas() {
             🗣️ <span>¿Quién lo dijo?</span> <span style="margin-left:auto;font-size:10px;color:var(--muted)">↗</span>
           </button>
         </div>
+
+        <div id="fx-new-host">${typeof FasesExtra !== 'undefined' && FasesExtra.newHtml ? FasesExtra.newHtml() : ''}</div>
 
 
         <!-- ── Restablecer los buzzers entre juego y juego ── -->
@@ -6756,7 +6758,7 @@ function renderMiniBoard() {
     </div>`;
   }).join('');
 
-  el.className = 'mini-board ph-f1';
+  el.className = 'mini-board ph-impostor';
   el.innerHTML = `
     <div class="mb-head">
       <span class="mb-tag">🎮 Tabla individual</span>
@@ -7710,7 +7712,7 @@ function openModal(phase, key, game, nameA, nameB, idxA, idxB) {
   modalCtx = { phase, key, game, nameA, nameB, idxA, idxB };
   const existing = phaseCtx(phase).store[key];
 
-  document.querySelector('.modal').classList.toggle('f2', phase === 'f2');
+  document.querySelector('.modal').classList.toggle('f2', phase !== 'f1');
 
   document.getElementById('modal-title').textContent = game;
   document.getElementById('modal-sub').textContent = `${nameA.split('/')[0].trim()} vs ${nameB.split('/')[0].trim()}`;
@@ -7841,15 +7843,18 @@ function saveResult() {
     next: { winner: modalCtx.winner, bonus: modalCtx.bonus },
   };
   store[modalCtx.key] = { winner: modalCtx.winner, bonus: modalCtx.bonus, t: Date.now() };
+  if (modalCtx.phase !== 'f1' && modalCtx.phase !== 'f2') {
+    const _pc = phaseCtx(modalCtx.phase), _a = String(modalCtx.key).split('-').map(Number), _m = _pc.fixture.find(m => m[0] === _a[0] && m[1] === _a[1] && m[2] === _a[2]);
+    if (modalCtx.bonus && modalCtx.winner !== 'empate') store[modalCtx.key].bp = bonusPtsExtra(_pc.games[_m ? _m[3] : -1]); else delete store[modalCtx.key].bonus;
+  }
   const comoMsgs = resolvePendingComodines(modalCtx.phase, modalCtx.key, modalCtx.winner, modalCtx.bonus);
   saveState();
   closeModal();
   playResultSound(modalCtx.winner === 'empate' ? 'empate' : (modalCtx.bonus ? 'bonus' : 'win'));
-  if (modalCtx.phase === 'f1') renderFase1();
-  else renderFase2();
+  rerenderPhase(modalCtx.phase);
   const winnerName = modalCtx.winner === 'empate'
     ? 'Empate'
-    : (modalCtx.phase === 'f1' ? PLAYERS[modalCtx.winner] : TEAMS[modalCtx.winner]).split('/')[0].trim().split(' ')[0];
+    : rosterOfPhase(modalCtx.phase)[modalCtx.winner].split('/')[0].trim().split(' ')[0];
   showToast('✓', 'Guardado · ' + winnerName + (modalCtx.bonus ? ' +bonus' : ''), true);
   if (comoMsgs && comoMsgs.length) {
     setTimeout(() => showToast('🎰', comoMsgs.join(' · '), false), 1400);
@@ -7914,7 +7919,13 @@ function resolvePendingComodines(phase, key, winner, bonus) {
 // y mostrar un único resumen al final, en vez de un toast por cruce.
 function applyResultadoSilencioso(phase, key, winner, bonus) {
   // Fases nuevas: solo ganador/empate (los puntos salen de la configuración de la fase); sin bonus ni comodines.
-  if (phase !== 'f1' && phase !== 'f2') { phaseCtx(phase).store[key] = { winner, t: Date.now() }; return resolvePendingComodines(phase, key, winner, false); }
+  if (phase !== 'f1' && phase !== 'f2') {
+    // Fases nuevas: ganador/empate + bonus por juego (bp = puntos del bonus, tomados de la config del juego).
+    const pc = phaseCtx(phase), a = String(key).split('-'), gName = (pc.fixture.find(m => m[0] === +a[0] && m[1] === +a[1] && m[2] === +a[2]) || [])[3];
+    const hasB = !!bonus && winner !== 'empate';
+    pc.store[key] = hasB ? { winner, bonus: true, bp: bonusPtsExtra(pc.games[gName]), t: Date.now() } : { winner, t: Date.now() };
+    return resolvePendingComodines(phase, key, winner, hasB);
+  }
   const store = phaseCtx(phase).store;
   store[key] = { winner, bonus, t: Date.now() };
   return resolvePendingComodines(phase, key, winner, bonus);
@@ -7973,6 +7984,12 @@ function phaseCtx(phase) {
 }
 // Comodines (ruleta) por fase: f1 → 'comodines', f2 → 'comodinesF2', fases nuevas → 'comodines_<id>'.
 function comosArrName(phase) { return phase === 'f1' ? 'comodines' : phase === 'f2' ? 'comodinesF2' : 'comodines_' + phase; }
+// Cantidad de comodines resueltos con efecto en TODAS las fases (f1, f2 y fases nuevas): la usan el wrapped y los créditos.
+function countComodinesDone() {
+  const arrs = [state.comodines, state.comodinesF2];
+  try { extraPhases().forEach(p => arrs.push(state[comosArrName(p.id)])); } catch (e) {}
+  return arrs.reduce((n, a) => n + (Array.isArray(a) ? a.filter(c => c && c.status === 'done' && c.delta).length : 0), 0);
+}
 function rosterOfPhase(phase) {
   if (phase === 'f1') return PLAYERS;
   if (phase === 'f2') return TEAMS;
@@ -8030,7 +8047,6 @@ function resultadoWinnerIdx(row) {
 
 // Reglas de puntaje (ver spec): bonus por juego, y el caso especial de
 function computeBonus(row) {
-  if (row.phase !== 'f1' && row.phase !== 'f2') return { bonus: false, adjust: null };
   const r = row.resultado;
   const marcador = r.marcador || {};
   const diff = Math.abs((marcador.a || 0) - (marcador.b || 0));
@@ -8065,8 +8081,10 @@ function computeBonus(row) {
 
 // Puntos previstos (solo para mostrar en el modal — el cálculo real de la
 // tabla lo hace siempre Puntos.jugadores/equipos vía RULES_CONFIG).
+// Puntos de bonus de un juego en las fases nuevas: usa la configuración de reglas de la Fase grupal (mismo juego, mismo bonus).
+function bonusPtsExtra(gameName) { const c = gameConfigByName('f2', gameName); return c && c.pts_bonus != null ? +c.pts_bonus : 1; }
 function previewPts(phase, g, winner, bonus) {
-  if (phase !== 'f1' && phase !== 'f2') { const P = FasesView.pts(phaseById(phase) || {}); return winner === 'empate' ? P.draw : P.win; }
+  if (phase !== 'f1' && phase !== 'f2') { const P = FasesView.pts(phaseById(phase) || {}); return winner === 'empate' ? P.draw : P.win + (bonus ? bonusPtsExtra(g) : 0); }
   const cfg = RULES_CONFIG && RULES_CONFIG[phase] && RULES_CONFIG[phase][g];
   if (winner === 'empate') return cfg ? cfg.pts_draw : 1;
   const winPts = cfg ? cfg.pts_win : 3, bonusPts = cfg ? cfg.pts_bonus : 1;
@@ -8154,7 +8172,7 @@ function renderAutoResultadosModal() {
       const b = computeBonus(row);
       const winnerIdx = resultadoWinnerIdx(row);
       const winnerName = winnerIdx === 'empate' ? 'Empate' : firstName(winnerIdx === row.a ? row.nameA : row.nameB);
-      const pts = previewPts(row.phase, row.g, winnerIdx, b.bonus);
+      const pts = previewPts(row.phase, (row.phase !== 'f1' && row.phase !== 'f2') ? row.gameName : row.g, winnerIdx, b.bonus);
       const marcador = row.resultado.marcador ? `${row.resultado.marcador.a ?? '?'} - ${row.resultado.marcador.b ?? '?'}` : '—';
       const adjustNote = b.adjust ? `<div style="font-size:12px;color:var(--info);margin-top:0.2rem">🎯 Ajuste manual: +${b.adjust.pts} para ${firstName(b.adjust.name)} (${b.adjust.label})</div>` : '';
       return `<div class="match-row" style="flex-direction:column;align-items:stretch;gap:0.25rem;border-left:2px solid var(--accent)">
@@ -8186,7 +8204,7 @@ function renderAutoResultadosModal() {
           <button class="modal-player-btn${selA}" style="flex:1;min-width:90px" onclick="setAutoManualWinner('${row.matchId}',${row.a})">${firstName(row.nameA)}</button>
           <button class="empate-btn${selE}" style="flex:1;min-width:90px" onclick="setAutoManualWinner('${row.matchId}','empate')">Empate</button>
           <button class="modal-player-btn${selB}" style="flex:1;min-width:90px" onclick="setAutoManualWinner('${row.matchId}',${row.b})">${firstName(row.nameB)}</button>
-          <button class="modal-player-btn${m.bonus ? ' selected' : ''}" style="flex:0 0 auto;min-width:70px" onclick="toggleAutoManualBonus('${row.matchId}')" ${m.winner === 'empate' || m.winner == null || (row.phase !== 'f1' && row.phase !== 'f2') ? 'disabled' : ''}>+bonus</button>
+          <button class="modal-player-btn${m.bonus ? ' selected' : ''}" style="flex:0 0 auto;min-width:70px" onclick="toggleAutoManualBonus('${row.matchId}')" ${m.winner === 'empate' || m.winner == null ? 'disabled' : ''}>+bonus</button>
         </div>
         ${row.gid ? '<div style="font-size:11px;color:var(--muted)">Sin marcador digital para este cruce. Revisá el modo conductor, la conexión y los participantes activos.</div>' : ''}
       </div>`;
@@ -9129,6 +9147,7 @@ function renderWallPanel() {
 
 function undoLastResult() {
   if (!_lastResult) return;
+  const _lastResult_phase = _lastResult.phase;
   const store = phaseCtx(_lastResult.phase).store;
   if (_lastResult.prev === null) {
     delete store[_lastResult.key];
@@ -9141,6 +9160,7 @@ function undoLastResult() {
   const activeTab = document.querySelector('.nav-tab.active')?.dataset.tab;
   if (activeTab === 'fase1') renderFase1();
   else if (activeTab === 'fase2') renderFase2();
+  else if (activeTab && activeTab.indexOf('fx-') === 0) rerenderPhase(_lastResult_phase);
   hideToast();
   updateNavProgress();
 }
@@ -9156,8 +9176,7 @@ function deleteResult() {
   delete store[modalCtx.key];
   saveState();
   closeModal();
-  if (modalCtx.phase === 'f1') renderFase1();
-  else renderFase2();
+  rerenderPhase(modalCtx.phase);
   showToast('🗑', 'Resultado eliminado', true);
   updateNavProgress();
 }
@@ -9327,7 +9346,15 @@ function applyRestoredBackup(payload) {
       if (data.ndj_wall)       window._fbWrite('wall', data.ndj_wall);
       if (data.ndj_miis)       window._fbWrite('miis', data.ndj_miis);
       // Apuestas de las fases nuevas: viven en un documento aparte; se republican desde el estado restaurado.
-      try { const st = data.ndj_state ? JSON.parse(data.ndj_state) : null; if (st && st.betsX) window._fbWrite('betsX', JSON.stringify(st.betsX)); } catch (e) {}
+      // Apuestas de Impostor (bets), Fase grupal (betsF2) y fases nuevas (betsX): mismo formato que leen los celulares.
+      try {
+        const st = data.ndj_state ? JSON.parse(data.ndj_state) : null;
+        if (st) {
+          if (st.bets && Object.keys(st.bets).length) window._fbWrite('bets', JSON.stringify(st.bets));
+          if (st.betsF2 && Object.keys(st.betsF2).length) window._fbWrite('betsF2', JSON.stringify(st.betsF2));
+          if (st.betsX) window._fbWrite('betsX', JSON.stringify(st.betsX));
+        }
+      } catch (e) {}
     }
   } catch (e) { console.warn('restore: fallo al sincronizar con Firebase', e); }
 
@@ -15210,8 +15237,7 @@ function computeNightNumbers() {
     const tpts = (typeof getTeamPoints === 'function') ? getTeamPoints() : [];
     puntos = ppts.reduce((s, p) => s + (p.total || 0), 0) + tpts.reduce((s, p) => s + (p.total || 0), 0);
   } catch (e) {}
-  const comodines = ((state.comodines || []).filter(c => c.status === 'done' && c.delta).length)
-    + ((state.comodinesF2 || []).filter(c => c.status === 'done' && c.delta).length);
+  const comodines = countComodinesDone();
   const impRondas = ((state.impostor && state.impostor.rounds) || []).length;
   return { partidos, empates, puntos, comodines, impRondas };
 }
@@ -17131,8 +17157,7 @@ function buildWrapped() {
   } catch (e) { console.warn('[Wrapped] fallo en "resultado más rápido":', e); }
 
   try {
-    const comodinesCount = ((state.comodines || []).filter(c => c.status === 'done' && c.delta)).length
-      + ((state.comodinesF2 || []).filter(c => c.status === 'done' && c.delta)).length;
+    const comodinesCount = countComodinesDone();
     if (comodinesCount > 0) screens.push({
       emoji: '🎰', color: '#ff6ec7', title: 'Comodines que cambiaron el rumbo',
       stat: comodinesCount, desc: `comodín${comodinesCount === 1 ? '' : 'es'} de la ruleta sumaron o restaron puntos durante la noche`
@@ -19231,5 +19256,5 @@ document.addEventListener('keydown', function(e) {
   }
 })();
 </script>
-<script src="ensayo-guiado.js?v=20261007fx3"></script>
-<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-view.js?v=20261007fx3"></script><script src="fases-extra.js?v=20261007fx3"></script>
+<script src="ensayo-guiado.js?v=20261007fx5"></script>
+<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-view.js?v=20261007fx5"></script><script src="fases-extra.js?v=20261007fx5"></script>

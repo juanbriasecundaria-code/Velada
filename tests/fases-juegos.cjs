@@ -20,6 +20,8 @@ for(const f of ['buzzer-rounds.js','fases-view.js'])vm.runInContext(read(f),ctx)
 // helpers y funciones reales del hub para el modal de resultados
 vm.runInContext(html.slice(html.indexOf('function primeraRondaNoCargada'),html.indexOf("// 'a'/'b'/'empate'")),ctx);
 vm.runInContext(html.slice(html.indexOf("// 'a'/'b'/'empate'"),html.indexOf('async function openAutoResultadosModal')),ctx);
+vm.runInContext(html.slice(html.indexOf('function gameConfigByName'),html.indexOf('let modalCtx')),ctx);
+vm.runInContext(html.slice(html.indexOf('function bonusPtsExtra'),html.indexOf('function previewPts')),ctx);
 vm.runInContext(html.slice(html.indexOf('function applyResultadoSilencioso'),html.indexOf('// CARGAR RESULTADOS AUTOM')),ctx);
 ctx.commonAutoRows=()=>[];ctx.ensureCommonRoundOrder=()=>[];ctx.commonRoundDone=()=>true;ctx.resolvePendingComodines=()=>[];
 ctx.commonRoundNumber=id=>Number(String(id).replace('duel:',''));
@@ -62,17 +64,17 @@ vm.runInContext(read('velada-rounds.js'),ctx);
   const auto=rows.find(r=>r.matchId==='f3-1-0-1');
   assert(auto&&auto.status==='auto'&&auto.phase==='f3'&&/Duelos/.test(auto.phaseLabel)&&!/[<>]/.test(auto.phaseLabel),'fila automática de f3 con nombre de fase escapado');
   assert.equal(ctx.resultadoWinnerIdx(auto),0);
-  assert.deepEqual(JSON.parse(JSON.stringify(ctx.computeBonus(auto))),{bonus:false,adjust:null},'sin bonus en fases nuevas');
+  assert.deepEqual(JSON.parse(JSON.stringify(ctx.computeBonus(auto))),{bonus:true,adjust:null},'bonus por juego también en fases nuevas (Palabras a Tiempo, 7-2)');
   vm.runInContext("state.f3=state.f3||{};",ctx);
   ctx.state.f3={};ctx.state.f2={};
   assert(rows.some(r=>r.matchId==='f3-1-2-2'&&r.status==='pending'),'juego físico queda pendiente de carga manual');
   assert(!rows.some(r=>r.phase==='f3'&&r.round===2),'la ronda 2 no aparece hasta cargar la 1');
   ctx.applyResultadoSilencioso('f3','1-0-1',0,true);
-  assert.equal(ctx.state.f3['1-0-1'].winner,0);assert(!('bonus' in ctx.state.f3['1-0-1']));
+  assert.equal(ctx.state.f3['1-0-1'].winner,0);assert.equal(ctx.state.f3['1-0-1'].bonus,true,'el bonus se guarda en fases nuevas');assert.equal(ctx.state.f3['1-0-1'].bp,1,'bonus de 1 pt por defecto');
   assert.equal(JSON.stringify(ctx.state.f2),'{}','no toca la Fase grupal');
   ctx.applyResultadoSilencioso('f3','1-2-2','empate',false);
   const rk=ctx.FasesView.rank(vm.runInContext("phaseById('f3')",ctx),ctx.state,ctx.PLAYERS,ctx.TEAMS);
-  assert.equal(rk[0].n,'Ana / Beto');assert.equal(rk[0].pts,3);
+  assert.equal(rk[0].n,'Ana / Beto');assert.equal(rk[0].pts,4,'victoria 3 + bonus 1');
   // sin repetir: con la ronda 1 cargada, ahora aparece la 2 y el cruce aplicado no vuelve
   ctx.state.autoResultadosAplicados={'f3-1-0-1':JSON.stringify(ctx._autoResultados['f3-1-0-1'])};
   const rows2=ctx.computeAutoResultadosRows();
@@ -100,6 +102,10 @@ vm.runInContext(read('velada-rounds.js'),ctx);
   vm.runInContext(html.slice(html.indexOf('function comosArrName'),html.indexOf('function computeAutoResultadosRows')),ctx);
   vm.runInContext(html.slice(html.indexOf('function resolvePendingComodines'),html.indexOf('function applyResultadoSilencioso')),ctx);
   ctx.COMODINES=[{key:'x',emoji:'✨',name:'Doble',when:'win',delta:2,kind:'bueno'}];ctx.comodinByKey=k=>ctx.COMODINES.find(c=>c.key===k)||null;
+  vm.runInContext(html.slice(html.indexOf('// Cantidad de comodines resueltos'),html.indexOf('function rosterOfPhase')),ctx);
+  ctx.state.comodines=[{status:'done',delta:1}];ctx.state.comodinesF2=[{status:'done',delta:-1},{status:'pending',delta:0}];ctx.state.comodines_f3=[{status:'done',delta:2}];
+  assert.equal(ctx.countComodinesDone(),3,'wrapped/créditos cuentan comodines de Impostor, Fase grupal y fases nuevas');
+  ctx.state.comodines_f3=[];
   assert.equal(ctx.comosArrName('f3'),'comodines_f3');assert.equal(ctx.comosArrName('f2'),'comodinesF2');
   assert.equal(ctx.rosterOfPhase('f3'),ctx.TEAMS);
   ctx.state.comodines_f3=[{id:'c1',player:'Cami / Dani',key:'x',status:'pending',delta:0}];
@@ -109,7 +115,13 @@ vm.runInContext(read('velada-rounds.js'),ctx);
   rk2=ctx.FasesView.rank(vm.runInContext("phaseById('f3')",ctx),ctx.state,ctx.PLAYERS,ctx.TEAMS);
   assert.equal(row('Cami / Dani').como,2);
   FX.render('f3');assert(ctx.document.getElementById('page-fx-f3').innerHTML.includes("openRuleta('f3')"),'botón de ruleta');
+  // Bonus por juego: el ranking suma victoria + bp solo al ganador; el empate nunca lleva bonus
+  const fpB={id:'zz',tipo:'grupal',fixture:[[1,0,1,0],[2,1,2,0]],games:['x'],pts:{win:3,draw:1},clasifican:{cantidad:0,tamanoGrupo:1}};
+  const rkB=ctx.FasesView.rank(fpB,{zz:{'1-0-1':{winner:0,bonus:true,bp:2},'2-1-2':{winner:'empate'}}},ctx.PLAYERS,ctx.TEAMS);
+  assert.equal(rkB.find(r=>r.n===ctx.TEAMS[0]).pts,5,'ganador con bonus suma win + bp');
+  assert.equal(rkB.find(r=>r.n===ctx.TEAMS[1]).pts,1,'el perdedor no suma por el duelo (solo el empate de la ronda 2)');
+  assert.equal(rkB.find(r=>r.n===ctx.TEAMS[2]).pts,1,'el empate nunca lleva bonus');
   // Eliminar la fase limpia apuestas y comodines
   FX.remove('f3');assert(!ctx.state.comodines_f3&&!(ctx.state.betsX&&ctx.state.betsX.f3));
-  console.log('OK: fases nuevas con juegos — Activar ronda, fixture publicado, resultados automáticos, sin bonus ni duplicados, apuestas (ventana, aciertos, anulación), comodines por fase y f2 intacta.');
+  console.log('OK: fases nuevas con juegos — Activar ronda, fixture publicado, resultados automáticos, bonus por juego, sin duplicados, apuestas (ventana, aciertos, anulación), comodines por fase y f2 intacta.');
 })().catch(e=>{console.error(e);process.exit(1);});

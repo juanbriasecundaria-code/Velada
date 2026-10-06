@@ -31,7 +31,8 @@ const realGet=ctx.document.getElementById;ctx.document.getElementById=id=>mkInpu
 FX.init();FX.create();
 let st=vm.runInContext('state',ctx),p=st.phases.find(q=>q.id==='f3');
 assert(p&&p.tipo==='individual'&&p.games.length===3&&p.clasifican.tamanoGrupo===2);
-assert(ctx.tabs.includes('fx-f3'));assert(nav.children.some(c=>c.attrs['data-tab']==='fx-f3')&&nav.children.some(c=>c.attrs['data-tab']==='fx-nueva'));
+assert(ctx.tabs.includes('fx-f3'));assert(nav.children.some(c=>c.attrs['data-tab']==='fx-f3')&&!nav.children.some(c=>c.attrs['data-tab']==='fx-nueva'),'la pestaña +Fase ya no existe: el formulario vive en el Panel de control');
+assert(/fx-new-name/.test(ctx.FasesExtra.newHtml())&&/Crear fase/.test(ctx.FasesExtra.newHtml()),'formulario de nueva fase disponible para el Panel de control');
 FX.generate('f3');assert.equal(p.fixture.length,6);
 const m0=p.fixture[0],k0=m0[0]+'-'+m0[1]+'-'+m0[2];
 FX.setResult('f3',k0,m0[1]);FX.setResult('f3',p.fixture[1][0]+'-'+p.fixture[1][1]+'-'+p.fixture[1][2],'empate');
