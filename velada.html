@@ -15567,8 +15567,9 @@ function rollCredits() {
     if (typeof FasesView !== 'undefined') {
       FasesView.extras(state).forEach(p => {
         if (!Object.keys(state[p.id] || {}).length) return;
-        const rk = FasesView.rank(p, state, PLAYERS, TEAMS).map(r => ({ n: r.n, pts: r.pts })).filter(r => r.pts > 0);
-        if (rk.length) fxCreditsHtml += `<div class="cr-role role-fase1">Podio · ${esc(p.nombre)}</div>${podium(rk, tName)}`;
+        // Top 3 de la fase (incluye a los que quedaron con 0 pts, así el podio siempre tiene su lugar)
+        const rk = FasesView.rank(p, state, PLAYERS, TEAMS).map(r => ({ n: r.n, pts: r.pts }));
+        if (rk.some(r => r.pts > 0)) fxCreditsHtml += `<div class="cr-role role-fase1">${esc(p.emoji ? p.emoji + ' ' : '')}${esc(p.nombre)} - Podio final</div>${podium(rk, tName)}`;
       });
     }
   } catch (e) {}
@@ -15588,8 +15589,7 @@ function rollCredits() {
 
         <div class="cr-block">
           <div class="cr-divider"></div>
-          ${sortedI.length ? `<div class="cr-role role-fase1">Podio · Impostor</div>${podium(sortedI, pName)}` : ''}
-          <div class="cr-role role-fase2">Podio · Fase grupal</div>
+          <div class="cr-role role-fase2">Fase grupal - Podio final</div>
           ${podium(sortedT, tName)}
           ${fxCreditsHtml}
         </div>
