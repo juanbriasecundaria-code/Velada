@@ -4762,6 +4762,7 @@ function renderReglas() {
         <span class="rule-chevron">▾</span>
       </summary>
       <div class="control-panel-body">
+        <div id="ctrl-roster-admin"></div>
         <div class="card" style="text-align:center;border-color:rgba(245,200,66,0.3)">
           <div style="font-size:13px;color:var(--muted);margin-bottom:0.9rem">La apertura completa, de corrido: placa de clasificación, los participantes y después los equipos de la Fase grupal.</div>
           <button class="final-end-btn" onclick="openVelada()">🎬 Abrir la velada</button>
@@ -5077,6 +5078,7 @@ function renderReglas() {
     ctrlPanel.addEventListener('toggle', () => { _ctrlPanelOpen = ctrlPanel.open; });
   }
 
+  renderF1RosterAdmin();
   initReglasScrollSpy();
 }
 
@@ -5704,7 +5706,7 @@ function deleteF1Player(idx) {
 }
 
 function renderF1RosterAdmin() {
-  const el = document.getElementById('f1-roster-admin');
+  const el = document.getElementById('ctrl-roster-admin');
   if (!el) return;
   if (canAddF1Player()) {
     const rows = PLAYERS.map((p, i) => {
@@ -5747,7 +5749,7 @@ function renderF1RosterAdmin() {
           <input id="f1-player-input" type="text" placeholder="Nombre del nuevo jugador..." style="flex:1;padding:0.55rem 0.75rem;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:13px" onkeydown="if(event.key==='Enter')addF1Player()">
           <button class="btn" style="padding:0.55rem 1rem;white-space:nowrap;background:var(--accent-dim);border-color:var(--accent);color:var(--accent);font-weight:800" onclick="addF1Player()">+ Jugador</button>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:0.5rem">Agregar o eliminar un jugador rearma el fixture. Editar el nombre no lo toca.</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:0.5rem">Esta es la lista que ven los celulares en "¿Quién sos?". Tocá 💾 Guardar para publicarla.</div>
       </div>
     `;
   } else {
