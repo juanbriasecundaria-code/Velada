@@ -6092,7 +6092,46 @@ let state = {
   betWindowF2: { open: false, round: 0 }, // ventana de apuestas de Fase grupal: qué ronda está abierta
   cellPts: { f1: {}, f2: {} }, // override manual de una celda: "nombre||ronda" => pts
   qldOverride: {}, // override manual de los puntos de ¿Quién lo dijo? por equipo: idxEquipo => pts
+  phases: null, // registro de fases (ver ensurePhases); null = se crea con f1/f2
 };
+
+// <fases-core>
+// ── FASES (modelo genérico) ──────────────────────────────────────────
+// Etapa A: registro de fases SIN cambios visibles. Los datos de cada fase siguen
+// guardados donde siempre (state.f1 / state.f2, state.adjust[id], state.cellPts[id]);
+// una fase nueva usará el mismo patrón con su propio id (state.f3, adjust.f3...).
+// clasifican.cantidad = 0 significa "como hasta ahora" (la lógica actual de la Final).
+const PHASES_DEFAULT = () => ([
+  { id: 'f1', nombre: 'Fase individual', tipo: 'individual', emoji: '🕵️', clasifican: { cantidad: 0, tamanoGrupo: 1 } },
+  { id: 'f2', nombre: 'Fase grupal',     tipo: 'grupal',     emoji: '👥', clasifican: { cantidad: 0, tamanoGrupo: 1 } },
+]);
+function ensurePhases() {
+  if (!state || typeof state !== 'object') return [];
+  if (!Array.isArray(state.phases) || !state.phases.length) state.phases = PHASES_DEFAULT();
+  // Datos viejos o incompletos: f1 y f2 siempre existen (las pantallas actuales dependen de ellas).
+  PHASES_DEFAULT().forEach(d => { if (!state.phases.some(p => p && p.id === d.id)) state.phases.push(d); });
+  state.phases = state.phases.filter(p => p && typeof p.id === 'string' && p.id);
+  state.phases.forEach(p => {
+    if (p.tipo !== 'individual' && p.tipo !== 'grupal') p.tipo = 'grupal';
+    if (!p.nombre) p.nombre = p.id;
+    if (!p.clasifican || typeof p.clasifican !== 'object') p.clasifican = { cantidad: 0, tamanoGrupo: 1 };
+    if (!state[p.id] || typeof state[p.id] !== 'object') state[p.id] = {};
+  });
+  if (!state.adjust || typeof state.adjust !== 'object') state.adjust = {};
+  if (!state.cellPts || typeof state.cellPts !== 'object') state.cellPts = {};
+  state.phases.forEach(p => {
+    if (!Array.isArray(state.adjust[p.id])) state.adjust[p.id] = [];
+    if (!state.cellPts[p.id] || typeof state.cellPts[p.id] !== 'object') state.cellPts[p.id] = {};
+  });
+  return state.phases;
+}
+function getPhases() { return ensurePhases(); }
+function phaseById(id) { return getPhases().find(p => p.id === id) || null; }
+function phaseResults(id) { ensurePhases(); return state[id] || (state[id] = {}); }
+function phaseAdjust(id) { ensurePhases(); return state.adjust[id] || (state.adjust[id] = []); }
+function phaseCellPts(id) { ensurePhases(); return state.cellPts[id] || (state.cellPts[id] = {}); }
+// </fases-core>
+ensurePhases();
 
 // ── COMODINES: catálogo (editable desde "Reglas") ────────────────────
 // Diseñados para mover ±1 punto como máximo: condimentan sin romper el torneo.
@@ -6213,6 +6252,7 @@ function loadState() {
       if (!state.impostor || !Array.isArray(state.impostor.rounds)) {
         state.impostor = { rounds: [] };
       }
+      ensurePhases();
     }
   } catch(e) {}
 }
@@ -6625,6 +6665,7 @@ function pedirClave(destino) {
   ov.onclick = (e) => { if (e.target === ov) cerrar(); };
 }
 
+function root_fx() { return typeof FasesExtra !== 'undefined'; }
 function activateTab(tab) {
   if(tab==='fase1')tab='impostor';
   // En modo solo-Impostor, cualquier otra pestaña pide la clave primero
@@ -6640,6 +6681,7 @@ function activateTab(tab) {
   if (tab === 'impostor') renderImpostor();
   if (tab === 'final') renderFinal();
   if (tab === 'reglas') renderReglas();
+  if (tab.indexOf('fx-') === 0 && root_fx()) FasesExtra.render(tab.slice(3));
   state.lastTab = tab;
   saveState();
 }
@@ -9341,6 +9383,8 @@ function resetEverything() {
       state.qldTeamPoints = {}; window._qldTeamPoints = {};
       state.commonCellPts = {};
       state.adjust = { f1: [], f2: [] };
+      getPhases().forEach(p => { if (p.id !== 'f1' && p.id !== 'f2') { state[p.id] = {}; } });
+      ensurePhases();
       if (state.argentinosRound) state.argentinosRound = { byTeam: {} };
       if (state.guessRound) state.guessRound = { byTeam: {} };
       state.tegRound = { byTeam: {} };
@@ -13800,7 +13844,11 @@ function buildBracket(seeds, q, winners) {
   winners = winners || {};
   seeds = seeds || [];
   const out = { q: q, rounds: [], bronce: null, champion: '', runnerUp: '', third: '', fourth: '', winners: {} };
-  if (!(q >= 2) || (q & (q - 1)) !== 0) return out;
+  if (!(q >= 2)) return out;
+  // Cantidad no potencia de 2 (ej. 6 equipos): cuadro de la próxima potencia y los mejores cabezas pasan directo (bye).
+  if (seeds.length > q) q = seeds.length;
+  if ((q & (q - 1)) !== 0) { let sz = 2; while (sz < q) sz *= 2; q = sz; }
+  out.q = q;
   const order = bracketSeedOrder(q);
   const seedDe = name => { const i = seeds.indexOf(name); return i === -1 || i >= q ? null : i + 1; };
   const resolver = (m) => {
@@ -13826,7 +13874,8 @@ function buildBracket(seeds, q, winners) {
         b = { seed: pb.winner ? seedDe(pb.winner) : null, name: pb.winner || null, from: pb.id };
       }
       const m = { id: info.key + '-' + i, round: info.key, index: i, a: a, b: b, winner: '', loser: '' };
-      resolver(m);
+      if (!prev && (!!a.name !== !!b.name)) { m.bye = true; m.winner = a.name || b.name; m.loser = ''; }
+      else resolver(m);
       matches.push(m);
     }
     out.rounds.push({ key: info.key, label: info.label, matches: matches });
@@ -13896,7 +13945,7 @@ function bracketQTexto() {   // para el texto de Reglas
   return 'Clasifican ' + bracketQEfectivo(bracketState(), n) + ' de ' + n;
 }
 function bracketGrupalTerminada() {
-  try { return F2_FIXTURE.every(([r, a, b]) => state.f2[r + '-' + a + '-' + b]) && commonGroupRoundsDone(); }
+  try { return F2_FIXTURE.every(([r, a, b]) => state.f2[r + '-' + a + '-' + b]) && commonGroupRoundsDone() && (typeof FasesExtra === 'undefined' || FasesExtra.allDone()); }
   catch (e) { return false; }
 }
 // Mismo orden que usaba la pestaña Final: puntaje total de mayor a menor (empates, por orden de carga).
@@ -13908,8 +13957,9 @@ function bracketCtx() {
   const b = bracketState();
   const ranking = bracketRanking();
   const nTeams = TEAMS.length;
-  const q = bracketQEfectivo(b, nTeams);
-  const seeds = b.seeds ? b.seeds.slice() : ranking.slice(0, q).map(x => x.n);
+  const fxSeeds = (typeof FasesExtra !== 'undefined') ? FasesExtra.finalSeeds(ranking) : null;
+  const q = fxSeeds ? (b.seeds ? b.seeds.length : fxSeeds.length) : bracketQEfectivo(b, nTeams);
+  const seeds = b.seeds ? b.seeds.slice() : (fxSeeds || ranking.slice(0, q).map(x => x.n));
   const pts = {};
   ranking.forEach(x => { pts[x.n] = x.t; });
   const empates = bracketEmpates(ranking, q);
@@ -14304,6 +14354,7 @@ function bracketMatchHtml(m, ctx, titulo) {
   const equipo = (side) => {
     const s = side === 0 ? m.a : m.b;
     const seed = s && s.seed ? s.seed + '°' : '';
+    if (m.bye && (!s || !s.name)) return '<div class="bk2-team vacio"><span class="bk2-seed"></span><span class="bk2-nom">Libre · pasa directo</span></div>';
     if (!s || !s.name) {
       return `<div class="bk2-team vacio"><span class="bk2-seed">${seed}</span><span class="bk2-nom">${s && s.from ? _escC(bracketFuenteTxt(s)) : 'Por definir'}</span></div>`;
     }
@@ -14428,6 +14479,7 @@ function teamDuoPickerHtml(id, teamName, selected) {
 
 function renderFinal() {
   renderBracket();
+  try { if (typeof FasesExtra !== 'undefined') FasesExtra.renderSeeds(); } catch (e) {}
   renderDiario();
   renderWallPanel();
   const root = document.getElementById('final-root');
@@ -18427,12 +18479,14 @@ function applyPulledState(newStateJson) {
     const loaded = JSON.parse(newStateJson);
     state = Object.assign({}, state, loaded);
     if (!state.impostor || !Array.isArray(state.impostor.rounds)) state.impostor = { rounds: [] };
+    ensurePhases();
   } catch(e) { return false; }
   return true;
 }
 
 function reapplyStateAndRerender() {
   syncRulestoRuntime();
+  try { if (root_fx()) FasesExtra.init(); } catch (e) {}
   restoreRosterAndFixtures();
   syncFixtureToFirebase();
   restoreImpGame();
@@ -19071,4 +19125,4 @@ document.addEventListener('keydown', function(e) {
 })();
 </script>
 <script src="ensayo-guiado.js?v=20261005e"></script>
-<script src="duplas-fotos.js?v=20261005d"></script>
+<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-extra.js?v=20261006fx1"></script>
