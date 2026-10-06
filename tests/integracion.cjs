@@ -50,7 +50,7 @@ function node(){const classes=new Set();return {innerHTML:'',textContent:'',valu
  host.gTeams=[label,special];host.gScores={[label]:8,[special]:1};await host.gFinishRound();assertKeys(published);
  assert.equal(host.FirebaseTeamMaps.fromWire(published).byTeam[label],4);
  // El editor se renderiza con todas las estaciones originales, incluso sin bonus_label.
- const els={};const rules=context({document:{getElementById:id=>els[id]||(els[id]=node())},setTimeout(){},_reglasAllExpanded:false,_rulesEditMode:true,_ctrlPanelOpen:false,FINAL_CONFIG:null,FINAL_CONFIG_DEFAULT:{nota:'',intro:'',formato:'',puntos:''},COMODINES:[],COMODIN_WHEN_LABEL:{},F1_FIXTURE:[],F2_FIXTURE:[],TEAMS:['A','B','C'],state:{f1:{},f2:{}},canEditStations:()=>true,initReglasScrollSpy(){},RoundPlan:{order:()=>[]}});
+ const els={};const rules=context({bracketQTexto:()=>'',document:{getElementById:id=>els[id]||(els[id]=node())},setTimeout(){},_reglasAllExpanded:false,_rulesEditMode:true,_ctrlPanelOpen:false,FINAL_CONFIG:null,FINAL_CONFIG_DEFAULT:{nota:'',intro:'',formato:'',puntos:''},COMODINES:[],COMODIN_WHEN_LABEL:{},F1_FIXTURE:[],F2_FIXTURE:[],TEAMS:['A','B','C'],state:{f1:{},f2:{}},canEditStations:()=>true,initReglasScrollSpy(){},RoundPlan:{order:()=>[]}});
  const html=read('velada.html');vm.runInContext(extract(html,'const RULES_DEFAULT =','function _applyRulesParsed'),rules);vm.runInContext('RULES_CONFIG=JSON.parse(JSON.stringify(RULES_DEFAULT));GAMES_F2=RULES_CONFIG.f2.map(g=>g.name);',rules);
  vm.runInContext(extract(html,'function renderReglas()','// ── Chips sticky'),rules);
  // Todas las referencias de interfaz adicionales se resuelven explícitamente debajo.

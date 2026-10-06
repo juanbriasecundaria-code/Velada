@@ -1192,6 +1192,7 @@
     <div class="podium-wrap" id="tv-podium-f2"></div>
     <div class="tv-rank-list" id="tv-rank-f2"></div>
   </div>
+  <div class="tv-phase" id="tv-fx" style="display:none"></div>
 </div>
 
 <div class="tv-estado" id="tv-estado">
@@ -1288,6 +1289,7 @@
 </div>
 
 <script src="puntos.js?v=20261005teg1"></script>
+<script src="fases-view.js?v=20261006fx2"></script>
 <script>
 // ── SEMILLA DEL MODO TV ─────────────────────────────────────────────
 // velada.html la manda en la URL (#s=...) y además la deja en localStorage.
@@ -1485,7 +1487,7 @@ const FULL_NAMES_TV = (__SEED.fullNames || {});
 // En modo 'both' (abierto desde Reglas) el TV muestra una fase por vez con
 // pestañas; esta variable recuerda cuál se está viendo (arranca en Impostor).
 let _tvBothView = 'f2';
-try { const _v = localStorage.getItem('ndj_tv_both_view'); if (_v === 'f1' || _v === 'f2') _tvBothView = _v; } catch (e) {}
+try { const _v = localStorage.getItem('ndj_tv_both_view'); if (_v === 'f1' || _v === 'f2' || /^fx-/.test(_v || '')) _tvBothView = _v; } catch (e) {}
 const RULES_INIT   = (__SEED.rules || null);    // reglas sembradas desde el padre (clave en file://)
 const ENTITY_COLORS_INIT = (__SEED.colors || {}); // colores custom por jugador/equipo
 let   MIIS_INIT = (__SEED.miis || {}); // personalizacion (pose/accesorio) por jugador
@@ -1619,7 +1621,7 @@ function tvAvatarHtml(name, idx, photos) {
 // fase — y marca la pestaña activa. No toca nada más del Modo TV.
 function setTVBothView(view) {
   if (TV_PHASE !== 'both') return;
-  _tvBothView = (view === 'f2') ? 'f2' : 'f1';
+  _tvBothView = (view === 'f2' || /^fx-/.test(view || '')) ? view : 'f1';
   try { localStorage.setItem('ndj_tv_both_view', _tvBothView); } catch (e) {}
   const podiums = document.getElementById('tv-podiums');
   const f1El    = document.getElementById('tv-f1');
@@ -1629,7 +1631,9 @@ function setTVBothView(view) {
   if (divider) divider.style.display = 'none';
   podiums.style.gridTemplateColumns = '1fr';
   const show = (el) => { el.style.display = ''; el.style.maxWidth = '820px'; el.style.margin = '0 auto'; el.style.width = '100%'; };
-  if (_tvBothView === 'f2') { f1El.style.display = 'none'; show(f2El); }
+  const fxEl = document.getElementById('tv-fx'); if (fxEl) fxEl.style.display = 'none';
+  if (/^fx-/.test(_tvBothView) && fxEl) { f1El.style.display = 'none'; f2El.style.display = 'none'; show(fxEl); try { renderFxTV(); } catch (e) {} }
+  else if (_tvBothView === 'f2') { f1El.style.display = 'none'; show(f2El); }
   else { f2El.style.display = 'none'; show(f1El); }
   try { document.body.setAttribute('data-tv-view', _tvBothView); } catch (e) {}
   document.querySelectorAll('#tv-phase-tabs .tv-phase-tab').forEach(b => {
@@ -2156,7 +2160,33 @@ function figSize(slotIdx){
 let _prevKeys={f1:'',f2:''};
 let _tvCachedState = null; // estado recibido por postMessage (más fresco que localStorage)
 
+// Fases adicionales: pestañas y panel propio (se arman desde state.phases)
+function renderFxTV() {
+  if (typeof FasesView === 'undefined' || TV_PHASE !== 'both') return;
+  let st = {}, PL = PLAYERS_INIT.slice(), TM = TEAMS_INIT.slice();
+  try {
+    const s = _tvCachedState || localStorage.getItem('ndj_state');
+    if (s) st = JSON.parse(s);
+    if (st.playersSnapshot) PL = st.playersSnapshot.slice();
+    if (st.teamsSnapshot) TM = st.teamsSnapshot.slice();
+  } catch (e) {}
+  const ex = FasesView.extras(st), bar = document.getElementById('tv-phase-tabs'); if (!bar) return;
+  bar.querySelectorAll('[data-fx]').forEach(b => { if (!ex.some(p => 'fx-' + p.id === b.dataset.view)) b.remove(); });
+  ex.forEach(p => {
+    let b = bar.querySelector('[data-view="fx-' + p.id + '"]');
+    if (!b) { b = document.createElement('button'); b.className = 'tv-phase-tab'; b.setAttribute('data-fx', '1'); b.dataset.view = 'fx-' + p.id; b.onclick = () => setTVBothView('fx-' + p.id); bar.appendChild(b); }
+    b.textContent = p.emoji + ' ' + p.nombre;
+    b.classList.toggle('active', _tvBothView === 'fx-' + p.id);
+  });
+  if (/^fx-/.test(_tvBothView)) {
+    const cur = ex.find(p => 'fx-' + p.id === _tvBothView);
+    if (!cur) { setTVBothView('f2'); return; }
+    const el = document.getElementById('tv-fx'), h = FasesView.html(cur, st, PL, TM, { tv: true });
+    if (el && el._h !== h) { el.innerHTML = h; el._h = h; }
+  }
+}
 function renderTV() {
+  try { setTimeout(renderFxTV, 0); } catch (e) {}
   let state={f1:{},f2:{},impostor:{rounds:[]}};
   let photos={};
   let PLAYERS=PLAYERS_INIT.slice();

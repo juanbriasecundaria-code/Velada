@@ -5,7 +5,7 @@ const ctx={console,JSON,Math,PLAYERS:['J1','J2','J3','J4','J5','J6','J7','J8','J
 ctx.window=ctx;vm.createContext(ctx);
 vm.runInContext(sl('// <bracket-puro>','// </bracket-puro>'),ctx);
 vm.runInContext('var state={f1:{},f2:{}};'+sl('// <fases-core>','// </fases-core>')+';ensurePhases();',ctx);
-vm.runInContext(fs.readFileSync(path.join(__dirname,'..','fases-extra.js'),'utf8'),ctx);
+vm.runInContext(fs.readFileSync(path.join(__dirname,'..','fases-view.js'),'utf8'),ctx);vm.runInContext(fs.readFileSync(path.join(__dirname,'..','fases-extra.js'),'utf8'),ctx);
 const run=c=>vm.runInContext(c,ctx);
 // 1) cuadro clásico sin cambios (4 y 8 equipos, sin byes)
 let r=run("buildBracket(['A','B','C','D'],4,{})");assert.equal(r.rounds.length,2);assert(r.rounds[0].matches.every(m=>!m.bye));

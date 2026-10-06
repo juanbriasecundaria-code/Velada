@@ -15,7 +15,7 @@ ctx.document={querySelector:s=>s==='.nav-tabs'?nav:s==='.nav-tab[data-tab="fase2
  getElementById:id=>id==='page-final'?finalPage:body.children.find(c=>c.id===id)||null,createElement:el};
 vm.createContext(ctx);
 vm.runInContext('var state={f1:{x:1},f2:{y:2},lastTab:null};'+core+'ensurePhases();',ctx);
-vm.runInContext(read('fases-extra.js'),ctx);
+vm.runInContext(read('fases-view.js'),ctx);vm.runInContext(read('fases-extra.js'),ctx);
 const FX=ctx.FasesExtra;
 // fixture: todos contra todos por rondas, juego rotando, sin repetir cruce ni jugar dos veces en la misma ronda
 const fx=FX.buildFixture(4,['a','b','c']);assert.equal(fx.length,6);

@@ -9448,6 +9448,7 @@ function simulateVelada() {
     '¿Simular toda la velada?',
     'Carga resultados aleatorios en Fase grupal, Impostor y ¿Quién lo dijo? para ver cómo quedarían los rankings, el podio y las pantallas. Pisa cualquier resultado que ya esté cargado (el roster, los fixtures, las estaciones y las reglas quedan intactos). Pensado para probar la app antes del evento — no se puede deshacer. Si ya tenés datos reales cargados, te conviene descargar un backup antes (arriba, en "Backup de la noche").',
     () => {
+      try { if (typeof FasesExtra !== 'undefined') FasesExtra.simulate(); } catch (e) {}
       // ── Impostor: un resultado random por cada partido del fixture ──
       F1_FIXTURE.forEach(([r, a, b, g]) => {
         const key = `${r}-${a}-${b}`;
@@ -15473,6 +15474,17 @@ function rollCredits() {
     ).join('')
     + '</div>';
 
+  // Podios de las fases adicionales (solo las que ya tienen resultados)
+  let fxCreditsHtml = '';
+  try {
+    if (typeof FasesView !== 'undefined') {
+      FasesView.extras(state).forEach(p => {
+        if (!Object.keys(state[p.id] || {}).length) return;
+        const rk = FasesView.rank(p, state, PLAYERS, TEAMS).map(r => ({ n: r.n, pts: r.pts })).filter(r => r.pts > 0);
+        if (rk.length) fxCreditsHtml += `<div class="cr-role role-fase1">Podio · ${esc(p.nombre)}</div>${podium(rk, tName)}`;
+      });
+    }
+  } catch (e) {}
   const html = `
     <div class="credits-viewport">
       ${creditsDecoHtml}
@@ -15492,6 +15504,7 @@ function rollCredits() {
           ${sortedI.length ? `<div class="cr-role role-fase1">Podio · Impostor</div>${podium(sortedI, pName)}` : ''}
           <div class="cr-role role-fase2">Podio · Fase grupal</div>
           ${podium(sortedT, tName)}
+          ${fxCreditsHtml}
         </div>
 
         <div class="cr-block">
@@ -17002,6 +17015,22 @@ function buildWrapped() {
     }
   } catch (e) { console.warn('[Wrapped] fallo en "campeón grupal":', e); }
 
+  // Campeón de cada fase adicional (solo si ya tiene resultados).
+  try {
+    if (typeof FasesView !== 'undefined') {
+      FasesView.extras(state).forEach(ph => {
+        if (!Object.keys(state[ph.id] || {}).length) return;
+        const rk = FasesView.rank(ph, state, PLAYERS, TEAMS);
+        if (!rk.length || rk[0].pts <= 0) return;
+        screens.push({
+          emoji: ph.emoji || '🏁', color: '#b48cff', title: 'Campeón · ' + escHtml(ph.nombre),
+          stat: `${rk[0].pts} pts`, name: escHtml(rk[0].n),
+          desc: rk.length > 1 ? `Le sacó ${Math.max(0, rk[0].pts - rk[1].pts)} pts al segundo` : 'El más ganador de la fase'
+        });
+      });
+    }
+  } catch (e) { console.warn('[Wrapped] fallo en fases adicionales:', e); }
+
   // MVP de la Impostor (más victorias) — dato que sale de computePhaseStats.
   try {
     if (statsIndiv.mvpName && statsIndiv.mvpWins > 0) {
@@ -18204,6 +18233,7 @@ function openTVMode() {
   // Detect which phase is currently active (fall back to 'both')
   const activeTab = state.lastTab || 'reglas';
   const tvPhase = (activeTab === 'fase1' || activeTab === 'fase2') ? activeTab : 'both';
+  if (activeTab.indexOf('fx-') === 0 && activeTab !== 'fx-nueva') { try { localStorage.setItem('ndj_tv_both_view', activeTab); } catch (e) {} }
 
   // El Modo TV vive en tv.html. Todo lo que necesita para arrancar viaja en la
   // URL (y queda también en localStorage), así que la pestaña del TV se puede
@@ -19125,4 +19155,4 @@ document.addEventListener('keydown', function(e) {
 })();
 </script>
 <script src="ensayo-guiado.js?v=20261005e"></script>
-<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-extra.js?v=20261006fx1"></script>
+<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-view.js?v=20261006fx2"></script><script src="fases-extra.js?v=20261006fx2"></script>
