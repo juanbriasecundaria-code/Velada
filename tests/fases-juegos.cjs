@@ -115,12 +115,24 @@ vm.runInContext(read('velada-rounds.js'),ctx);
   rk2=ctx.FasesView.rank(vm.runInContext("phaseById('f3')",ctx),ctx.state,ctx.PLAYERS,ctx.TEAMS);
   assert.equal(row('Cami / Dani').como,2);
   FX.render('f3');assert(ctx.document.getElementById('page-fx-f3').innerHTML.includes("openRuleta('f3')"),'botón de ruleta');
+  assert(ctx.document.getElementById('page-fx-f3').innerHTML.includes("editCellPts('f3'"),'celdas de la tabla editables en fases nuevas');
   // Bonus por juego: el ranking suma victoria + bp solo al ganador; el empate nunca lleva bonus
   const fpB={id:'zz',tipo:'grupal',fixture:[[1,0,1,0],[2,1,2,0]],games:['x'],pts:{win:3,draw:1},clasifican:{cantidad:0,tamanoGrupo:1}};
   const rkB=ctx.FasesView.rank(fpB,{zz:{'1-0-1':{winner:0,bonus:true,bp:2},'2-1-2':{winner:'empate'}}},ctx.PLAYERS,ctx.TEAMS);
   assert.equal(rkB.find(r=>r.n===ctx.TEAMS[0]).pts,5,'ganador con bonus suma win + bp');
   assert.equal(rkB.find(r=>r.n===ctx.TEAMS[1]).pts,1,'el perdedor no suma por el duelo (solo el empate de la ronda 2)');
   assert.equal(rkB.find(r=>r.n===ctx.TEAMS[2]).pts,1,'el empate nunca lleva bonus');
+  // Celdas editables: la corrección manual de una ronda reemplaza lo calculado (R1 de TEAMS[0]: 5 → 2) y el resto sigue igual
+  const stOv={zz:{'1-0-1':{winner:0,bonus:true,bp:2},'2-1-2':{winner:'empate'}},cellPts:{zz:{[ctx.TEAMS[0]+'||0']:2}}};
+  const rkO=ctx.FasesView.rank(fpB,stOv,ctx.PLAYERS,ctx.TEAMS);
+  assert.equal(rkO.find(r=>r.n===ctx.TEAMS[0]).pts,2,'celda corregida a mano reemplaza los puntos de la ronda');
+  assert.equal(rkO.find(r=>r.n===ctx.TEAMS[1]).pts,1,'las demás celdas no cambian');
+  assert.equal(ctx.FasesView.cellOv(stOv,'zz',ctx.TEAMS[0],0),2);assert.equal(ctx.FasesView.cellOv(stOv,'zz',ctx.TEAMS[0],1),null);
+  // Editor de enfrentamientos: solo sin resultados; dibuja selects y llama a saveFixtureMatch con la fase
+  ctx.state.f3={};ctx._fixtureEditMode={f3:true};FX.render('f3');
+  const htmlEd=ctx.document.getElementById('page-fx-f3').innerHTML;
+  assert(htmlEd.includes('fixture-edit-row')&&htmlEd.includes("saveFixtureMatch('f3'")&&htmlEd.includes('Cerrar editor'),'editor de enfrentamientos en fases nuevas');
+  ctx._fixtureEditMode={f3:false};
   // Eliminar la fase limpia apuestas y comodines
   FX.remove('f3');assert(!ctx.state.comodines_f3&&!(ctx.state.betsX&&ctx.state.betsX.f3));
   console.log('OK: fases nuevas con juegos — Activar ronda, fixture publicado, resultados automáticos, bonus por juego, sin duplicados, apuestas (ventana, aciertos, anulación), comodines por fase y f2 intacta.');

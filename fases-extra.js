@@ -65,16 +65,7 @@
   var jsq = function (v) { return esc(String(v == null ? '' : v).replace(/\\/g, '\\\\').replace(/'/g, "\\'")); };
   var first = function (v) { return esc(String(v || '?').split('/')[0].trim()); };
   // Puntos de un participante en una ronda: null = sin cargar, 'bye' = descansa (mismo criterio visual que la Fase grupal).
-  function roundPts(p, i, r, res, P) {
-    var mine = (p.fixture || []).filter(function (m) { return m[0] === r && (m[1] === i || m[2] === i); });
-    if (!mine.length) return 'bye';
-    var t = null;
-    mine.forEach(function (m) {
-      var x = res[key(m)]; if (!x) return; t = t || 0;
-      if (x.winner === 'empate') t += P.draw; else if (x.winner === i) t += P.win + (x.bonus ? (+x.bp || 1) : 0);
-    });
-    return t;
-  }
+  var roundPts = function (p, i, r, res, P) { return FasesView.roundPts(p, i, r, res, P); };
   function gameColors(g) {
     var gi = (typeof GAMES_F2 !== 'undefined') ? GAMES_F2.indexOf(g) : -1;
     return (gi >= 0 && typeof GAME_COLORS_F2 !== 'undefined' && GAME_COLORS_F2[gi]) || ['var(--surface2)', 'var(--muted)'];
@@ -85,6 +76,7 @@
     var fixture = p.fixture || [], rk = ranking(p), q = +p.clasifican.cantidad || 0;
     var rounds = []; fixture.forEach(function (m) { if (rounds.indexOf(m[0]) < 0) rounds.push(m[0]); }); rounds.sort(function (a, b) { return a - b; });
     var done = fixture.filter(function (m) { return res[key(m)]; }).length;
+    var editing = !locked && typeof _fixtureEditMode !== 'undefined' && !!_fixtureEditMode[p.id];
     var h = '<div class="stats-grid"><div class="stat-card"><div class="stat-num">' + done + '</div><div class="stat-label">Duelos jugados</div></div>' +
       '<div class="stat-card"><div class="stat-num">' + (fixture.length - done) + '</div><div class="stat-label">Pendientes</div></div>' +
       '<div class="stat-card"><div class="stat-num">' + (rk[0] ? rk[0].pts : 0) + '</div><div class="stat-label">Puntaje líder</div></div></div>';
@@ -108,17 +100,21 @@
 
     h += comodinesHtml(p);
 
+    h += '<div id="podium-fx-' + p.id + '"></div>';
+
     // ── Clasificación (misma tabla que la Fase grupal) ──
     h += '<div class="section-header"><span class="section-title"><span class="dot-indicator fase2"></span>Clasificación ' + (p.tipo === 'individual' ? 'individual' : 'grupal') + '</span>' + (q ? '<span class="especial-badge">★ Clasifican ' + q + ' a la Final</span>' : '') + '</div>';
     h += '<div class="card" style="padding:0"><div class="table-wrap"><table class="ranking"><thead><tr><th style="width:36px">#</th><th>' + (p.tipo === 'individual' ? 'Jugador' : 'Equipo') + '</th>' +
       rounds.map(function (r, n) { return '<th>R' + (n + 1) + '</th>'; }).join('') + '<th title="Apuestas acertadas">🃏</th><th title="Comodines">🎰</th><th style="text-align:right">Total</th></tr></thead><tbody>' +
       rk.map(function (r, k) {
         var cl = k < q, badge = cl && k === 0 ? 'gold' : k === 1 ? 'accent' : '';
-        var cells = rounds.map(function (rd) {
-          var v = roundPts(p, r.i, rd, res, P);
-          if (v === 'bye') return '<td class="round-pts bye" title="Descansa esta ronda">😴</td>';
-          if (v === null) return '<td class="round-pts pending">—</td>';
-          return '<td class="round-pts' + (v >= 4 ? ' bonus' : v > 0 ? ' win' : '') + '">' + v + '</td>';
+        var cells = rounds.map(function (rd, ri) {
+          var v = roundPts(p, r.i, rd, res, P), ov = FasesView.cellOv(state, p.id, r.n, ri), cls = ov !== null ? ' overridden' : '';
+          var click = ' onclick="editCellPts(\'' + p.id + '\',\'' + jsq(r.n) + '\',' + ri + ')" style="cursor:pointer" title="Tocá para editar los puntos de esta ronda"';
+          if (ov !== null) v = ov;
+          if (v === 'bye') return '<td class="round-pts bye"' + click + ' title="Descansa esta ronda">😴</td>';
+          if (v === null) return '<td class="round-pts pending"' + click + '>—</td>';
+          return '<td class="round-pts' + (v >= 4 ? ' bonus' : v > 0 ? ' win' : '') + cls + '"' + click + '>' + v + '</td>';
         }).join('');
         var cell = function (v) { return v ? '<td class="round-pts ' + (v > 0 ? 'win' : '') + '">' + (v > 0 ? '+' : '') + v + '</td>' : '<td class="round-pts pending">—</td>'; };
         return '<tr class="' + (cl ? 'classifica' : '') + '"><td><div class="pos-badge ' + badge + '">' + (k + 1) + '</div></td><td class="player-name" style="font-size:12px"><div class="player-name-inner">' +
@@ -131,7 +127,8 @@
     h += '<div class="section-header" style="margin-top:1.5rem"><span class="section-title"><span class="dot-indicator fase2"></span>Fixture ' + esc(p.nombre) + '</span></div><div class="card" style="padding:0.75rem">';
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;gap:0.5rem;flex-wrap:wrap"><span style="font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted)">Fixture</span><div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">' +
       (fixture.some(digital) ? '<button class="fixture-edit-toggle" onclick="openAutoResultadosModal()">🔄 Cargar resultados automáticamente</button>' : '') +
-      (locked ? '<span style="font-size:11px;color:var(--muted);opacity:0.6">🔒 Fijo (hay resultados)</span>' : '<button class="fixture-edit-toggle" onclick="FasesExtra.generate(\'' + p.id + '\')">🎲 ' + (fixture.length ? 'Regenerar fixture' : 'Generar fixture') + '</button>') + '</div></div>';
+      (locked ? '<span style="font-size:11px;color:var(--muted);opacity:0.6">🔒 Fijo (hay resultados)</span>' : '<button class="fixture-edit-toggle" onclick="FasesExtra.generate(\'' + p.id + '\')">🎲 ' + (fixture.length ? 'Regenerar fixture' : 'Generar fixture') + '</button>' +
+        (fixture.length ? '<button class="fixture-edit-toggle' + (editing ? ' active' : '') + '" onclick="toggleFixtureEdit(\'' + p.id + '\')">' + (editing ? '✓ Cerrar editor' : '✏️ Editar enfrentamientos') + '</button>' : '')) + '</div></div>';
     if (!fixture.length) h += '<div style="font-size:12px;color:var(--muted);padding:0.5rem 0.25rem">Todavía no hay fixture: elegí los juegos en la configuración y tocá "🎲 Generar fixture".</div>';
     rounds.forEach(function (r, n) {
       var ms = fixture.filter(function (m) { return m[0] === r; }), playing = {};
@@ -139,7 +136,14 @@
       var byes = names.map(function (nm, i) { return playing[i] ? '' : '<span class="bye-tag">😴 Descansa: ' + first(nm) + '</span>'; }).join(' ');
       h += '<div class="fixture-round"><div class="round-label">Ronda ' + (n + 1) + ' ' + byes + (ms.some(digital) ? '<button class="fixture-edit-toggle" style="margin-left:10px" onclick="activateBuzzerRound(\'' + p.id + '\',' + r + ',this)">▶ Activar ronda ' + (n + 1) + '</button>' : '') + '</div>';
       ms.forEach(function (m) {
-        var k = key(m), cur = res[k], g = games[m[3]] || '?', c = gameColors(g), A = names[m[1]], B = names[m[2]];
+        var k = key(m), cur = res[k], g = games[m[3]] || '?', c = gameColors(g), A = names[m[1]], B = names[m[2]], mi = fixture.indexOf(m), sid = 'fe-' + p.id + '-';
+        if (editing) {
+          var opt = function (list, sel) { return list.map(function (t, ti) { return '<option value="' + ti + '"' + (ti === sel ? ' selected' : '') + '>' + first(t) + '</option>'; }).join(''); };
+          h += '<div class="fixture-edit-row"><select class="fixture-edit-select" id="' + sid + 'a-' + mi + '">' + opt(names, m[1]) + '</select><span class="fixture-edit-vs">vs</span><select class="fixture-edit-select" id="' + sid + 'b-' + mi + '">' + opt(names, m[2]) + '</select>' +
+            '<select class="fixture-edit-select" style="max-width:140px" id="' + sid + 'g-' + mi + '">' + games.map(function (gn, gi) { return '<option value="' + gi + '"' + (gi === m[3] ? ' selected' : '') + '>' + esc(gn) + '</option>'; }).join('') + '</select>' +
+            '<button class="fixture-edit-save" style="background:var(--info);color:#0f0f13" onclick="saveFixtureMatch(\'' + p.id + '\',' + mi + ',document.getElementById(\'' + sid + 'a-' + mi + '\'),document.getElementById(\'' + sid + 'b-' + mi + '\'),document.getElementById(\'' + sid + 'g-' + mi + '\'))">✓</button></div>';
+          return;
+        }
         var txt = cur ? (cur.winner === 'empate' ? 'Empate' : '✓ ' + first(names[cur.winner]) + (cur.bonus ? ' +bonus' : '')) : 'Cargar';
         h += '<div class="match-row ' + (cur ? 'done' : '') + '" onclick="openModal(\'' + p.id + '\',\'' + jsq(k) + '\',\'' + jsq(g) + '\',\'' + jsq(A) + '\',\'' + jsq(B) + '\',' + m[1] + ',' + m[2] + ')">' +
           '<span class="match-game-badge" style="background:' + c[0] + ';color:' + c[1] + ';font-weight:600">' + esc(g) + '</span>' +
@@ -184,7 +188,12 @@
     extras().forEach(function (p) { mk('fx-' + p.id, p.emoji + ' ' + p.nombre); });
   }
   function render() {
-    extras().forEach(function (p) { var el = document.getElementById('page-fx-' + p.id); if (el) el.innerHTML = pageHtml(p); });
+    extras().forEach(function (p) {
+      var el = document.getElementById('page-fx-' + p.id); if (!el) return;
+      el.innerHTML = pageHtml(p);
+      // Podio animado en vivo, el mismo que la Fase grupal.
+      if (typeof renderPodium === 'function') { try { renderPodium('podium-fx-' + p.id, ranking(p).map(function (r) { return { n: r.n, i: r.i, pts: { total: r.pts } }; }), p.id); } catch (e) { console.warn('[podio]', e); } }
+    });
     var host = document.getElementById('fx-new-host'); if (host) host.innerHTML = newHtml();
   }
 

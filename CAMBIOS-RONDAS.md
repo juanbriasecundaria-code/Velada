@@ -89,4 +89,6 @@ Pruebas: `node tests/fases-juegos.cjs` cubre bonus automático, ranking con bonu
 
 - El formulario "＋ Nueva fase" está en **Reglas → 🎛️ Panel de control** (ya no hay pestaña "＋ Fase").
 - Cada fase nueva usa el mismo esqueleto que la Fase grupal: tarjetas de estadísticas, "Configuración" colapsable, tabla de clasificación con columnas por ronda (R1, R2…), 🃏, 🎰 y Total, y fixture con las mismas filas y chips de color por juego. Los resultados se cargan con el mismo modal (ganador, empate, bonus, borrar y deshacer).
-- Todavía no tiene el podio animado de la Fase grupal.
+- Las celdas de ronda de la tabla se corrigen a mano tocándolas (mismo `state.cellPts` que la Fase grupal); la corrección reemplaza los puntos calculados de esa ronda y cuenta en el total, en la TV y en los celulares. Vacío vuelve al valor calculado.
+- "✏️ Editar enfrentamientos" permite cambiar quién juega y a qué juego mientras no haya resultados cargados; no deja repetir un cruce dentro de la ronda.
+- Cada fase nueva tiene su **Podio en vivo** (el mismo de la Fase grupal, con figuras, corona y confeti a partir de 6 pts). Guarda su último top 3 por fase, así que anima solo cuando cambia, y el sonido/confeti solo se dispara en la fase que está a la vista. Prueba: `node tests/podio-fases.cjs`.

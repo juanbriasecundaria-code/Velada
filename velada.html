@@ -4066,7 +4066,7 @@ body.solo-impostor #tv-btn{ opacity:.42 }
   cursor:pointer; font-family:inherit; padding:1px }
 </style>
 <style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style><script src="team-maps.js?v=20261005d"></script><script src="buzzer-rounds.js?v=20261005e"></script>
-<script src="velada-rounds.js?v=20261007fx5"></script>
+<script src="velada-rounds.js?v=20261007fx7"></script>
 <script src="common-rounds.js?v=20261005teg1"></script>
 </head>
 <body>
@@ -6959,7 +6959,8 @@ let _fixtureEditMode = { f1: false, f2: false };
 function toggleFixtureEdit(phase) {
   _fixtureEditMode[phase] = !_fixtureEditMode[phase];
   if (phase === 'f1') renderFixtureF1();
-  else renderFixtureF2();
+  else if (phase === 'f2') renderFixtureF2();
+  else rerenderPhase(phase);
 }
 
 function saveFixtureMatch(phase, matchIdx, selectA, selectB, selectG) {
@@ -6976,6 +6977,9 @@ function saveFixtureMatch(phase, matchIdx, selectA, selectB, selectG) {
     showToast('🔒','Mario Party se distribuye al generar el fixture para mantener su ronda única.',false); return;
   }
   if(phase==='f2' && GAMES_F2[newG]==='TEG Express'){showToast('🔒','TEG Express es una ronda común, no un duelo.',false);return;}
+  if (phase !== 'f1' && phase !== 'f2' && fixture.some((m, i) => i !== matchIdx && m[0] === match[0] && m[1] === newA && m[2] === newB)) {
+    showToast('⚠️', 'Ese cruce ya existe en la ronda', false); return;
+  }
   const oldKey = `${match[0]}-${match[1]}-${match[2]}`;
   // Update fixture entry
   match[1] = newA;
@@ -6991,14 +6995,15 @@ function saveFixtureMatch(phase, matchIdx, selectA, selectB, selectG) {
   if (phase === 'f1') {
     F1_BYES = computeF1Byes(F1_FIXTURE, PLAYERS.length);
     state.f1FixtureSnapshot = { fixture: F1_FIXTURE, byes: F1_BYES };
+  } else if (phase !== 'f2') {
+    // Fases nuevas: el fixture vive en el registro de fases; los descansos se calculan al dibujar.
   } else {
     F2_BYES = computeF2Byes(F2_FIXTURE, TEAMS.length);
     state.f2FixtureSnapshot = { fixture: F2_FIXTURE, byes: F2_BYES };
   }
   saveState();
   showToast('✓', 'Enfrentamiento actualizado', false);
-  if (phase === 'f1') renderFase1();
-  else renderFase2();
+  rerenderPhase(phase);
 }
 
 
@@ -8370,7 +8375,7 @@ function editCellPts(phase, name, ri) {
     state.cellPts[phase][k] = num;
   }
   saveState();
-  if (phase === 'f1') renderFase1(); else renderFase2();
+  rerenderPhase(phase);
 }
 
 // Puntos de bonus previo (columna 🎯, Kahoot u otras actividades previas):
@@ -12024,8 +12029,8 @@ function lighten(hex, amt) {
   return `rgb(${r},${g},${b})`;
 }
 
-let _prevPodiumTop3F1 = '';
-let _prevPodiumTop3F2 = '';
+// Último top 3 dibujado por fase (f1, f2 y fases nuevas): solo anima y suena cuando cambia.
+const _prevPodiumTop3 = {};
 
 // Victorias/derrotas por entidad (jugador en f1, equipo en f2), desde los fixtures.
 // Sirve para el 🔥 (3+ victorias) / 🤡 (3+ derrotas) del podio.
@@ -12068,10 +12073,9 @@ function renderPodium(containerId, sorted, phase) {
   const posLabels = ['2°','1°','3°'];
 
   const top3Key = sorted.slice(0,3).map(s => `${s.n}:${s.pts.total}`).join('|');
-  const prevKey = phase === 'f1' ? _prevPodiumTop3F1 : _prevPodiumTop3F2;
+  const prevKey = _prevPodiumTop3[phase] || '';
   const changed = top3Key !== prevKey;
-  if (phase === 'f1') _prevPodiumTop3F1 = top3Key;
-  else _prevPodiumTop3F2 = top3Key;
+  _prevPodiumTop3[phase] = top3Key;
 
   const phaseColor = phase === 'f1' ? 'var(--accent)' : 'var(--info)';
   const phaseDot   = phase === 'f1' ? 'fase1' : 'fase2';
@@ -12122,7 +12126,10 @@ function renderPodium(containerId, sorted, phase) {
     </div>
   `;
 
-  if (changed && sorted[0]?.pts.total > 0) {
+  // Las fases nuevas se dibujan todas juntas: solo suena/lanza confeti la que está a la vista.
+  const _pg = el.closest && el.closest('.page');
+  const _visible = phase === 'f1' || phase === 'f2' || !_pg || _pg.classList.contains('active');
+  if (changed && _visible && sorted[0]?.pts.total > 0) {
     playPodiumSound();
     if (sorted[0]?.pts.total >= 6) launchConfetti(phase);
   }
@@ -19256,5 +19263,5 @@ document.addEventListener('keydown', function(e) {
   }
 })();
 </script>
-<script src="ensayo-guiado.js?v=20261007fx5"></script>
-<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-view.js?v=20261007fx5"></script><script src="fases-extra.js?v=20261007fx5"></script>
+<script src="ensayo-guiado.js?v=20261007fx7"></script>
+<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-view.js?v=20261007fx7"></script><script src="fases-extra.js?v=20261007fx7"></script>

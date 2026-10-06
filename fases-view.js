@@ -5,6 +5,20 @@
   function extras(state) { return (state && Array.isArray(state.phases) ? state.phases : []).filter(function (p) { return p && p.id !== 'f1' && p.id !== 'f2'; }); }
   function names(p, PL, TM) { return (p.tipo === 'individual' ? PL : TM) || []; }
   function pts(p) { var d = p.pts || {}; return { win: d.win != null ? +d.win : 3, draw: d.draw != null ? +d.draw : 1 }; }
+  // Puntos de un participante en una ronda: null = sin cargar, 'bye' = descansa.
+  function roundPts(p, i, r, res, P) {
+    var mine = (p.fixture || []).filter(function (m) { return m[0] === r && (m[1] === i || m[2] === i); });
+    if (!mine.length) return 'bye';
+    var t = null;
+    mine.forEach(function (m) {
+      var x = res[key(m)]; if (!x) return; t = t || 0;
+      if (x.winner === 'empate') t += P.draw; else if (x.winner === i) t += P.win + (x.bonus ? (+x.bp || 1) : 0);
+    });
+    return t;
+  }
+  function roundList(p) { var rs = []; (p.fixture || []).forEach(function (m) { if (rs.indexOf(m[0]) < 0) rs.push(m[0]); }); return rs.sort(function (a, b) { return a - b; }); }
+  // Corrección manual de una celda (ronda): state.cellPts[idFase]["nombre||indiceRonda"], igual que en la Fase grupal.
+  function cellOv(state, id, name, n) { var m = (state && state.cellPts && state.cellPts[id]) || {}, k = name + '||' + n; return Object.prototype.hasOwnProperty.call(m, k) && typeof m[k] === 'number' ? m[k] : null; }
   function ownerIdx(rows, who, indiv) {
     var w = String(who || '').trim().toLowerCase(), f = w.split(' ')[0], i;
     for (i = 0; i < rows.length; i++) {
@@ -21,6 +35,14 @@
       if (r.winner === 'empate') { A.e++; B.e++; A.pts += P.draw; B.pts += P.draw; }
       else if (r.winner === m[1]) { A.g++; B.p++; A.pts += P.win + (r.bonus ? (+r.bp || 1) : 0); }
       else if (r.winner === m[2]) { B.g++; A.p++; B.pts += P.win + (r.bonus ? (+r.bp || 1) : 0); }
+    });
+    // Correcciones manuales por celda: reemplazan los puntos calculados de esa ronda.
+    var rl = roundList(p);
+    rows.forEach(function (row, i) {
+      rl.forEach(function (r, n) {
+        var ov = cellOv(state, p.id, row.n, n); if (ov === null) return;
+        var calc = roundPts(p, i, r, res, P); row.pts += ov - (typeof calc === 'number' ? calc : 0);
+      });
     });
     // Apuestas: cada acierto suma 1 al equipo del apostador (o a él mismo en fases individuales).
     // Si apuesta a un duelo propio y lo pierde, se le anulan todos los puntos de apuestas.
@@ -68,5 +90,5 @@
     var ex = extras(state); if (!ex.length) return '';
     return ex.map(function (p) { return '<div class="gh-card" style="margin-top:1rem;padding:.9rem;border-radius:14px;background:var(--surface,rgba(255,255,255,.04));border:1px solid var(--border2,rgba(255,255,255,.12))">' + html(p, state, PL, TM, opt) + '</div>'; }).join('');
   }
-  root.FasesView = { ownerIdx: ownerIdx, extras: extras, rank: rank, progress: progress, html: html, cards: cards, pts: pts, names: names };
+  root.FasesView = { ownerIdx: ownerIdx, extras: extras, rank: rank, progress: progress, html: html, cards: cards, pts: pts, names: names, roundPts: roundPts, roundList: roundList, cellOv: cellOv };
 })(typeof window !== 'undefined' ? window : globalThis);
