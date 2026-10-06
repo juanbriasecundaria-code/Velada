@@ -2980,9 +2980,9 @@ function buildResultsFeed() {
 // pueda ver desde su teléfono si quiere. Reusa los datos que ya llegan por
 // Firebase (latestState / latestRules) y las mismas reglas de puntaje que
 // getPoints, así el gráfico cuenta la misma historia que la tabla.
-let _evoMode = 'f1';  // 'f1' | 'f2' | 'total'
+let _evoMode = 'f2';  // 'f1' | 'f2' | 'total'
 let _evoView = 'pts'; // 'pts' | 'pos'
-try { _evoMode = localStorage.getItem('ndj_guest_evo_mode') || 'f1'; } catch (e) {}
+try { _evoMode = localStorage.getItem('ndj_guest_evo_mode') || 'f2'; } catch (e) {}
 try { _evoView = localStorage.getItem('ndj_guest_evo_view') || 'pts'; } catch (e) {}
 
 // Orden cronológico real: por timestamp (res.t) cuando existe, con fallback al
