@@ -651,6 +651,18 @@ body { animation: appEnter .32s ease-out both; }
   /* El contenido arranca arriba para no desperdiciar la franja superior. */
   .part-main{padding:1rem 1.75rem;overflow:hidden;justify-content:flex-start;gap:.8rem}
 }
+
+/* ── Media en lote ── */
+.qb-row{display:flex;flex-direction:column;gap:.35rem;padding:.55rem .7rem;border-radius:12px;background:var(--surface2);border:1.5px solid var(--border2)}
+.qb-row.ok{border-color:rgba(60,200,120,.6)}
+.qb-row.maybe{border-color:rgba(255,190,50,.85);background:rgba(255,190,50,.07)}
+.qb-row.none{opacity:.85}
+.qb-top{display:flex;align-items:center;gap:.5rem;justify-content:space-between}
+.qb-name{font-size:13px;font-weight:800;color:var(--text);word-break:break-all}
+.qb-chip{font-size:10.5px;font-weight:800;white-space:nowrap;color:var(--muted)}
+.qb-sel{width:100%;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:12px;padding:.4rem .5rem}
+.qb-two{display:flex;gap:.4rem}
+.qb-chk{display:flex;align-items:center;gap:.4rem;font-size:12px;font-weight:700;color:var(--text)}
 </style>
 <script src="qld-turns.js?v=20261005d"></script></head>
 <body>
@@ -817,6 +829,26 @@ body { animation: appEnter .32s ease-out both; }
 </div>
 
 <!-- EDITOR OVERLAY -->
+<div class="overlay" id="qb-ov" style="z-index:760">
+  <div class="ed-panel">
+    <div class="ed-head"><div class="ed-title">📂 Cargar media en lote</div><button class="ed-close" onclick="closeBulkMedia()">×</button></div>
+    <div class="ed-body" style="display:flex;flex-direction:column;gap:.6rem">
+      <div style="font-size:12px;color:var(--muted);line-height:1.5">Elegí la carpeta con fotos, videos y sonidos. Cada archivo se empareja con una carta por nombre (el título, el "quién", o el número de carta: <code>12.jpg</code>, <code>carta 12 reveal.mp4</code>). Fotos → media de la carta · videos → clip de revelación · audios → media o clip (si el nombre dice <i>reveal / clip / voz</i>).</div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+        <button class="cta-btn primary" onclick="document.getElementById('qb-dir').click()">📁 Elegir carpeta</button>
+        <button class="cta-btn" onclick="document.getElementById('qb-files').click()">🖼️ Elegir archivos</button>
+        <input type="file" id="qb-dir" webkitdirectory directory multiple style="display:none" onchange="qbPick(this)">
+        <input type="file" id="qb-files" accept="image/*,audio/*,video/*" multiple style="display:none" onchange="qbPick(this)">
+      </div>
+      <div id="qb-sum" style="font-size:12px;color:var(--muted);font-weight:700"></div>
+      <div id="qb-list" style="display:flex;flex-direction:column;gap:.5rem"></div>
+      <div style="display:flex;gap:.4rem;justify-content:flex-end">
+        <button class="cta-btn" onclick="closeBulkMedia()">Cancelar</button>
+        <button class="cta-btn primary" id="qb-apply" onclick="qbApply()" disabled>Aplicar</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="ed-overlay">
   <div class="ed-panel">
     <div class="ed-head">
@@ -826,6 +858,7 @@ body { animation: appEnter .32s ease-out both; }
     <div class="ed-tabs">
       <button class="ed-tab on" id="tab-list" onclick="edSwitch('list')">📋 Cartas</button>
       <button class="ed-tab"    id="tab-new"  onclick="edSwitch('new')">➕ Nueva</button>
+      <button class="ed-tab" onclick="openBulkMedia()">📂 Media en lote</button>
     </div>
     <div class="ed-body" id="ed-body-list">
       <input class="form-in" id="ed-search" placeholder="🔍 Buscar por título, frase o quién…" oninput="edSetSearch(this.value)" style="margin-bottom:.6rem">
@@ -1115,9 +1148,8 @@ function initFirebase(){
       fbDeckRef.on('value', snap => {
         const d = snap.val();
         if(d && Array.isArray(d.deck)){
-          deck = d.deck;
-          try{ localStorage.setItem(SK.DECK, JSON.stringify(deck)); }catch(e){}
-          // Las imágenes/audios subidos viajan con el mazo: re-renderizamos la carta actual
+          deck = qldMergeBlobs(d.deck, deck);   // conserva los archivos locales de esta PC
+          // Los archivos locales se leen de IndexedDB: re-renderizamos la carta actual
           if(_partMediaPending) _lastPartCardId = null; // forzamos remontar la media
           if(_lastLiveState) renderPartCard(_lastLiveState);
         }
@@ -1138,7 +1170,7 @@ function initFirebase(){
       fbDeckRef.once('value').then(snap => {
         const d = snap.val();
         if(d && Array.isArray(d.deck) && d.updated && d.updated > (deckMeta.updated||0)){
-          deck = d.deck;
+          deck = qldMergeBlobs(d.deck, deck);
           deckMeta = { updated: d.updated };
           saveDeckLocal();
           renderCard(); renderEditorList();
@@ -1177,8 +1209,9 @@ function fbPushLive(){
 }
 function fbPushDeck(){
   if(!fbDeckRef) return;
-  const payload = { deck, updated: Date.now() };
-  try{ fbDeckRef.set(payload); }catch(e){}
+  // Sin fotos/videos pesados: solo entran los blobs chicos (hasta ~3MB en total); el resto queda en la PC del conductor
+  const payload = { deck: qldStripDeck(deck, 3000000), updated: Date.now() };
+  try{ const pr = fbDeckRef.set(payload); if(pr && pr.catch) pr.catch(e => console.warn('[QLD] deck no subido', e)); }catch(e){}
 }
 
 // ── BUZZER ──
@@ -1347,12 +1380,138 @@ function loadState(){
   try{ const s = localStorage.getItem(SK.DECK); if(s){ deck = JSON.parse(s) || []; }}catch(e){}
   try{ const s = localStorage.getItem(SK.TEAM_SCORES); if(s){ teamScores = JSON.parse(s) || {}; }}catch(e){}
   try{ const s = localStorage.getItem(SK.IDX); if(s){ cardIdx = parseInt(s)||0; }}catch(e){}
-  if(!deck.length){ deck = DEFAULT_DECK(); saveDeckLocal(); }
+  if(!deck.length){ _deckWasDefault = true; deck = DEFAULT_DECK(); saveDeckLocal(); }
   rebuildNickMap();
 }
+// ── ALMACÉN LOCAL DE MEDIA (IndexedDB) ──
+// Las fotos/videos/audios subidos (base64) NO viajan por Firebase ni entran en localStorage (~5MB):
+// viven en IndexedDB de este navegador. Conductor y pantalla de participantes, si están en el mismo
+// navegador (distintas pestañas), comparten ese almacén. localStorage guarda solo el mazo "liviano".
+let _deckWasDefault = false;
+function qIsBlob(v){ return typeof v === 'string' && v.indexOf('data:') === 0; }
+let _qIdb = null;
+function qIdbOpen(){
+  return new Promise(res => {
+    if(_qIdb){ res(_qIdb); return; }
+    try{
+      const rq = indexedDB.open('qld_db', 1);
+      rq.onupgradeneeded = e => { const db = e.target.result; if(!db.objectStoreNames.contains('kv')) db.createObjectStore('kv'); };
+      rq.onsuccess = e => { _qIdb = e.target.result; res(_qIdb); };
+      rq.onerror = () => res(null);
+    }catch(e){ res(null); }
+  });
+}
+async function qIdbSet(k, v){
+  const db = await qIdbOpen(); if(!db) return false;
+  return new Promise(res => { try{ const tx = db.transaction('kv','readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = () => res(true); tx.onerror = () => res(false); }catch(e){ res(false); } });
+}
+async function qIdbGet(k){
+  const db = await qIdbOpen(); if(!db) return null;
+  return new Promise(res => { try{ const rq = db.transaction('kv','readonly').objectStore('kv').get(k); rq.onsuccess = () => res(rq.result == null ? null : rq.result); rq.onerror = () => res(null); }catch(e){ res(null); } });
+}
+async function qIdbDel(k){
+  const db = await qIdbOpen(); if(!db) return false;
+  return new Promise(res => { try{ const tx = db.transaction('kv','readwrite'); tx.objectStore('kv').delete(k); tx.oncomplete = () => res(true); tx.onerror = () => res(false); }catch(e){ res(false); } });
+}
+// Copia del mazo sin blobs (los más chicos entran hasta "budget" caracteres en total; budget 0 = ninguno)
+function qldStripDeck(d, budget){
+  const items = [];
+  (d||[]).forEach((c, ci) => {
+    if(!c) return;
+    if(qIsBlob(c.mediaData)) items.push({ ci, f:'mediaData', size:c.mediaData.length });
+    if(qIsBlob(c.revealData)) items.push({ ci, f:'revealData', size:c.revealData.length });
+    (c.options||[]).forEach((o, oi) => { if(o && qIsBlob(o.img)) items.push({ ci, oi, size:o.img.length }); });
+  });
+  items.sort((a,b) => a.size - b.size);
+  let used = 0; const drop = new Set();
+  items.forEach(it => { if(used + it.size <= (budget||0)) used += it.size; else drop.add(it.ci + ':' + (it.f || ('o' + it.oi))); });
+  return (d||[]).map((c, ci) => {
+    if(!c) return c;
+    const n = { ...c };
+    if(drop.has(ci + ':mediaData')) delete n.mediaData;
+    if(drop.has(ci + ':revealData')) delete n.revealData;
+    if(Array.isArray(n.options)) n.options = n.options.map((o, oi) => (o && drop.has(ci + ':o' + oi)) ? { ...o, img:'' } : o);
+    return n;
+  });
+}
+// Rellena con blobs locales (por id de carta) lo que la copia de la nube trae sin ellos
+function qldMergeBlobs(base, src){
+  const m = {}; (src||[]).forEach(c => { if(c) m[c.id] = c; });
+  return (base||[]).map(c => {
+    const o = c && m[c.id]; if(!o) return c;
+    const n = { ...c };
+    if(!qIsBlob(n.mediaData) && qIsBlob(o.mediaData)) n.mediaData = o.mediaData;
+    if(!qIsBlob(n.revealData) && qIsBlob(o.revealData)) n.revealData = o.revealData;
+    if(Array.isArray(n.options) && Array.isArray(o.options)){
+      n.options = n.options.map(x => { if(!x || x.img) return x; const y = o.options.find(z => z && z.text === x.text && qIsBlob(z.img)); return y ? { ...x, img:y.img } : x; });
+    }
+    return n;
+  });
+}
+function qBlobOf(c){
+  const o = {};
+  if(qIsBlob(c.mediaData)) o.m = c.mediaData;
+  if(qIsBlob(c.revealData)) o.r = c.revealData;
+  const oi = []; (c.options||[]).forEach((x, i) => { if(x && qIsBlob(x.img)) oi[i] = x.img; });
+  if(oi.length) o.o = oi;
+  return o;
+}
+function qSig(o){ return [o.m ? o.m.length + o.m.slice(-24) : '', o.r ? o.r.length + o.r.slice(-24) : '', (o.o||[]).map(x => x ? x.length + x.slice(-16) : '').join('|')].join('#'); }
+const _blobSig = {};
+let _qPersistChain = Promise.resolve();
+const _qBC = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('qld_media') : null;
+function qPersistDeck(){
+  _qPersistChain = _qPersistChain.then(async () => {
+    try{
+      for(const c of deck){
+        if(!c) continue;
+        const o = qBlobOf(c), sg = qSig(o);
+        if(_blobSig[c.id] !== sg){ if(await qIdbSet('blob:' + c.id, o)) _blobSig[c.id] = sg; }
+      }
+      const ids = deck.filter(Boolean).map(c => c.id);
+      const prev = (await qIdbGet('deck_ids')) || [];
+      for(const id of prev){ if(!ids.includes(id)){ await qIdbDel('blob:' + id); delete _blobSig[id]; } }
+      await qIdbSet('deck_ids', ids);
+      await qIdbSet('deck_light', qldStripDeck(deck, 0));
+      if(_qBC) _qBC.postMessage('deck');
+    }catch(e){ console.warn('[QLD] persist', e); }
+  });
+  return _qPersistChain;
+}
+async function qLoadBlobs(){
+  let changed = false;
+  for(const c of deck){
+    if(!c) continue;
+    const o = await qIdbGet('blob:' + c.id); if(!o) continue;
+    if(o.m && !qIsBlob(c.mediaData)){ c.mediaData = o.m; changed = true; }
+    if(o.r && !qIsBlob(c.revealData)){ c.revealData = o.r; changed = true; }
+    if(o.o && Array.isArray(c.options)) o.o.forEach((img, i) => { if(img && c.options[i] && !qIsBlob(c.options[i].img)){ c.options[i] = { ...c.options[i], img }; changed = true; } });
+    if(MODE !== 'participant') _blobSig[c.id] = qSig(qBlobOf(c));
+  }
+  return changed;
+}
+function qRefreshAfterBlobs(){
+  if(MODE === 'participant'){ if(_partMediaPending) _lastPartCardId = null; if(_lastLiveState) renderPartCard(_lastLiveState); }
+  else { try{ renderCard(); renderEditorList(); }catch(e){} }
+}
+async function qBoot(){
+  try{
+    if(_deckWasDefault){
+      const light = await qIdbGet('deck_light');
+      if(Array.isArray(light) && light.length){ deck = light; rebuildNickMap(); }
+      _deckWasDefault = false;
+    }
+    const ch = await qLoadBlobs();
+    if(MODE !== 'participant') await qPersistDeck();   // migra/siembra lo que todavía no estaba en IndexedDB
+    if(ch || deck.length) qRefreshAfterBlobs();
+  }catch(e){ console.warn('[QLD] boot', e); }
+}
+if(_qBC) _qBC.onmessage = async () => { if(typeof MODE !== 'undefined' && MODE === 'participant'){ if(await qLoadBlobs()) qRefreshAfterBlobs(); } };
 function saveDeckLocal(){
   deckMeta.updated = Date.now();
-  try{ localStorage.setItem(SK.DECK, JSON.stringify(deck)); }catch(e){}
+  try{ localStorage.setItem(SK.DECK, JSON.stringify(qldStripDeck(deck, 0))); }catch(e){}
+  if(MODE === 'participant' || _deckWasDefault) return;
+  qPersistDeck();
 }
 function saveTeamScores(){ try{ localStorage.setItem(SK.TEAM_SCORES, JSON.stringify(teamScores)); }catch(e){} }
 function saveIdx(){ try{ localStorage.setItem(SK.IDX, String(cardIdx)); }catch(e){} }
@@ -1459,6 +1618,7 @@ function applyMode(m){
   document.getElementById('gate').classList.remove('active');
   document.getElementById('gate').style.display = 'none';
   loadState();
+  qBoot();
   initFirebase();
   if(m === 'conductor'){
     document.getElementById('conductor').classList.add('active');
@@ -1889,7 +2049,7 @@ function toggleReveal(){
         revealCueTimer = setTimeout(() => {
           revealCueTimer = null;
           if(revealed && currentCard() && currentCard().id === cardIdAtReveal){
-            revealCueState = { src, kind, ts: Date.now() };
+            revealCueState = { src, kind, cardId: cardIdAtReveal, ts: Date.now() };
             fbPushLive();
           }
         }, 3500);
@@ -1903,7 +2063,7 @@ function replayRevealCue(){
   if(!cur){ return; }
   const src = cur.revealUrl || cur.revealData;
   if(!src){ toast('Esta carta no tiene clip de revelación cargado'); return; }
-  revealCueState = { src, kind: cur.revealType && cur.revealType.startsWith('video') ? 'video' : 'audio', ts: Date.now() };
+  revealCueState = { src, kind: cur.revealType && cur.revealType.startsWith('video') ? 'video' : 'audio', cardId: cur.id, ts: Date.now() };
   fbPushLive();
   toast('▶️ Reproduciendo en pantalla de participantes');
 }
@@ -2138,7 +2298,7 @@ function liveStateSnapshot(){
     cardIdx, revealed, hintsShown,
     teamScores,
     videoSync: videoSyncState,
-    revealCue: revealCueState,
+    revealCue: revealCueState ? { kind: revealCueState.kind, ts: revealCueState.ts, cardId: revealCueState.cardId, src: qIsBlob(revealCueState.src) ? '' : revealCueState.src } : null,
     card: cur ? {
       id: cur.id, category: cur.category, prompt: cur.prompt || '',
       dialogue: cur.dialogue || null,
@@ -2182,8 +2342,15 @@ let _partMediaPending = false; // true si la carta usa un archivo subido que tod
 let _lastRevealCueTs = 0;
 let _revealAudioEl = null;
 
+function partRevealSrc(cue){
+  if(cue.src) return cue.src;
+  const full = Array.isArray(deck) ? deck.find(x => x && x.id === cue.cardId) : null;
+  return (full && (full.revealData || full.revealUrl)) || '';
+}
 function playRevealCue(cue){
-  if(!cue || !cue.src) return;
+  if(!cue) return;
+  cue = Object.assign({}, cue, { src: partRevealSrc(cue) });
+  if(!cue.src) return;
   const overlay = document.getElementById('reveal-cue-overlay');
   const videoEl = document.getElementById('reveal-cue-video');
   const audioVis = document.getElementById('reveal-cue-audio-vis');
@@ -3264,6 +3431,156 @@ function DEFAULT_DECK(){
       hint2:'Del disco "Clics modernos" (1983)' },
   ];
   return cards.map((c, i) => ({ ...c, id: now + i }));
+}
+
+
+// ─── MEDIA EN LOTE (carpeta → cartas) ───────────────────────────
+const _QB_STOP = new Set(['the','a','an','de','la','el','los','las','y','and','feat','ft','carta','card','reveal','revelar','revelacion','clip','respuesta','voz','original','media','imagen','foto','audio','video','img','image','sonido','sound','mp3','mp4','jpg','jpeg','png']);
+let _qbFiles = [], _qbRows = [];
+function qbKind(f){ const t = f.type || ''; if(t.indexOf('image/')===0 || /\.(jpe?g|png|gif|webp|avif|bmp)$/i.test(f.name)) return 'image'; if(t.indexOf('video/')===0 || /\.(mp4|webm|mov|m4v|ogv)$/i.test(f.name)) return 'video'; if(t.indexOf('audio/')===0 || /\.(mp3|wav|ogg|m4a|aac|flac|opus|weba)$/i.test(f.name)) return 'audio'; return null; }
+function qbTokens(str, isFile){
+  let t = String(str||'');
+  if(isFile) t = t.replace(/\.[a-z0-9]{2,5}$/i,'');
+  t = t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim();
+  const out = []; t.split(' ').forEach(w => { if(w && !_QB_STOP.has(w) && !/^\d+$/.test(w) && out.indexOf(w) < 0) out.push(w); });
+  return out;
+}
+function qbLev(a,b){ const m=a.length,n=b.length; if(Math.abs(m-n)>1) return 9; const d=[]; for(let i=0;i<=m;i++) d[i]=[i]; for(let j=0;j<=n;j++) d[0][j]=j; for(let i=1;i<=m;i++) for(let j=1;j<=n;j++) d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return d[m][n]; }
+function qbScore(A,B){
+  if(!A.length || !B.length) return { score:0, exact:false };
+  let ex = 0, fz = 0; const used = new Set();
+  A.forEach(a => {
+    if(B.indexOf(a) >= 0){ ex++; used.add(a); return; }
+    if(a.length >= 5){ const f = B.find(b => !used.has(b) && b.length >= 5 && A.indexOf(b) < 0 && qbLev(a,b) <= 1); if(f){ fz++; used.add(f); } }
+  });
+  const exact = (ex === A.length && A.length === B.length);
+  let score = 2*(ex + 0.8*fz)/(A.length + B.length);
+  if(!exact){
+    if(ex === A.length && A.length >= 2) score = Math.max(score,.7);
+    else if(ex === B.length && B.length >= 2) score = Math.max(score,.7);
+    score = Math.min(score,.99);
+  } else score = 1;
+  return { score, exact };
+}
+function qbCardLabel(c,i){ const t = (c.title || c.who || c.prompt || '').toString().trim(); return (i+1) + '. ' + (t.length > 55 ? t.slice(0,55) + '…' : (t || '(sin título)')); }
+function qbSlotGuess(file, kind, card){
+  if(kind === 'video') return 'reveal';
+  if(kind === 'image') return 'media';
+  if(/reveal|revel|clip|respuesta|voz|original/i.test(file.name)) return 'reveal';
+  if(card && card.revealType === 'audio-upload' && !card.revealData && card.mediaType !== 'audio-upload') return 'reveal';
+  return 'media';
+}
+function qbHasSlot(card, slot, kind){
+  if(!card) return false;
+  if(slot === 'reveal') return !!(card.revealData || card.revealUrl);
+  if(kind === 'image' && card.mediaType === 'image-audio') return !!card.mediaImage;
+  return !!(card.mediaData || card.mediaUrl);
+}
+function openBulkMedia(){ document.getElementById('qb-ov').classList.add('open'); qbBuild(); }
+function closeBulkMedia(){ document.getElementById('qb-ov').classList.remove('open'); }
+function qbPick(input){
+  const fs = Array.from(input.files || []).filter(f => qbKind(f));
+  input.value = '';
+  if(!fs.length){ toast('No encontré fotos, videos ni audios'); return; }
+  _qbFiles = fs.sort((a,b) => a.name.localeCompare(b.name,'es'));
+  qbBuild();
+}
+function qbBuild(){
+  const cardT = deck.map(c => ({ t: qbTokens(c.title), w: qbTokens(c.who), tw: qbTokens((c.title||'') + ' ' + (c.who||'')) }));
+  const cand = [];
+  _qbFiles.forEach((f, fi) => {
+    const kind = qbKind(f);
+    const base = f.name.replace(/\.[a-z0-9]{2,5}$/i,'');
+    const num = base.match(/^\s*(?:carta|card|c|n[°ºo.]*|#)?\s*0*(\d{1,3})(?=$|[\s._-])/i);
+    if(num){
+      const ci = parseInt(num[1]) - 1;
+      if(ci >= 0 && ci < deck.length){
+        const rest = qbTokens(base.slice(num[0].length));
+        cand.push({ fi, ci, score: rest.length ? .8 : 1, exact: !rest.length });
+      }
+    }
+    const B = qbTokens(f.name, true);
+    cardT.forEach((ct, ci) => {
+      const r = [qbScore(ct.t,B), qbScore(ct.w,B), qbScore(ct.tw,B)].sort((a,b) => b.score - a.score)[0];
+      if(r.score >= .35) cand.push({ fi, ci, score: r.score, exact: r.exact });
+    });
+  });
+  cand.sort((a,b) => b.score - a.score);
+  const fileDone = new Set(), slotUsed = new Set(), asg = {};
+  cand.forEach(p => {
+    if(fileDone.has(p.fi)) return;
+    const f = _qbFiles[p.fi], kind = qbKind(f), slot = qbSlotGuess(f, kind, deck[p.ci]);
+    const key = p.ci + ':' + slot;
+    if(slotUsed.has(key)) return;
+    fileDone.add(p.fi); slotUsed.add(key); asg[p.fi] = { ci:p.ci, slot, score:p.score, exact:p.exact };
+  });
+  _qbRows = _qbFiles.map((f, fi) => {
+    const kind = qbKind(f), a = asg[fi];
+    if(!a) return { fi, kind, ci:-1, slot: qbSlotGuess(f,kind,null), level:'none', score:0, confirmed:false, replaces:false };
+    const replaces = qbHasSlot(deck[a.ci], a.slot, kind);
+    const level = (a.exact && !replaces) ? 'ok' : 'maybe';
+    return { fi, kind, ci:a.ci, slot:a.slot, level, score:a.score, confirmed: level === 'ok', replaces };
+  });
+  qbRender();
+}
+function qbRender(){
+  const list = document.getElementById('qb-list'), sum = document.getElementById('qb-sum'), ap = document.getElementById('qb-apply');
+  if(!_qbFiles.length){ list.innerHTML = ''; sum.textContent = 'Todavía no elegiste carpeta.'; ap.disabled = true; ap.textContent = 'Aplicar'; return; }
+  const ICON = { image:'🖼️', video:'🎬', audio:'🔊' };
+  list.innerHTML = _qbRows.map((r, i) => {
+    const f = _qbFiles[r.fi];
+    const cardOpts = '<option value="-1">— no cargar —</option>' + deck.map((c, ci) => '<option value="' + ci + '"' + (ci === r.ci ? ' selected' : '') + '>' + escapeHtml(qbCardLabel(c, ci)) + '</option>').join('');
+    let slotSel = '';
+    if(r.kind === 'audio') slotSel = '<select class="qb-sel" onchange="qbSlot(' + i + ',this.value)"><option value="media"' + (r.slot==='media'?' selected':'') + '>Como media de la carta</option><option value="reveal"' + (r.slot==='reveal'?' selected':'') + '>Como clip de revelación</option></select>';
+    else slotSel = '<div class="qb-chip" style="align-self:center">' + (r.kind === 'video' ? 'Clip de revelación' : 'Media de la carta') + '</div>';
+    let chip, cls;
+    if(r.ci < 0){ chip = '❌ Sin coincidencia'; cls = 'none'; }
+    else if(r.level === 'ok'){ chip = '✅ Coincide 100%'; cls = 'ok'; }
+    else if(r.level === 'manual'){ chip = '✋ Elegido a mano' + (r.replaces ? ' · reemplaza' : ''); cls = 'ok'; }
+    else{ chip = '❓ ¿Va acá?' + (r.replaces ? ' · reemplaza el actual' : ' (' + Math.round(r.score*100) + '%)'); cls = 'maybe'; }
+    const conf = (r.ci >= 0 && r.level === 'maybe') ? '<label class="qb-chk"><input type="checkbox" ' + (r.confirmed ? 'checked' : '') + ' onchange="qbConfirm(' + i + ',this.checked)"> Sí, va en esta carta</label>' : '';
+    return '<div class="qb-row ' + cls + '"><div class="qb-top"><div class="qb-name">' + ICON[r.kind] + ' ' + escapeHtml(f.name) + '</div><div class="qb-chip">' + chip + '</div></div><div class="qb-two"><select class="qb-sel" onchange="qbChoose(' + i + ',this.value)">' + cardOpts + '</select>' + slotSel + '</div>' + conf + '</div>';
+  }).join('');
+  const ok = _qbRows.filter(r => r.ci >= 0 && (r.level === 'ok' || r.level === 'manual' || r.confirmed)).length;
+  const pend = _qbRows.filter(r => r.ci >= 0 && r.level === 'maybe' && !r.confirmed).length;
+  const none = _qbRows.filter(r => r.ci < 0).length;
+  sum.textContent = _qbFiles.length + ' archivos · ' + ok + ' listos · ' + pend + ' por confirmar · ' + none + ' sin carta';
+  ap.disabled = ok === 0; ap.textContent = 'Aplicar (' + ok + ')';
+}
+function qbChoose(i, v){ const r = _qbRows[i], ci = parseInt(v); r.ci = ci; r.slot = qbSlotGuess(_qbFiles[r.fi], r.kind, ci >= 0 ? deck[ci] : null); r.level = ci >= 0 ? 'manual' : 'none'; r.confirmed = ci >= 0; r.replaces = ci >= 0 && qbHasSlot(deck[ci], r.slot, r.kind); qbRender(); }
+function qbSlot(i, v){ const r = _qbRows[i]; r.slot = v; r.replaces = r.ci >= 0 && qbHasSlot(deck[r.ci], r.slot, r.kind); if(r.level === 'ok' && r.replaces) r.level = 'maybe', r.confirmed = false; qbRender(); }
+function qbConfirm(i, on){ _qbRows[i].confirmed = !!on; qbRender(); }
+function qbReadRaw(f){ return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(f); }); }
+function qbReadImage(f){
+  if(f.type === 'image/gif') return qbReadRaw(f);
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => { const img = new Image(); img.onload = () => { const sc = Math.min(1, 900/img.width), w = Math.max(1,Math.round(img.width*sc)), h = Math.max(1,Math.round(img.height*sc)); const cv = document.createElement('canvas'); cv.width = w; cv.height = h; cv.getContext('2d').drawImage(img,0,0,w,h); res(cv.toDataURL('image/jpeg',.82)); }; img.onerror = () => rej(new Error('img')); img.src = r.result; };
+    r.onerror = () => rej(r.error); r.readAsDataURL(f);
+  });
+}
+async function qbApply(){
+  const todo = _qbRows.filter(r => r.ci >= 0 && (r.level === 'ok' || r.level === 'manual' || r.confirmed));
+  if(!todo.length) return;
+  const ap = document.getElementById('qb-apply'); ap.disabled = true;
+  let done = 0, fail = 0;
+  for(const r of todo){
+    ap.textContent = 'Cargando ' + (done + fail + 1) + '/' + todo.length + '…';
+    const card = deck[r.ci], f = _qbFiles[r.fi];
+    try{
+      const data = r.kind === 'image' ? await qbReadImage(f) : await qbReadRaw(f);
+      if(r.slot === 'reveal'){ card.revealType = r.kind === 'video' ? 'video-upload' : 'audio-upload'; card.revealData = data; delete card.revealUrl; }
+      else if(r.kind === 'image'){
+        if(card.mediaType === 'image-audio') card.mediaImage = data;
+        else { card.mediaType = 'image-upload'; card.mediaData = data; delete card.mediaUrl; }
+      } else { if(card.mediaType !== 'image-audio') card.mediaType = 'audio-upload'; card.mediaData = data; delete card.mediaUrl; }
+      done++;
+    }catch(e){ fail++; console.warn('[QLD bulk] error con', f.name, e); }
+  }
+  saveDeckLocal(); fbPushDeck();
+  try{ renderCard(); renderEditorList(); }catch(e){}
+  closeBulkMedia(); _qbFiles = []; _qbRows = [];
+  toast('📂 ' + done + ' archivo(s) cargados' + (fail ? ' · ' + fail + ' con error' : ''));
 }
 
 // ── INIT ──
