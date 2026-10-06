@@ -4231,7 +4231,7 @@ const RULES_DEFAULT = {
     { name: "Time's Up", icon: '⏰', desc: 'Juego de adivinanza por pistas. El equipo intenta adivinar la mayor cantidad de personajes/famosos en 1 minuto.', format: 'Turnos de 1 min (hasta que terminen las demás mesas o se cansen)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Si duplican la cantidad de personajes/famosos adivinados del rival', allow_draw: true, rules: ['Si es una celebridad o famoso, NO se puede decir ni el nombre ni ninguna parte del mismo.','Turnos de 1 minuto por equipo.','Gana el equipo que más adivina en su minuto.','Puntaje máximo: 4pts'] },
     { name: 'Beer Pong', icon: '🍺', desc: 'Formato clásico adaptado. Cada equipo tiene 6 vasos de su lado.', format: 'Hasta vaciar los vasos o por tiempo (depende de las demás mesas)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: '3+ vasos en pie', allow_draw: true, rules: ['6 vasos por lado.','Cada jugador tira 1 vez por turno.','Si emboca, se retira el vaso.','Si un equipo emboca dos pelotas seguidas, puede cambiar la posición de un vaso propio o del rival.','Gana el equipo que elimine todos los vasos del rival.','Tiempo máximo: 7 minutos (o hasta que terminen las demás estaciones).','Puntaje máximo: 4pts','Puntaje mínimo (empate): 1pts'] },
     { name: 'Guess Movie/Song', icon: '🎬', desc: 'Juego de cultura pop con todos los equipos juntos. Se muestra una imagen o se reproduce un fragmento de audio. Cada participante usa su nombre y foto; el buzzer ordena las respuestas por equipo.', format: 'Hasta que terminen las demás mesas o por tiempo (mayormente 10 minutos / 15 minutos)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: '5 o más adivinados de diferencia', allow_draw: true, rules: ['Ronda común en posición aleatoria del fixture: todos los equipos juntos.','El buzzer arma una cola: si el primero falla, responde el siguiente equipo.','Al finalizar: 1.º 3 pts, 2.º 1 pt y resto 0; con dos equipos: 3 y 0. Empates en aciertos comparten puesto.','Bonus de 1 pt al primero si supera por 5 o más aciertos a todos los demás.','1 punto por canción o película adivinada.','Tiempo máximo para adivinar: 15 segundos.','Puntaje máximo: 4pts'] },
-    { name: 'El Erudito', icon: '🧠', desc: 'Versión rápida del Erudito, solo con preguntas de aproximación numérica.', format: 'Hasta 7 aciertos o por tiempo', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: '3+ respuestas de ventaja', allow_draw: true, rules: ['Se hacen preguntas de aproximación al mismo tiempo para ambos equipos.','1 minuto para pensar y anotar la respuesta.','Se respeta un ±5% de desvío.','Gana el equipo que acumule 7 respuestas correctas primero, o el que tenga más al terminar las demás estaciones.','1 minuto para pensar la respuesta','Puntaje máximo: 4pts','Puntaje mínimo (empate): 1pts'] },
+    { name: 'El Erudito', icon: '🧠', desc: 'Ronda común de aproximación numérica, todos los equipos juegan a la vez.', format: 'Ronda única · termina cuando el conductor la finaliza', pts_win: 3, pts_bonus: 0, pts_draw: 0, pts_lose: 0, bonus_label: '', allow_draw: false, rules: ['Se hacen preguntas de aproximación numérica para todos los equipos en simultáneo.','1 minuto por pregunta para anotar la respuesta (cuenta regresiva sincronizada).','Gana el punto de la pregunta el equipo que más se acerque al número correcto; si hay empate en la menor desviación, el punto es para todos los empatados.','El equipo que no respondió a tiempo no entra en el ranking de esa pregunta.','La ronda termina cuando el conductor la finaliza, no hay límite de preguntas.','Puntos al ranking de la Velada según el puesto final: 1.º 3 pts, 2.º 2 pts (con 4 o más equipos también 3.º 1 pt); con solo 2 equipos, 3 pts al primero y 0 al resto.'] },
     { name: 'Jenga', icon: '🪵', desc: 'Juego clásico de equilibrio. El primero que derrumba la torre pierde.', format: 'Mejor de 3 rondas (salvo que termine muy rápido y si los participantes quieren pueden seguir hasta que las demás mesas terminen)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Ganar sin haber perdido ninguna ronda o con marcador final con diferencia de 2 rondas (Por ej.: 4 a 2)', allow_draw: true, rules: ['Puntaje máximo: 4pts'] },
     { name: 'Curling', icon: '🥌', desc: 'Cada jugador lanza 5 piedras por ronda buscando quedar lo más cerca posible del centro. Se pueden desplazar las piedras del rival.', format: 'Mejor de 3 rondas (salvo que termine muy rápido y si los participantes quieren pueden seguir hasta que las demás mesas terminen)', pts_win: 3, pts_bonus: 1, pts_draw: 1, pts_lose: 0, bonus_label: 'Ganar sin haber perdido ninguna ronda o con marcador final con diferencia de 2 rondas (Por ej.: 4 a 2)', allow_draw: true, rules: ['Círculo azul → 1 pt','Círculo blanco intermedio → 2 pts','Círculo rojo → 3 pts','Círculo blanco pequeño → 5 pts','Se puede empujar las piedras del rival para hacerle perder puntos.','Puntaje máximo: 4pts'] },
     { name: '100 Argentinos Dicen', icon: '🪄', desc: 'Cada equipo compite ronda por ronda. El ganador del duelo inicial controla el tablero. Si completa las respuestas sin 3 strikes, gana el punto. Si falla 3 veces, el rival puede robar con una sola respuesta.', format: 'Mejor de 5 rondas', pts_win: 3, pts_bonus: 0, pts_draw: 1, pts_lose: 0, allow_draw: true, rules: ['Se juega en una ronda propia, todos los equipos juntos','Los grupos originales se juntan completos en equipos de juego','1.º 3 pts, 2.º 1 pt, el resto 0 (con 2 equipos: 3 y 0)','El equipo que controla completa respuestas del tablero sin 3 strikes','3 strikes = pierde el control, el rival puede robar con 1 respuesta'] },
@@ -4855,7 +4855,7 @@ function renderReglas() {
       <span class="section-title"><span class="dot-indicator fase2"></span>Fase grupal</span>
     </div>
     <div class="card">
-      <p class="rules-intro">Se conforman ${TEAMS.length} equipos por sorteo. Se juegan ${RoundPlan.order(state,F2_FIXTURE,GAMES_F2).length} rondas en orden aleatorio: duelos simultáneos y rondas con todos juntos. Todos los equipos juegan en cada ronda (${TEAMS.length % 2 === 1 ? 'salvo el que descansa por turno' : 'no hay descansos'}), pasando por las ${rc.f2.length} estaciones a lo largo de la fase, con rondas comunes de Guess, 100 Argentinos, 🌍 TEG Express, Impostor y ¿Quién lo dijo? intercaladas aleatoriamente. Impostor puntúa solo en su ranking individual. Clasifica el equipo con mayor puntaje acumulado.</p>
+      <p class="rules-intro">Se conforman ${TEAMS.length} equipos por sorteo. Se juegan ${RoundPlan.order(state,F2_FIXTURE,GAMES_F2).length} rondas en orden aleatorio: duelos simultáneos y rondas con todos juntos. Todos los equipos juegan en cada ronda (${TEAMS.length % 2 === 1 ? 'salvo el que descansa por turno' : 'no hay descansos'}), pasando por las ${rc.f2.length} estaciones a lo largo de la fase, con rondas comunes de Guess, 100 Argentinos, El Erudito, 🌍 TEG Express, Impostor y ¿Quién lo dijo? intercaladas aleatoriamente. Impostor puntúa solo en su ranking individual. Clasifica el equipo con mayor puntaje acumulado.</p>
     </div>
     <!-- IMPOSTOR -->
 <div id="reglas-impostor" class="anchor-target"></div>
@@ -5362,7 +5362,8 @@ function computeF2Byes(fixture, numTeams) {
 function f2StationIndices() {
   const argIdx = GAMES_F2.indexOf('100 Argentinos Dicen');
   const guessIdx = GAMES_F2.indexOf('Guess Movie/Song');
-  return GAMES_F2.map((_, i) => i).filter(i => i !== argIdx && i !== guessIdx && GAMES_F2[i] !== 'Mario Party' && GAMES_F2[i] !== 'TEG Express');
+  const eruditoIdx = GAMES_F2.indexOf('El Erudito');
+  return GAMES_F2.map((_, i) => i).filter(i => i !== argIdx && i !== guessIdx && i !== eruditoIdx && GAMES_F2[i] !== 'Mario Party' && GAMES_F2[i] !== 'TEG Express');
 }
 
 // ¿El fixture ya tiene al menos una ronda para cada estación vigente?
@@ -5426,6 +5427,7 @@ function f2FixtureIsValid(fix, nTeams, nGames) {
     const [, a, b, g] = m;
     if (!(a >= 0 && a < nTeams && b >= 0 && b < nTeams && a !== b && g >= 0 && g < nGames)) return false;
     if(GAMES_F2[g]==='TEG Express')return false;
+    if(GAMES_F2[g]==='El Erudito')return false;
     seen.add(a); seen.add(b);
   }
   return seen.size === nTeams && f2CoversStations(fix) && marioPartyFixtureIsValid(fix,nTeams);
@@ -6417,11 +6419,11 @@ function markLocalTs(key, ts) {
       });
 
       window._commonResults=window._commonResults||{};
-      [['argentinos','argentinos/grupos/resultado'],['guess','velada/guess/groupResult'],['qld','velada/qld/result']].forEach(([id,path])=>{
+      [['argentinos','argentinos/grupos/resultado'],['guess','velada/guess/groupResult'],['qld','velada/qld/result'],['erudito','velada/erudito/groupResult']].forEach(([id,path])=>{
         qldDb.ref(path).on('value',snap=>{
           const data=FirebaseTeamMaps.fromWire(snap.val());
           window._commonResults[id]=data&&((data.byTeam||data.byGroup)||Array.isArray(data.standings)&&data.standings.length)?data:null;
-          if((id==='argentinos'||id==='guess') && window._commonResults[id]){
+          if((id==='argentinos'||id==='guess'||id==='erudito') && window._commonResults[id]){
             const row={common:id,status:'auto',resultado:data,matchId:'common-'+id,firma:JSON.stringify(data)};
             if((state.autoResultadosAplicados||{})[row.matchId]!==row.firma && applyCommonAutoRow(row)){saveState();renderFase2();}
           }
@@ -6707,7 +6709,7 @@ function getF2StationStatus(teamIdx, beforeRound) {
   const playedNames = [];
   const missingNames = [];
   for (let g = 0; g < GAMES_F2.length; g++) {
-    if (GAMES_F2[g] === '100 Argentinos Dicen' || GAMES_F2[g] === 'Guess Movie/Song' || GAMES_F2[g] === 'TEG Express') continue; // ronda propia con todos
+    if (GAMES_F2[g] === '100 Argentinos Dicen' || GAMES_F2[g] === 'Guess Movie/Song' || GAMES_F2[g] === 'TEG Express' || GAMES_F2[g] === 'El Erudito') continue; // ronda propia con todos
     (played.has(g) ? playedNames : missingNames).push(GAMES_F2[g]);
   }
   return { playedNames, missingNames };
@@ -6853,6 +6855,7 @@ function saveFixtureMatch(phase, matchIdx, selectA, selectB, selectG) {
     showToast('🔒','Mario Party se distribuye al generar el fixture para mantener su ronda única.',false); return;
   }
   if(phase==='f2' && GAMES_F2[newG]==='TEG Express'){showToast('🔒','TEG Express es una ronda común, no un duelo.',false);return;}
+  if(phase==='f2' && GAMES_F2[newG]==='El Erudito'){showToast('🔒','El Erudito es una ronda común, no un duelo.',false);return;}
   const oldKey = `${match[0]}-${match[1]}-${match[2]}`;
   // Update fixture entry
   match[1] = newA;
@@ -9208,16 +9211,17 @@ function resetDigitalGameScores() {
         'velada/teg':null,
         'velada/enVivo':null,
         'velada/carrera/hojas':null,
+        'velada/erudito/groupResult':null,
         'velada/config/scoreReset':{token,t:Date.now()}
       });
       await window._rtdb.ref('velada/erudito').transaction(cur=>{
-        if(!cur || !cur.teams || !cur.teams.a || !cur.teams.b)return;
-        const next=Object.assign({},cur,{phase:'answering',round:1,winner:null,
+        if(!cur || !cur.teams)return;
+        const next=Object.assign({},cur,{phase:'answering',round:1,winner:null,questionEndsAt:null,
           correct:{value:null,lockedBy:null}});
-        next.teams={
-          a:Object.assign({},cur.teams.a,{score:0,answer:null,ready:false,next:false}),
-          b:Object.assign({},cur.teams.b,{score:0,answer:null,ready:false,next:false})
-        };
+        next.teams={};
+        Object.keys(cur.teams).forEach(k=>{
+          next.teams[k]=Object.assign({},cur.teams[k],{score:0,answer:null,ready:false,next:false});
+        });
         return next;
       });
       showToast('✅','También se reiniciaron los marcadores de los juegos digitales',false);
@@ -9260,6 +9264,7 @@ function resetEverything() {
       if (state.argentinosRound) state.argentinosRound = { byTeam: {} };
       if (state.guessRound) state.guessRound = { byTeam: {} };
       state.tegRound = { byTeam: {} };
+      if (state.eruditoRound) state.eruditoRound = { byTeam: {} };
       state.activeCommonRound = null;
       state.autoResultadosAplicados = {};
       state.lastTab = 'reglas';
@@ -13782,7 +13787,7 @@ function renderFinal() {
   const f2Done = F2_FIXTURE.filter(([r,a,b]) => state.f2[`${r}-${a}-${b}`]).length;
   const impDone = (state.impostor.rounds || []).length > 0;
   const qldDone = !!(state.qldTeamPoints && Object.keys(state.qldTeamPoints).length > 0);
-  const groupExtras=ensureCommonRoundOrder().filter(id=>id==='guess'||id==='argentinos'||id==='teg');
+  const groupExtras=ensureCommonRoundOrder().filter(id=>id==='guess'||id==='argentinos'||id==='teg'||id==='erudito');
   const totalDone = f1Done + f2Done + (impDone ? 1 : 0) + (qldDone ? 1 : 0)+groupExtras.filter(commonRoundDone).length;
   const totalAll = f1Total + f2Total + 2 + groupExtras.length; // +1 impostor, +1 ¿quién lo dijo?
   const pct = Math.round((totalDone / totalAll) * 100);
@@ -13808,7 +13813,7 @@ function renderFinal() {
     if (f1Pend > 0) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator fase1"></span>Impostor: faltan <b style="color:var(--text);margin:0 3px">${f1Pend}</b> partido${f1Pend>1?'s':''}</div>`);
     if (!impDone) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator impostor"></span>Ronda Impostor: pendiente</div>`);
     if (f2Pend > 0) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator fase2"></span>Fase grupal: faltan <b style="color:var(--text);margin:0 3px">${f2Pend}</b> partido${f2Pend>1?'s':''}</div>`);
-    groupExtras.filter(id=>!commonRoundDone(id)).forEach(id=>pendItems.push('<div class="final-pending-item">Ronda '+(id==='guess'?'Guess Movies/Songs':id==='teg'?'🌍 TEG Express':'100 Argentinos Dicen')+': pendiente</div>'));
+    groupExtras.filter(id=>!commonRoundDone(id)).forEach(id=>pendItems.push('<div class="final-pending-item">Ronda '+(id==='guess'?'Guess Movies/Songs':id==='teg'?'🌍 TEG Express':id==='erudito'?'El Erudito':'100 Argentinos Dicen')+': pendiente</div>'));
     if (!qldDone) pendItems.push(`<div class="final-pending-item"><span class="dot-indicator quien"></span>Ronda ¿Quién lo dijo?: pendiente</div>`);
     if (pendItems.length) pendingHtml = `<div class="final-pending-list">${pendItems.join('')}</div>`;
   }

@@ -223,25 +223,31 @@ function _onFbScriptError(){ window._fbScriptsDone = true; console.warn('[Fireba
   .fb-dot.error { background: var(--red); box-shadow: 0 0 7px rgba(255,95,95,0.6); }
   @keyframes fbPulse { 0%,100%{ opacity: 1; } 50%{ opacity: 0.35; } }
 
-  /* ── MARCADOR ── */
-  .scoreboard { display: flex; align-items: stretch; justify-content: center; gap: 0.5rem; width: 100%; max-width: 360px; }
+  /* ── MARCADOR (N equipos, todos juntos) ── */
+  .scoreboard { display: flex; flex-wrap: wrap; align-items: stretch; justify-content: center; gap: 0.5rem; width: 100%; max-width: 420px; }
   .sb-team {
-    flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
-    padding: 0.75rem 0.5rem 0.65rem; border-radius: var(--radius);
+    flex: 1 1 100px; min-width: 92px; max-width: 160px; display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+    padding: 0.65rem 0.5rem 0.55rem; border-radius: var(--radius);
     background: var(--surface); border: 1.5px solid var(--border2);
   }
-  .sb-team.sb-a { border-color: rgba(96,180,240,0.5); }
-  .sb-team.sb-b { border-color: rgba(245,200,66,0.5); }
   .sb-team.you { box-shadow: 0 0 0 1.5px currentColor inset; }
-  .sb-name { font-size: 15px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
-  .sb-team.sb-a .sb-name { color: var(--blue); }
-  .sb-team.sb-b .sb-name { color: var(--gold); }
-  .sb-score { font-size: 2.2rem; font-weight: 900; line-height: 1; color: var(--text); }
+  .sb-name { font-size: 13px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.15; text-align: center; overflow-wrap: anywhere; }
+  .sb-score { font-size: 1.8rem; font-weight: 900; line-height: 1; color: var(--text); }
   .sb-score.bump { animation: scoreBump 0.4s cubic-bezier(.2,.9,.3,1.4); }
   @keyframes scoreBump { 0% { transform: scale(1); } 40% { transform: scale(1.4); } 100% { transform: scale(1); } }
   .sb-you-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-top: 0.1rem; min-height: 11px; }
-  .sb-vs { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; color: var(--muted); }
-  .sb-target { font-size: 9px; color: var(--muted); opacity: 0.8; }
+  /* Paleta cíclica para distinguir equipos sin fijar colores por cantidad */
+  .sb-c0, .chip-c0 { border-color: rgba(96,180,240,0.5); } .sb-c0 .sb-name, .chip-c0 .ready-chip-name { color: var(--blue); }
+  .sb-c1, .chip-c1 { border-color: rgba(245,200,66,0.5); } .sb-c1 .sb-name, .chip-c1 .ready-chip-name { color: var(--gold); }
+  .sb-c2, .chip-c2 { border-color: rgba(78,203,126,0.5); } .sb-c2 .sb-name, .chip-c2 .ready-chip-name { color: var(--success); }
+  .sb-c3, .chip-c3 { border-color: rgba(255,95,95,0.5); } .sb-c3 .sb-name, .chip-c3 .ready-chip-name { color: var(--red); }
+  .sb-c4, .chip-c4 { border-color: rgba(191,140,255,0.5); } .sb-c4 .sb-name, .chip-c4 .ready-chip-name { color: #bf8cff; }
+  .sb-c5, .chip-c5 { border-color: rgba(240,188,84,0.5); } .sb-c5 .sb-name, .chip-c5 .ready-chip-name { color: #f0bc54; }
+
+  /* ── CRONÓMETRO DE LA PREGUNTA ── */
+  .qtimer { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; color: var(--muted); text-align: center; min-height: 16px; }
+  .qtimer.low { color: var(--red); animation: qtimerPulse 1s ease-in-out infinite; }
+  @keyframes qtimerPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
   .sb-controls {
     display: flex; align-items: center; gap: 0.5rem; margin-top: -0.1rem;
@@ -297,14 +303,12 @@ function _onFbScriptError(){ window._fbScriptsDone = true; console.warn('[Fireba
   .wait-dots span:nth-child(3) { animation-delay: 0.36s; }
   @keyframes waitBlink { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
 
-  .ready-chips { display: flex; gap: 0.5rem; width: 100%; }
+  .ready-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; width: 100%; }
   .ready-chip {
-    flex: 1; padding: 0.55rem 0.4rem; border-radius: 10px; border: 1.5px solid var(--border2);
+    flex: 1 1 90px; min-width: 80px; padding: 0.55rem 0.4rem; border-radius: 10px; border: 1.5px solid var(--border2);
     background: var(--surface2); display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
   }
   .ready-chip-name { font-size: 11px; font-weight: 800; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-  .ready-chip.a .ready-chip-name { color: var(--blue); }
-  .ready-chip.b .ready-chip-name { color: var(--gold); }
   .ready-chip-state { font-size: 10px; font-weight: 700; color: var(--muted); }
   .ready-chip.is-ready { border-color: var(--success); }
   .ready-chip.is-ready .ready-chip-state { color: var(--success); }
@@ -320,20 +324,6 @@ function _onFbScriptError(){ window._fbScriptsDone = true; console.warn('[Fireba
   }
   .reveal-overlay.open { display: flex; animation: rvFade 0.25s ease-out; }
   @keyframes rvFade { from { opacity: 0; } to { opacity: 1; } }
-
-  /* ── VS OVERLAY: cara a cara cuando ambos equipos cargaron su respuesta ── */
-  .vs-overlay { position: fixed; inset: 0; z-index: 850; display: none; align-items: stretch; justify-content: center; pointer-events: none; }
-  .vs-overlay.open { display: flex; animation: vsFadeOut 0.35s ease-out 1.55s forwards; }
-  .vs-side { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; overflow: hidden; }
-  .vs-side.a { background: linear-gradient(135deg, rgba(96,180,240,0.94), rgba(10,10,14,0.97)); animation: vsSlideL 0.45s cubic-bezier(0.2,0.9,0.3,1); }
-  .vs-side.b { background: linear-gradient(225deg, rgba(245,200,66,0.94), rgba(10,10,14,0.97)); animation: vsSlideR 0.45s cubic-bezier(0.2,0.9,0.3,1); }
-  .vs-name { font-size: clamp(20px,7vw,34px); font-weight: 900; color: #0a0a0e; text-align: center; padding: 0 1rem; text-shadow: 0 2px 10px rgba(255,255,255,0.25); }
-  .vs-tag { font-size: 11px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(10,10,14,0.7); }
-  .vs-mid { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: clamp(30px,10vw,54px); font-weight: 900; color: var(--text); text-shadow: 0 0 24px rgba(0,0,0,0.6); z-index: 2; animation: vsPop 0.5s cubic-bezier(0.2,1.6,0.3,1) 0.15s both; }
-  @keyframes vsSlideL { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-  @keyframes vsSlideR { from { transform: translateX(100%); } to { transform: translateX(0); } }
-  @keyframes vsPop { 0% { transform: translate(-50%,-50%) scale(0); } 70% { transform: translate(-50%,-50%) scale(1.25); } 100% { transform: translate(-50%,-50%) scale(1); } }
-  @keyframes vsFadeOut { to { opacity: 0; visibility: hidden; } }
 
   .reveal-suspense {
     font-size: 13px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase;
@@ -365,24 +355,27 @@ function _onFbScriptError(){ window._fbScriptsDone = true; console.warn('[Fireba
   }
   @keyframes revealPop { 0% { opacity: 0; transform: scale(0.7); } 60% { transform: scale(1.08); } 100% { opacity: 1; transform: scale(1); } }
 
-  .reveal-answers {
-    display: flex; gap: 0.6rem; width: 100%; max-width: 360px;
+  /* ── RANKING DEL REVEAL: todos los equipos ordenados por cercanía ── */
+  .reveal-ranking {
+    display: flex; flex-direction: column; gap: 0.5rem; width: 100%; max-width: 400px;
     opacity: 0; transform: translateY(8px); transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s;
+    max-height: 46vh; overflow-y: auto;
   }
-  .reveal-answers.show { opacity: 1; transform: none; }
-  .reveal-ans {
-    flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
-    padding: 0.75rem 0.4rem; border-radius: var(--radius); border: 2px solid var(--border2); background: var(--surface);
+  .reveal-ranking.show { opacity: 1; transform: none; }
+  .reveal-rank-row {
+    display: flex; align-items: center; gap: 0.6rem; min-width: 0;
+    padding: 0.55rem 0.75rem; border-radius: 12px; border: 1.5px solid var(--border2); background: var(--surface);
+    opacity: 0.3; transform: translateY(6px);
+    transition: opacity 0.35s ease, transform 0.4s cubic-bezier(.2,1.2,.35,1), border-color 0.3s;
   }
-  .reveal-ans.a { border-color: var(--blue); }
-  .reveal-ans.b { border-color: var(--gold); }
-  .reveal-ans.win { box-shadow: 0 0 22px rgba(255,95,95,0.3); }
-  .reveal-ans-name { font-size: 11px; font-weight: 800; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-  .reveal-ans.a .reveal-ans-name { color: var(--blue); }
-  .reveal-ans.b .reveal-ans-name { color: var(--gold); }
-  .reveal-ans-val { font-size: 1.5rem; font-weight: 900; line-height: 1; color: var(--text); }
-  .reveal-ans-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; min-height: 11px; }
-  .reveal-ans.win .reveal-ans-tag { color: var(--red); }
+  .reveal-rank-row.revealed { opacity: 1; transform: none; animation: rvAnsIn 0.45s cubic-bezier(.2,1.4,.35,1); }
+  .reveal-rank-row.win { border-color: var(--gold); box-shadow: 0 0 18px rgba(245,200,66,0.28); }
+  .reveal-rank-pos { font-size: 12px; font-weight: 900; color: var(--muted); width: 18px; flex-shrink: 0; text-align: center; }
+  .reveal-rank-row.win .reveal-rank-pos { color: var(--gold); }
+  .reveal-rank-name { flex: 1; min-width: 0; font-size: 13px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+  .reveal-rank-val { font-size: 15px; font-weight: 900; color: var(--text); flex-shrink: 0; }
+  .reveal-rank-tag { font-size: 10px; font-weight: 700; color: var(--muted); flex-shrink: 0; min-width: 64px; text-align: right; }
+  .reveal-rank-row.win .reveal-rank-tag { color: var(--gold); font-weight: 800; }
 
   .reveal-next {
     width: 100%; max-width: 360px;
@@ -423,6 +416,9 @@ function _onFbScriptError(){ window._fbScriptsDone = true; console.warn('[Fireba
     -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
   }
   .win-score { font-size: 1.1rem; font-weight: 800; color: var(--text); opacity: 0.85; }
+  .win-standings { display: flex; flex-direction: column; gap: 0.35rem; width: 100%; max-width: 320px; }
+  .win-standing-row { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 13px; font-weight: 700; color: var(--muted); padding: 0.3rem 0.7rem; border-radius: 10px; }
+  .win-standing-row.top { color: var(--text); font-weight: 900; background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.35); }
 
   /* ── OVERLAYS GENÉRICOS (nombre / config) ── */
   .sheet-overlay {
@@ -515,17 +511,11 @@ function _onFbScriptError(){ window._fbScriptsDone = true; console.warn('[Fireba
 @media (prefers-reduced-motion:reduce){
   .reveal-correct-val.landed{animation:none}}
 
-/* ── Respuestas reveladas de a una ── */
-.reveal-ans{opacity:.25;transform:translateY(8px);
-  transition:opacity .35s ease,transform .4s cubic-bezier(.2,1.2,.35,1),border-color .3s}
-.reveal-ans.revealed{opacity:1;transform:none;
-  animation:rvAnsIn .45s cubic-bezier(.2,1.4,.35,1)}
+/* ── Respuestas reveladas de a una (ranking de N equipos) ── */
 @keyframes rvAnsIn{0%{transform:scale(.9)}55%{transform:scale(1.04)}100%{transform:scale(1)}}
-.reveal-ans-tag{font-size:11px;opacity:.85}
-.reveal-ans.win .reveal-ans-tag{font-weight:800}
 @media (prefers-reduced-motion:reduce){
-  .reveal-ans{opacity:1;transform:none}
-  .reveal-ans.revealed{animation:none}}
+  .reveal-rank-row{opacity:1;transform:none}
+  .reveal-rank-row.revealed{animation:none}}
 
 /* ── ENTRADA UNIFICADA ────────────────────────────────────────────────
    Misma aparición en los seis juegos y en el HUB: al pasar de una pantalla
@@ -601,23 +591,6 @@ body.vb-clean .vb-peek { display: flex; }
 }
 
 
-/* ── Quién está jugando ── */
-.now-playing{display:flex;flex-direction:column;align-items:center;gap:.15rem;
-  width:100%;max-width:360px;margin:0 auto .6rem;padding:.55rem .7rem;
-  border-radius:14px;background:rgba(255,255,255,.035);
-  border:1px solid rgba(255,255,255,.07)}
-.np-lbl{font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--muted)}
-.np-names{display:block;text-align:center;line-height:1.25;max-width:100%}
-/* Tamaño en px primero: si el navegador no entiende clamp, igual se lee grande */
-/* Sin recorte: los nombres son cortos y es preferible que bajen de línea
-   antes que aparecer cortados, que es justo lo que no queremos acá. */
-.np-names b{display:inline-block;vertical-align:middle;font-size:19px;
-  font-size:clamp(15px,4.4vw,21px);font-weight:900;color:var(--text);
-  letter-spacing:-.01em}
-.np-names i{display:inline-block;vertical-align:middle;font-style:normal;
-  font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.1em;
-  text-transform:uppercase;margin:0 .5rem}
 </style>
 <style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}</style>
 <script src="buzzer-rounds.js?v=20261005d"></script><script src="auto-live.js?v=20261005d"></script>
@@ -689,47 +662,23 @@ body.vb-clean .vb-peek { display: flex; }
     <div class="er-eyebrow">🧠 El Erudito</div>
   </div>
 
-  <!-- Marcador -->
-  <!-- Quién está jugando: en los juegos físicos la pantalla es de apoyo,
-       así que conviene que se lea de lejos quién está en la mesa. -->
-  <div class="now-playing" id="now-playing">
-    <span class="np-lbl">Ahora juegan</span>
-    <span class="np-names">
-      <b id="np-a">—</b><i>vs</i><b id="np-b">—</b>
-    </span>
-  </div>
-  <div class="scoreboard" id="scoreboard">
-    <div class="sb-team sb-a" id="sb-team-a">
-      <div class="sb-name" id="sb-name-a">Equipo 1</div>
-      <div class="sb-score" id="sb-score-a">0</div>
-      <div class="sb-you-tag" id="sb-you-a"></div>
-    </div>
-    <div class="sb-vs">VS<div class="sb-target" id="sb-target">a 7</div></div>
-    <div class="sb-team sb-b" id="sb-team-b">
-      <div class="sb-name" id="sb-name-b">Equipo 2</div>
-      <div class="sb-score" id="sb-score-b">0</div>
-      <div class="sb-you-tag" id="sb-you-b"></div>
-    </div>
-  </div>
+  <!-- Marcador: todos los equipos del cruce, en simultáneo -->
+  <div class="scoreboard" id="scoreboard"></div>
+  <div class="qtimer" id="qtimer"></div>
   <div class="sb-controls">
-    <button class="link-btn" onclick="openNameEditor()">✏️ mi nombre</button>
-    <span class="footer-sep">·</span>
-    <span style="font-size:11px;color:var(--muted)" id="round-counter">Ronda 1</span>
+    <span style="font-size:11px;color:var(--muted)" id="round-counter">Pregunta 1</span>
   </div>
 
   <!-- Tarjeta de ronda -->
   <div class="round-card">
     <div class="round-label" id="round-label">Tu respuesta</div>
-    <div class="round-hint" id="round-hint">Leé la pregunta del papel y anotá tu número (la pregunta la leen del juego de mesa).</div>
+    <div class="round-hint" id="round-hint">Leé la pregunta del papel y anotá tu número (la pregunta la leen del juego de mesa). Tenés 1 minuto.</div>
 
     <input class="answer-input" id="answer-input" type="text" inputmode="decimal" autocomplete="off" placeholder="Tu número">
 
     <button class="big-btn primary" id="ready-btn" onclick="submitReady()">✓ Listo</button>
 
-    <div class="ready-chips" id="ready-chips">
-      <div class="ready-chip a" id="chip-a"><span class="ready-chip-name" id="chip-a-name">Equipo 1</span><span class="ready-chip-state" id="chip-a-state">Anotando…</span></div>
-      <div class="ready-chip b" id="chip-b"><span class="ready-chip-name" id="chip-b-name">Equipo 2</span><span class="ready-chip-state" id="chip-b-state">Anotando…</span></div>
-    </div>
+    <div class="ready-chips" id="ready-chips"></div>
 
     <button class="big-btn gold" id="correct-btn" style="display:none" onclick="grabCorrectLock()">🔓 Colocar respuesta correcta</button>
     <div class="wait-note" id="correct-wait" style="display:none"></div>
@@ -737,7 +686,7 @@ body.vb-clean .vb-peek { display: flex; }
 
   <div class="wait-note" id="game-foot"></div>
   <div class="escape-row" style="margin-top:0.2rem">
-    <button class="escape-btn finish" onclick="finishDuelNow()">⏹ Finalizar duelo</button>
+    <button class="escape-btn finish" onclick="finishDuelNow()">⏹ Finalizar ronda</button>
     <a class="escape-btn home" href="#" onclick="goHome(event)">🏠 Página Principal</a>
   </div>
 </div>
@@ -764,20 +713,14 @@ body.vb-clean .vb-peek { display: flex; }
     <div class="reveal-correct-val" id="reveal-correct-val">—</div>
   </div>
   <div class="reveal-result" id="reveal-result"></div>
-  <div class="reveal-answers" id="reveal-answers">
-    <div class="reveal-ans a" id="rv-ans-a"><span class="reveal-ans-name" id="rv-ans-a-name">Equipo 1</span><span class="reveal-ans-val" id="rv-ans-a-val">—</span><span class="reveal-ans-tag" id="rv-ans-a-tag"></span></div>
-    <div class="reveal-ans b" id="rv-ans-b"><span class="reveal-ans-name" id="rv-ans-b-name">Equipo 2</span><span class="reveal-ans-val" id="rv-ans-b-val">—</span><span class="reveal-ans-tag" id="rv-ans-b-tag"></span></div>
-  </div>
+  <div class="reveal-ranking" id="reveal-ranking"></div>
   <div class="reveal-next" id="reveal-next">
-    <button class="big-btn success" id="next-btn" onclick="submitNext()">→ Siguiente ronda</button>
-    <div class="ready-chips" id="next-chips" style="margin-top:0.6rem;display:none">
-      <div class="ready-chip a" id="next-chip-a"><span class="ready-chip-name" id="next-chip-a-name">Equipo 1</span><span class="ready-chip-state" id="next-chip-a-state">Esperando…</span></div>
-      <div class="ready-chip b" id="next-chip-b"><span class="ready-chip-name" id="next-chip-b-name">Equipo 2</span><span class="ready-chip-state" id="next-chip-b-state">Esperando…</span></div>
-    </div>
+    <button class="big-btn success" id="next-btn" onclick="submitNext()">→ Siguiente pregunta</button>
+    <div class="ready-chips" id="next-chips" style="margin-top:0.6rem;display:none"></div>
     <div class="wait-note" id="next-wait" style="margin-top:0.3rem"></div>
   </div>
   <div class="escape-row">
-    <button class="escape-btn finish" onclick="finishDuelNow()">⏹ Finalizar duelo</button>
+    <button class="escape-btn finish" onclick="finishDuelNow()">⏹ Finalizar ronda</button>
     <a class="escape-btn home" href="#" onclick="goHome(event)">🏠Página Principal</a>
   </div>
 </div>
@@ -785,39 +728,18 @@ body.vb-clean .vb-peek { display: flex; }
 <!-- WIN -->
 <div class="win-overlay" id="win-overlay">
   <div class="win-trophy" id="win-trophy">🏆</div>
-  <div class="win-label" id="win-label">Ganador del duelo</div>
+  <div class="win-label" id="win-label">Ganador de la ronda</div>
   <div class="win-name" id="win-name">—</div>
-  <div class="win-score" id="win-score">—</div>
-  <button class="big-btn gold" style="max-width:300px" onclick="newDuel()">↺ Nuevo duelo</button>
+  <div class="win-standings" id="win-standings"></div>
+  <button class="big-btn gold" style="max-width:300px" onclick="newDuel()">↺ Reiniciar ronda</button>
   <a class="big-btn ghost" style="max-width:300px;text-decoration:none" href="index.html?hub=1">← Volver al hub</a>
-</div>
-
-<!-- EDITOR DE NOMBRE -->
-<div class="sheet-overlay" id="names-overlay">
-  <div class="sheet-box">
-    <div class="sheet-title">✏️ Nombre del equipo</div>
-    <div class="sheet-sub" id="names-sub">Cambiá el nombre de tu equipo.</div>
-    <div class="sheet-field">
-      <label id="names-label">Tu equipo</label>
-      <input class="sheet-input" id="name-input" type="text" maxlength="22" autocomplete="off" placeholder="Equipo 1">
-    </div>
-    <div class="sheet-row">
-      <button class="big-btn ghost" onclick="closeNameEditor()">Cancelar</button>
-      <button class="big-btn primary" onclick="saveMyName()">Guardar</button>
-    </div>
-  </div>
 </div>
 
 <!-- CONFIG (PIN) -->
 <div class="sheet-overlay" id="config-overlay">
   <div class="sheet-box">
-    <div class="sheet-title">⚙️ Configuración del duelo</div>
-    <div class="sheet-sub">Protegido — solo el creador de la noche.</div>
-    <div class="sheet-field">
-      <label>Puntos para ganar el duelo</label>
-      <input class="sheet-input" id="limit-input" type="number" min="1" max="50" inputmode="numeric" placeholder="7">
-    </div>
-    <button class="big-btn primary" onclick="saveLimit()">Guardar límite</button>
+    <div class="sheet-title">⚙️ Configuración de la ronda</div>
+    <div class="sheet-sub">Protegido — solo el creador de la noche. La ronda no tiene límite de preguntas: se cierra con "Finalizar".</div>
     <button class="big-btn ghost" onclick="resetDuel()">↺ Reiniciar puntaje y rondas</button>
     <button class="big-btn ghost" onclick="changePin()">🔑 Cambiar PIN</button>
     <button class="big-btn ghost" onclick="closeConfig()">Cerrar</button>
@@ -883,22 +805,28 @@ let fbDb=null, fbRef=null, fbInited=false;
 const FB_PATH = 'velada/erudito';
 
 // Estado local de este dispositivo
-let myTeam = null;           // 'a' | 'b' | null
+let myTeam = null;           // nombre del equipo (igual al de la lista TEAMS del fixture) | null
 let G = null;                // último snapshot del estado compartido
 let _prevPhase = null;
 let _revealAnimating = false;
-let _vsShown = false;        // controla que el "cara a cara" se muestre una sola vez por ronda
+let _erOffsetMs = 0;         // offset servidor Firebase (.info/serverTimeOffset)
+let _qtimerInt = null;       // interval de la cuenta regresiva visible
+const TEAM_COLORS = 6;       // cantidad de clases sb-c0..c5 / chip-c0..c5 disponibles
+
+// Reloj de servidor: Date.now() + _erOffsetMs ≈ hora del servidor Firebase.
+// Se usa para el timer de 1 minuto por pregunta en vez del reloj local del
+// celular, así todos los participantes ven la misma cuenta regresiva.
+window._erServerNow = function(){ return Date.now() + _erOffsetMs; };
 
 const DEFAULT_STATE = {
   phase: 'answering',        // answering | correct_locked | revealed | finished
   round: 1,
-  limit: 7,
-  teams: {
-    a: { name: 'Equipo 1', answer: null, ready: false, score: 0, next: false },
-    b: { name: 'Equipo 2', answer: null, ready: false, score: 0, next: false }
-  },
+  teams: {},                 // { [nombreEquipo]: {name,answer,ready,score,next} } — lo llena el fixture activo
+  order: [],
+  questionEndsAt: null,
+  questionMs: 60000,
   correct: { value: null, lockedBy: null },
-  winner: null               // 'a' | 'b' | null (ganador del duelo)
+  winner: null                // null | [nombresEquipo] (ganador(es) de la ronda, puede haber empate)
 };
 
 function initFirebase(){
@@ -914,9 +842,9 @@ function initFirebase(){
     fbDb = firebase.database();
     fbRef = fbDb.ref(FB_PATH);
     connectEruditoRound(fbRef);
-    BuzzerAutoLive.start({db:fbDb,game:'erudito',legacyPath:'velada/erudito',
-      getMatch:()=>G&&G.fixture,
-      getScore:()=>G&&G.teams&&({a:G.teams.a.score||0,b:G.teams.b.score||0})});
+    // Ronda común: el resultado se publica una sola vez al finalizar
+    // (ver finishDuelNow), no hay captura de "en vivo" estilo BuzzerAutoLive.
+    fbDb.ref('.info/serverTimeOffset').on('value', snap=>{ _erOffsetMs = snap.val()||0; });
     fbInited = true;
     fbDb.ref('.info/connected').on('value', snap=>{
       const ok = snap.val();
@@ -976,34 +904,51 @@ function leaveGame(e){
   showScreen('team');
 }
 
+// ─── EQUIPOS (todos juntos, en el orden del fixture) ─────────────
+function teamOrder(){
+  if(!G || !G.teams) return [];
+  if(Array.isArray(G.order) && G.order.length) return G.order.filter(l=>G.teams[l]);
+  return Object.keys(G.teams);
+}
+function teamColorClass(prefix, i){ return prefix + (i % TEAM_COLORS); }
+function allAnswered(){ return teamOrder().every(l=>G.teams[l] && G.teams[l].ready); }
+function allNext(){ return teamOrder().every(l=>G.teams[l] && G.teams[l].next); }
+function questionExpired(){ return G && G.questionEndsAt != null && window._erServerNow() >= G.questionEndsAt; }
+
 // ─── RENDER PRINCIPAL (cada vez que cambia el estado) ────────────
 function onState(){
-  if(!G) return;
-  const a = G.teams.a, b = G.teams.b;
+  if(!G || !G.teams) return;
+  const order = teamOrder();
 
-  // Cabecera de selección: mostrar nombres / ocupado
-  _setText('pick-a-name', a.name || 'Equipo 1');
-  _setText('pick-b-name', b.name || 'Equipo 2');
-
-  // Marcador
-  _setText('sb-name-a', a.name || 'Equipo 1');
-  _setText('sb-name-b', b.name || 'Equipo 2');
-  bumpScore('a', a.score||0);
-  bumpScore('b', b.score||0);
-  _setText('sb-target', 'a ' + (G.limit||7));
+  // Marcador: una tarjeta por equipo, en el orden del fixture
+  const sb = document.getElementById('scoreboard');
+  if(sb){
+    sb.innerHTML = order.map((label,i)=>{
+      const t = G.teams[label]||{};
+      const you = label===myTeam;
+      return '<div class="sb-team '+teamColorClass('sb-c',i)+(you?' you':'')+'" id="sb-team-'+i+'">'
+        +'<div class="sb-name">'+_esc(t.name||label)+'</div>'
+        +'<div class="sb-score" id="sb-score-'+i+'">0</div>'
+        +'<div class="sb-you-tag">'+(you?'◆ vos':'')+'</div></div>';
+    }).join('');
+    order.forEach((label,i)=>bumpScore(i, G.teams[label].score||0));
+  }
   _setText('round-counter', 'Pregunta ' + (G.round||1));
 
-  // Marca de "vos sos este equipo"
-  document.getElementById('sb-team-a').classList.toggle('you', myTeam==='a');
-  document.getElementById('sb-team-b').classList.toggle('you', myTeam==='b');
-  _setText('sb-you-a', myTeam==='a' ? '◆ vos' : '');
-  _setText('sb-you-b', myTeam==='b' ? '◆ vos' : '');
+  // Chips de "listo" de la tarjeta de ronda
+  const chips = document.getElementById('ready-chips');
+  if(chips){
+    chips.innerHTML = order.map((label,i)=>{
+      const t = G.teams[label]||{};
+      const expired = questionExpired();
+      const st = t.ready ? '✓ Listo' : (expired ? '⏱ Sin respuesta' : 'Anotando…');
+      return '<div class="ready-chip '+teamColorClass('chip-c',i)+(t.ready?' is-ready':'')+'">'
+        +'<span class="ready-chip-name">'+_esc(t.name||label)+'</span>'
+        +'<span class="ready-chip-state">'+st+'</span></div>';
+    }).join('');
+  }
 
-  // Chips de "listo"
-  _setText('chip-a-name', a.name || 'Equipo 1');
-  _setText('chip-b-name', b.name || 'Equipo 2');
-  syncReadyChip('a', a);
-  syncReadyChip('b', b);
+  updateQtimer();
 
   // Reaccionar a cambios de fase
   if(G.phase !== _prevPhase){
@@ -1012,16 +957,28 @@ function onState(){
   } else {
     refreshPhaseUI();
   }
-  // Actualizar chips de "siguiente ronda" si estamos en revealed
+  // Actualizar chips de "siguiente pregunta" si estamos en revealed
   if(G.phase === 'revealed'){ refreshNextWait(); }
 }
 
-function syncReadyChip(t, team){
-  const chip = document.getElementById('chip-'+t);
-  const st = document.getElementById('chip-'+t+'-state');
-  if(!chip) return;
-  chip.classList.toggle('is-ready', !!team.ready);
-  st.textContent = team.ready ? '✓ Listo' : 'Anotando…';
+function _esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ─── CRONÓMETRO DE 1 MINUTO POR PREGUNTA ─────────────────────────
+function updateQtimer(){
+  const el = document.getElementById('qtimer');
+  if(!el) return;
+  clearInterval(_qtimerInt);
+  if(!G || G.phase !== 'answering' || G.questionEndsAt == null){ el.textContent=''; el.classList.remove('low'); return; }
+  function tick(){
+    const left = Math.max(0, G.questionEndsAt - window._erServerNow());
+    const secs = Math.ceil(left/1000);
+    const mm = String(Math.floor(secs/60)).padStart(2,'0'), ss = String(secs%60).padStart(2,'0');
+    el.textContent = '⏱ ' + mm + ':' + ss;
+    el.classList.toggle('low', secs<=10);
+    if(left<=0){ clearInterval(_qtimerInt); refreshPhaseUI(); }
+  }
+  tick();
+  _qtimerInt = setInterval(tick, 250);
 }
 
 function handlePhaseChange(phase){
@@ -1030,7 +987,6 @@ function handlePhaseChange(phase){
   if(phase === 'answering'){
     closeRevealOverlay();
     document.getElementById('win-overlay').classList.remove('open');
-    _vsShown = false; // nueva ronda: habilitamos que el VS se pueda volver a mostrar
     syncMyInputs();
   }
   if(phase === 'correct_locked'){
@@ -1047,9 +1003,8 @@ function handlePhaseChange(phase){
 
 // Sincroniza la tarjeta de ronda según la fase (sin re-animar el reveal)
 function refreshPhaseUI(){
-  if(!G || !myTeam) return;
+  if(!G || !myTeam || !G.teams[myTeam]) return;
   const me = G.teams[myTeam];
-  const other = G.teams[myTeam==='a'?'b':'a'];
   const phase = G.phase;
   const input = document.getElementById('answer-input');
   const readyBtn = document.getElementById('ready-btn');
@@ -1063,27 +1018,33 @@ function refreshPhaseUI(){
   foot.textContent = '';
 
   if(phase === 'answering'){
+    const expired = questionExpired();
+    const everyoneReady = allAnswered();
     _setText('round-label', 'Tu respuesta');
-    _setText('round-hint', 'Leé la pregunta del papel y anotá tu número (la pregunta la leen del juego de mesa).');
+    _setText('round-hint', 'Leé la pregunta del papel y anotá tu número (la pregunta la leen del juego de mesa). Tenés 1 minuto.');
     if(me.ready){
       input.disabled = true;
       readyBtn.disabled = true;
       readyBtn.textContent = '✓ Respuesta enviada';
-      if(other.ready){
-        foot.innerHTML = 'Ambos listos — cargá el correcto abajo';
+      if(everyoneReady){
+        foot.innerHTML = 'Ya respondieron todos — cargá el correcto abajo';
       } else {
-        foot.innerHTML = 'Esperando al otro equipo <span class="wait-dots"><span>.</span><span>.</span><span>.</span></span>';
+        foot.innerHTML = 'Esperando al resto de los equipos <span class="wait-dots"><span>.</span><span>.</span><span>.</span></span>';
       }
+    } else if(expired){
+      input.disabled = true;
+      readyBtn.disabled = true;
+      readyBtn.textContent = '⏱ Tiempo agotado';
+      foot.innerHTML = 'Se acabó el minuto — no llegaste a cargar respuesta';
     } else {
       input.disabled = false;
       readyBtn.disabled = false;
       readyBtn.textContent = '✓ Listo';
     }
-    // Si ambos respondieron, mostrar botón de cargar correcto
-    if(me.ready && other.ready){
+    // Si ya respondieron todos, o se acabó el tiempo, se puede cargar el correcto
+    if(everyoneReady || expired){
       correctBtn.style.display = '';
       correctBtn.disabled = false;
-      if(!_vsShown){ _vsShown = true; showVsOverlay(); }
     }
   }
   else if(phase === 'correct_locked'){
@@ -1091,7 +1052,7 @@ function refreshPhaseUI(){
     readyBtn.disabled = true;
     readyBtn.textContent = '✓ Respuesta enviada';
     const who = G.correct.lockedBy;
-    const whoName = who ? (G.teams[who].name || 'Un equipo') : 'Un equipo';
+    const whoName = (who && G.teams[who] && G.teams[who].name) || who || 'Un equipo';
     if(who === myTeam){
       correctBtn.style.display = 'none';
       correctWait.style.display = '';
@@ -1109,32 +1070,8 @@ function refreshPhaseUI(){
   }
 }
 
-// "Cara a cara" visual (split screen tipo VS) que aparece un instante en
-// cuanto los dos equipos cargaron su respuesta, antes de habilitar el botón
-// de cargar el correcto. Se ve en el celular de cada equipo.
-function _escVs(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function showVsOverlay(){
-  if(!G) return;
-  let ov = document.getElementById('vs-overlay');
-  if(!ov){
-    ov = document.createElement('div');
-    ov.id = 'vs-overlay';
-    ov.className = 'vs-overlay';
-    document.body.appendChild(ov);
-  }
-  const a = G.teams.a, b = G.teams.b;
-  ov.innerHTML =
-    `<div class="vs-side a"><div class="vs-tag">Equipo 1</div><div class="vs-name">${_escVs(a.name||'Equipo 1')}</div></div>` +
-    `<div class="vs-mid">VS</div>` +
-    `<div class="vs-side b"><div class="vs-tag">Equipo 2</div><div class="vs-name">${_escVs(b.name||'Equipo 2')}</div></div>`;
-  ov.classList.remove('open'); void ov.offsetWidth; ov.classList.add('open');
-  if(navigator.vibrate) navigator.vibrate(30);
-  clearTimeout(ov._hideT);
-  ov._hideT = setTimeout(()=>{ ov.classList.remove('open'); }, 1900);
-}
-
 function syncMyInputs(){
-  if(!G || !myTeam) return;
+  if(!G || !myTeam || !G.teams[myTeam]) return;
   const me = G.teams[myTeam];
   const input = document.getElementById('answer-input');
   // Si estoy en answering y todavía no marqué listo, dejo lo que tenga escrito
@@ -1149,10 +1086,13 @@ function syncMyInputs(){
 function submitReady(){
   if(!fbRef || !myTeam || !G) return;
   if(G.phase !== 'answering') return;
+  if(questionExpired()){ pulseInput(); return; }
   const raw = (document.getElementById('answer-input').value || '').trim();
   if(raw === ''){ pulseInput(); return; }
   const num = parseNum(raw);
   if(num === null){ pulseInput(); return; }
+  // El envío también se valida server-side (ver erudito-rounds.js): si para
+  // cuando llega la escritura ya se venció el minuto, se rechaza igual.
   fbRef.child('teams/'+myTeam).update({ answer: num, ready: true });
   if(navigator.vibrate) navigator.vibrate(30);
 }
@@ -1161,9 +1101,12 @@ function grabCorrectLock(){
   if(!fbRef || !myTeam || !G) return;
   // Transacción: el primero que llega gana el lock
   fbRef.transaction(cur=>{
-    if(!cur) return cur;
+    if(!cur || !cur.teams) return cur;
     if(cur.phase !== 'answering') return; // ya cambió, abortar
-    if(!cur.teams.a.ready || !cur.teams.b.ready) return; // seguridad
+    const order = cur.order || Object.keys(cur.teams);
+    const everyoneReady = order.every(l=>cur.teams[l] && cur.teams[l].ready);
+    const expired = cur.questionEndsAt != null && window._erServerNow() >= cur.questionEndsAt;
+    if(!everyoneReady && !expired) return; // seguridad: todavía se puede seguir respondiendo
     cur.phase = 'correct_locked';
     cur.correct = { value: null, lockedBy: myTeam };
     return cur;
@@ -1205,25 +1148,23 @@ function submitCorrect(){
   if(num === null){ pulseEl('correct-input'); return; }
   document.getElementById('correct-overlay').classList.remove('open');
 
-  // Calcular ganador y comprometer todo en una transacción
+  // Calcular ganador(es) y comprometer todo en una transacción.
+  // Gana el punto quien tenga la MENOR desviación; si hay empate exacto en
+  // la menor desviación, el punto es para todos los que empataron. El
+  // equipo que no respondió a tiempo tiene desviación Infinity y queda
+  // afuera; si nadie respondió, la pregunta no da punto a nadie.
   fbRef.transaction(cur=>{
-    if(!cur) return cur;
+    if(!cur || !cur.teams) return cur;
     if(cur.phase !== 'correct_locked') return; // seguridad
-    const av = cur.teams.a.answer, bv = cur.teams.b.answer;
-    const da = deviation(av, num);
-    const db = deviation(bv, num);
-    let winner = 'tie';
-    if(da < db) winner = 'a';
-    else if(db < da) winner = 'b';
-    // sumar puntos
-    if(winner === 'a') cur.teams.a.score = (cur.teams.a.score||0) + 1;
-    else if(winner === 'b') cur.teams.b.score = (cur.teams.b.score||0) + 1;
-    else { cur.teams.a.score = (cur.teams.a.score||0) + 1; cur.teams.b.score = (cur.teams.b.score||0) + 1; }
+    const order = cur.order || Object.keys(cur.teams);
+    const devs = order.map(l=>({l,d:deviation(cur.teams[l].answer, num)}));
+    const minDev = devs.reduce((m,x)=>Math.min(m,x.d), Infinity);
+    const winners = isFinite(minDev) ? devs.filter(x=>x.d===minDev).map(x=>x.l) : [];
+    winners.forEach(l=>{ cur.teams[l].score = (cur.teams[l].score||0) + 1; });
     cur.correct.value = num;
-    cur.correct.winner = winner;
+    cur.correct.winner = winners;
     cur.phase = 'revealed';
-    cur.teams.a.next = false;
-    cur.teams.b.next = false;
+    order.forEach(l=>{ cur.teams[l].next = false; });
     return cur;
   });
 }
@@ -1233,24 +1174,18 @@ function submitNext(){
   if(G.phase !== 'revealed') return;
   fbRef.child('teams/'+myTeam+'/next').set(true);
   if(navigator.vibrate) navigator.vibrate(20);
-  // Cuando ambos pusieron next, el primero que lo detecta avanza (transacción)
+  // Cuando todos los equipos marcaron next, el primero que lo detecta avanza
   fbRef.transaction(cur=>{
-    if(!cur) return cur;
+    if(!cur || !cur.teams) return cur;
     if(cur.phase !== 'revealed') return;
-    if(cur.teams.a.next && cur.teams.b.next){
-      // ¿Alguien llegó al límite?
-      const lim = cur.limit || 7;
-      const sa = cur.teams.a.score||0, sb = cur.teams.b.score||0;
-      if(sa >= lim || sb >= lim){
-        cur.phase = 'finished';
-        cur.winner = sa === sb ? 'tie' : (sa > sb ? 'a' : 'b');
-      } else {
-        cur.round = (cur.round||1) + 1;
-        cur.phase = 'answering';
-        cur.teams.a.answer = null; cur.teams.a.ready = false; cur.teams.a.next = false;
-        cur.teams.b.answer = null; cur.teams.b.ready = false; cur.teams.b.next = false;
-        cur.correct = { value: null, lockedBy: null };
-      }
+    const order = cur.order || Object.keys(cur.teams);
+    if(order.every(l=>cur.teams[l] && cur.teams[l].next)){
+      // No hay límite de preguntas: solo "Finalizar" cierra la ronda.
+      cur.round = (cur.round||1) + 1;
+      cur.phase = 'answering';
+      cur.questionEndsAt = window._erServerNow() + (cur.questionMs||60000);
+      order.forEach(l=>{ cur.teams[l].answer=null; cur.teams[l].ready=false; cur.teams[l].next=false; });
+      cur.correct = { value: null, lockedBy: null };
     }
     return cur;
   });
@@ -1259,48 +1194,39 @@ function submitNext(){
 }
 
 function refreshNextWait(){
-  if(!G || !myTeam) return;
-  const me = G.teams[myTeam], other = G.teams[myTeam==='a'?'b':'a'];
+  if(!G || !myTeam || !G.teams[myTeam]) return;
+  const order = teamOrder();
+  const me = G.teams[myTeam];
   const w = document.getElementById('next-wait');
   const nb = document.getElementById('next-btn');
   const chips = document.getElementById('next-chips');
-  const ta = G.teams.a, tb = G.teams.b;
-  const nameA = ta.name || 'Equipo 1', nameB = tb.name || 'Equipo 2';
+  const pending = order.filter(l=>!G.teams[l].next);
 
-  // Actualizar chips individuales
-  const chipA = document.getElementById('next-chip-a'), chipB = document.getElementById('next-chip-b');
-  _setText('next-chip-a-name', nameA); _setText('next-chip-b-name', nameB);
-  if(ta.next){
-    chipA.classList.add('is-ready'); _setText('next-chip-a-state', '✓ Listo');
-  } else {
-    chipA.classList.remove('is-ready'); _setText('next-chip-a-state', 'Esperando…');
-  }
-  if(tb.next){
-    chipB.classList.add('is-ready'); _setText('next-chip-b-state', '✓ Listo');
-  } else {
-    chipB.classList.remove('is-ready'); _setText('next-chip-b-state', 'Esperando…');
-  }
+  chips.innerHTML = order.map((label,i)=>{
+    const t = G.teams[label];
+    return '<div class="ready-chip '+teamColorClass('chip-c',i)+(t.next?' is-ready':'')+'">'
+      +'<span class="ready-chip-name">'+_esc(t.name||label)+'</span>'
+      +'<span class="ready-chip-state">'+(t.next?'✓ Listo':'Esperando…')+'</span></div>';
+  }).join('');
 
   if(me.next){
     nb.disabled = true; nb.textContent = '✓ Listo para seguir';
     chips.style.display = '';
-    if(!other.next){
-      const otherName = other.name || (myTeam==='a'?'Equipo 2':'Equipo 1');
-      w.innerHTML = 'Falta ' + otherName + ' <span class="wait-dots"><span>.</span><span>.</span><span>.</span></span>';
+    if(pending.length){
+      const faltan = pending.map(l=>G.teams[l].name||l).join(', ');
+      w.innerHTML = 'Falta ' + faltan + ' <span class="wait-dots"><span>.</span><span>.</span><span>.</span></span>';
     } else {
       w.textContent = '';
     }
   } else {
     nb.disabled = false;
-    // Mostrar chips solo si el otro ya apretó (para que veas que falta vos)
-    if(other.next){
+    nb.textContent = '→ Siguiente pregunta';
+    // Mostrar chips solo si ya hay alguien esperando (para que se note que faltás vos)
+    if(pending.length < order.length){
       chips.style.display = '';
-      const myName = me.name || (myTeam==='a'?'Equipo 1':'Equipo 2');
-      nb.textContent = '→ Siguiente ronda';
-      w.innerHTML = '¡El otro equipo ya está listo, apretá vos también!';
+      w.innerHTML = '¡Ya hay equipos listos, apretá vos también!';
     } else {
       chips.style.display = 'none';
-      nb.textContent = '→ Siguiente ronda';
       w.textContent = '';
     }
   }
@@ -1309,7 +1235,7 @@ function refreshNextWait(){
 
 let _revealTimers = [];
 
-// ─── REVEAL (showcito de tensión) ────────────────────────────────
+// ─── REVEAL (ranking de todos los equipos por cercanía) ──────────
 function doReveal(){
   if(_revealAnimating) return;
   _revealAnimating = true;
@@ -1318,22 +1244,18 @@ function doReveal(){
   const cw = document.getElementById('reveal-correct-wrap');
   const cv = document.getElementById('reveal-correct-val');
   const res = document.getElementById('reveal-result');
-  const ans = document.getElementById('reveal-answers');
+  const ranking = document.getElementById('reveal-ranking');
   const next = document.getElementById('reveal-next');
 
   // reset
-  cw.classList.remove('show'); res.classList.remove('show','tie'); ans.classList.remove('show'); next.classList.remove('show');
+  cw.classList.remove('show'); res.classList.remove('show','tie'); ranking.classList.remove('show'); next.classList.remove('show');
   res.textContent=''; susp.textContent='Calculando';
   ov.classList.add('open');
 
-  const a = G.teams.a, b = G.teams.b;
+  const order = teamOrder();
   const correct = G.correct.value;
-  const winner = G.correct.winner;
+  const winners = Array.isArray(G.correct.winner) ? G.correct.winner : [];
 
-  // El número correcto lo acaba de tipear uno de los dos equipos, así que no
-  // tiene sentido fingir suspenso con él: se muestra de una.
-  // Lo que nadie sabe todavía es qué puso el rival y quién quedó más cerca:
-  // ahí está la tensión, y por eso las respuestas se revelan de a una.
   susp.textContent = '';
   cv.textContent = fmt(correct);
   cw.classList.add('show');
@@ -1342,66 +1264,62 @@ function doReveal(){
   _revealTimers.push(setTimeout(()=>cv.classList.remove('landed'), 700));
   if(navigator.vibrate) navigator.vibrate([20,40,20]);
 
-  // Las respuestas se revelan de a una: ver la primera y esperar la otra es
-  // el momento de tensión real, porque nadie sabía qué había puesto el rival.
-  const ea = document.getElementById('rv-ans-a'), eb = document.getElementById('rv-ans-b');
-  _setText('rv-ans-a-name', a.name||'Equipo 1');
-  _setText('rv-ans-b-name', b.name||'Equipo 2');
-  ea.classList.remove('win','revealed'); eb.classList.remove('win','revealed');
-  _setText('rv-ans-a-val','—'); _setText('rv-ans-b-val','—');
-  _setText('rv-ans-a-tag',''); _setText('rv-ans-b-tag','');
+  // Ranking por cercanía: quien no respondió queda al final (desvío Infinity).
+  const dist = (val,off) => val==null ? 'sin respuesta' : (off===0 ? '¡exacto!' : 'erró por '+fmt(off));
+  const rows = order.map(label=>{
+    const t = G.teams[label]||{};
+    const off = t.answer==null ? null : Math.abs(t.answer - correct);
+    const d = deviation(t.answer, correct);
+    return {label, name:t.name||label, val:t.answer, off, d, win: winners.includes(label)};
+  }).sort((x,y)=> x.d - y.d);
 
-  // Cuánto erró cada uno, en la unidad del número
-  const offA = (a.answer == null) ? null : Math.abs(a.answer - correct);
-  const offB = (b.answer == null) ? null : Math.abs(b.answer - correct);
-  const dist = off => off == null ? 'sin respuesta'
-             : (off === 0 ? '¡exacto!' : 'erró por ' + fmt(off));
+  ranking.innerHTML = rows.map((r,i)=>
+    '<div class="reveal-rank-row'+(r.win?' win':'')+'" id="rv-row-'+i+'">'
+    +'<span class="reveal-rank-pos">'+(isFinite(r.d)?(i+1):'—')+'</span>'
+    +'<span class="reveal-rank-name">'+_esc(r.name)+'</span>'
+    +'<span class="reveal-rank-val" id="rv-row-'+i+'-val">—</span>'
+    +'<span class="reveal-rank-tag" id="rv-row-'+i+'-tag"></span></div>'
+  ).join('');
+  ranking.classList.add('show');
 
+  // Las respuestas se revelan de a una, con un desfasaje corto por fila, para
+  // que se note la tensión de qué puso cada equipo sin alargar la espera
+  // cuando hay muchos equipos jugando.
+  rows.forEach((r,i)=>{
+    const delay = 450 + Math.min(i, 8) * 260;
+    _revealTimers.push(setTimeout(()=>{
+      const row = document.getElementById('rv-row-'+i);
+      _setText('rv-row-'+i+'-val', fmt(r.val));
+      _setText('rv-row-'+i+'-tag', dist(r.val, r.off) + (r.win ? ' · +1' : ''));
+      if(row) row.classList.add('revealed');
+      playTick();
+      if(navigator.vibrate) navigator.vibrate(18);
+    }, delay));
+  });
+
+  const verdictDelay = 450 + Math.min(rows.length-1, 8) * 260 + 900;
   _revealTimers.push(setTimeout(()=>{
-    ans.classList.add('show');
-    _setText('rv-ans-a-val', fmt(a.answer));
-    _setText('rv-ans-a-tag', dist(offA));
-    ea.classList.add('revealed');
-    playTick();
-    if(navigator.vibrate) navigator.vibrate(25);
-  }, 1500));
-
-  _revealTimers.push(setTimeout(()=>{
-    _setText('rv-ans-b-val', fmt(b.answer));
-    _setText('rv-ans-b-tag', dist(offB));
-    eb.classList.add('revealed');
-    playTick();
-    if(navigator.vibrate) navigator.vibrate(25);
-  }, 2500));
-
-  // Tras 3.4s: el veredicto
-  setTimeout(()=>{
-    if(winner === 'tie'){
-      res.textContent = '¡Empate! Punto para ambos';
+    if(!winners.length){
+      res.textContent = 'Nadie respondió — sin punto';
       res.classList.add('tie','show');
-      ea.classList.add('win'); eb.classList.add('win');
-      _setText('rv-ans-a-tag', dist(offA) + ' · +1');
-      _setText('rv-ans-b-tag', dist(offB) + ' · +1');
+    } else if(winners.length > 1){
+      res.textContent = '¡Empate! Punto para ' + winners.length + ' equipos';
+      res.classList.add('tie','show');
     } else {
-      const wName = G.teams[winner].name || (winner==='a'?'Equipo 1':'Equipo 2');
+      const wName = (G.teams[winners[0]]&&G.teams[winners[0]].name) || winners[0];
       res.textContent = wName + ' adivinó';
       res.classList.add('show');
-      const we = winner==='a'?ea:eb;
-      we.classList.add('win');
-      const off = winner==='a' ? offA : offB;
-      _setText('rv-ans-'+winner+'-tag', (off === 0 ? '✓ ¡exacto!' : '✓ más cerca') + ' · +1');
     }
     playDing();
     launchConfetti();
     if(navigator.vibrate) navigator.vibrate([20,20,60]);
-  }, 3400);
+  }, verdictDelay));
 
-  // Tras 4.2s: botón siguiente
-  setTimeout(()=>{
+  _revealTimers.push(setTimeout(()=>{
     next.classList.add('show');
     refreshNextWait();
     _revealAnimating = false;
-  }, 4200);
+  }, verdictDelay + 800));
 }
 
 function closeRevealOverlay(){
@@ -1413,40 +1331,87 @@ function closeRevealOverlay(){
 // ─── WIN ─────────────────────────────────────────────────────────
 function showWin(){
   closeRevealOverlay();
-  const w = G.winner;
-  const isTie = w === 'tie';
-  const wName = isTie ? '¡Empate!' : (w ? (G.teams[w].name || (w==='a'?'Equipo 1':'Equipo 2')) : '—');
-  _setText('win-label', isTie ? 'Fin del duelo' : 'Ganador del duelo');
+  const winners = Array.isArray(G.winner) ? G.winner : [];
+  const isTie = winners.length > 1;
+  const wName = winners.length
+    ? winners.map(l=>(G.teams[l]&&G.teams[l].name)||l).join(' y ')
+    : '—';
+  _setText('win-label', isTie ? 'Empate en la ronda' : 'Ganador de la ronda');
   _setText('win-name', wName);
-  _setText('win-score', (G.teams.a.score||0) + ' – ' + (G.teams.b.score||0));
   document.getElementById('win-trophy').textContent = isTie ? '🤝' : '🏆';
+
+  // Tabla de posiciones final, de mayor a menor puntaje
+  const standings = document.getElementById('win-standings');
+  const rows = teamOrder().map(l=>({label:l, name:(G.teams[l]&&G.teams[l].name)||l, score:(G.teams[l]&&G.teams[l].score)||0}))
+    .sort((a,b)=>b.score-a.score);
+  if(standings){
+    standings.innerHTML = rows.map(r=>
+      '<div class="win-standing-row'+(winners.includes(r.label)?' top':'')+'">'
+      +'<span>'+_esc(r.name)+'</span><span>'+r.score+'</span></div>'
+    ).join('');
+  }
   document.getElementById('win-overlay').classList.add('open');
   launchConfetti();
   playDing();
   if(navigator.vibrate) navigator.vibrate([40,40,40,40,80]);
 }
 
+// "Reiniciar ronda": vuelve a foja cero con los mismos equipos del fixture
+// (se usa para ensayo/pruebas, o si hubo que repetir toda la ronda).
 function newDuel(){
   if(!fbRef) return;
-  const lim = (G && G.limit) || 7;
-  const na = (G && G.teams.a.name) || 'Equipo 1';
-  const nb = (G && G.teams.b.name) || 'Equipo 2';
-  const fresh = JSON.parse(JSON.stringify(DEFAULT_STATE));
-  fresh.limit = lim;
-  fresh.teams.a.name = na; fresh.teams.b.name = nb;
-  fbRef.set(fresh);
+  fbRef.transaction(cur=>{
+    if(!cur || !cur.teams) return cur;
+    const order = cur.order || Object.keys(cur.teams);
+    cur.phase = 'answering'; cur.round = 1; cur.winner = null;
+    cur.questionEndsAt = null; cur.correct = { value: null, lockedBy: null };
+    delete cur.groupResult;
+    order.forEach(l=>{ cur.teams[l] = Object.assign({}, cur.teams[l], {score:0, answer:null, ready:false, next:false}); });
+    return cur;
+  });
   document.getElementById('win-overlay').classList.remove('open');
 }
 
-// Finalizar el duelo en cualquier momento → gana el de más puntos (empate: Equipo 1)
+// Calcula los puntos que suma cada equipo al ranking general de la Velada
+// según el puesto final de la ronda de El Erudito. Empates comparten
+// puesto y puntos (y el siguiente puesto se corre la cantidad de empatados).
+//   2 equipos → 1º 3pts, resto 0
+//   3 equipos → 1º 3pts, 2º 2pts, resto 0
+//   4+ equipos → 1º 3pts, 2º 2pts, 3º 1pt, resto 0
+function eruditoPlacementPoints(standing){
+  const n = standing.length, byTeam = {};
+  if(!n) return byTeam;
+  const ptsForRank = rank => {
+    if(n === 2) return rank===1 ? 3 : 0;
+    if(n === 3) return rank===1 ? 3 : rank===2 ? 2 : 0;
+    return rank===1 ? 3 : rank===2 ? 2 : rank===3 ? 1 : 0;
+  };
+  let i=0;
+  while(i<n){
+    let j=i;
+    while(j+1<n && standing[j+1].score===standing[i].score) j++;
+    const pts = ptsForRank(i+1);
+    for(let k=i;k<=j;k++) byTeam[standing[k].label] = pts;
+    i = j+1;
+  }
+  return byTeam;
+}
+
+// Finalizar la ronda en cualquier momento → gana el/los equipo(s) con más
+// puntos, y se publica el resultado para que la Velada lo sume al ranking
+// general (igual que Guess Movies, 100 Argentinos y ¿Quién lo dijo?).
 function finishDuelNow(){
-  ccConfirm('¿Finalizar el duelo ahora? Gana el equipo con más puntos.', ()=>{
+  ccConfirm('¿Finalizar la ronda de El Erudito ahora? Se cierra con el puntaje actual y se carga el resultado a la Velada.', ()=>{
     if(!fbRef){ return; }
     fbRef.transaction(cur=>{
-      if(!cur) return cur;
-      const sa = cur.teams.a.score||0, sb = cur.teams.b.score||0;
+      if(!cur || !cur.teams) return cur;
+      const order = cur.order || Object.keys(cur.teams);
+      const standing = order.map(l=>({label:l, score:(cur.teams[l]&&cur.teams[l].score)||0}))
+        .sort((x,y)=>y.score-x.score);
       cur.phase = 'finished';
-      cur.winner = sa === sb ? 'tie' : (sa > sb ? 'a' : 'b');
+      const maxScore = standing.length ? standing[0].score : 0;
+      cur.winner = standing.filter(s=>s.score===maxScore).map(s=>s.label);
+      cur.groupResult = { byTeam: eruditoPlacementPoints(standing), ts: Date.now() };
       return cur;
     });
     if(navigator.vibrate) navigator.vibrate(30);
@@ -1474,24 +1439,8 @@ function goHome(e){
   });
 }
 
-// ─── NOMBRES ─────────────────────────────────────────────────────
-function openNameEditor(){
-  if(!myTeam) return;
-  const cur = G ? (G.teams[myTeam].name || '') : '';
-  document.getElementById('name-input').value = cur;
-  _setText('names-label', myTeam==='a' ? '🔵 Tu equipo' : '🟡 Tu equipo');
-  document.getElementById('names-overlay').classList.add('open');
-  setTimeout(()=>{ try{ document.getElementById('name-input').focus(); }catch(e){} }, 50);
-}
-function closeNameEditor(){ document.getElementById('names-overlay').classList.remove('open'); }
-function saveMyName(){
-  if(!fbRef || !myTeam) return;
-  const v = (document.getElementById('name-input').value || '').trim();
-  const name = v || (myTeam==='a' ? 'Equipo 1' : 'Equipo 2');
-  fbRef.child('teams/'+myTeam+'/name').set(name);
-  closeNameEditor();
-  if(navigator.vibrate) navigator.vibrate(30);
-}
+// El nombre de cada equipo lo define el fixture de la Velada (igual que en
+// Guess Movies / 100 Argentinos): no se puede editar desde acá.
 
 // ─── CONFIG + PIN ────────────────────────────────────────────────
 const PIN_KEY = 'erudito_pin_v1';
@@ -1506,22 +1455,12 @@ function openConfig(){
   openPin('Ingresá el PIN para abrir la configuración');
 }
 function _reallyOpenConfig(){
-  document.getElementById('limit-input').value = (G && G.limit) || 7;
   document.getElementById('config-overlay').classList.add('open');
 }
 function closeConfig(){ document.getElementById('config-overlay').classList.remove('open'); }
 
-function saveLimit(){
-  if(!fbRef) return;
-  let v = parseInt(document.getElementById('limit-input').value, 10);
-  if(isNaN(v) || v < 1) v = 7;
-  if(v > 50) v = 50;
-  fbRef.child('limit').set(v);
-  closeConfig();
-  if(navigator.vibrate) navigator.vibrate(30);
-}
 function resetDuel(){
-  ccConfirm('¿Reiniciar puntaje y rondas a cero? (mantiene los nombres)', ()=>{
+  ccConfirm('¿Reiniciar puntaje y rondas a cero?', ()=>{
     newDuel();
     closeConfig();
   });
@@ -1806,32 +1745,6 @@ initFirebase();
   s.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '||e.key==='Escape'){ e.preventDefault(); dismissSplash(); } });
   try { s.focus({ preventScroll:true }); } catch(e){}
 })();
-
-// Mantiene sincronizado el cartel de "ahora juegan" con los nombres del marcador
-function syncNowPlaying(){
-  var np = document.getElementById('now-playing');
-  if(!np) return;
-  var a = document.getElementById('sb-name-a');
-  var b = document.getElementById('sb-name-b');
-  var na = document.getElementById('np-a');
-  var nb = document.getElementById('np-b');
-  if(a && na) na.textContent = a.textContent || '—';
-  if(b && nb) nb.textContent = b.textContent || '—';
-}
-// Se actualiza solo cuando cambian los nombres del marcador
-(function(){
-  function arrancar(){
-    syncNowPlaying();
-    var sb = document.getElementById('scoreboard');
-    if(sb && window.MutationObserver){
-      new MutationObserver(syncNowPlaying)
-        .observe(sb, { childList:true, subtree:true, characterData:true });
-    }
-  }
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', arrancar);
-  else arrancar();
-})();
-
 
 // ── BARRA: SE APARTA SOLA CUANDO HAY UN OVERLAY ──────────────────────
 // La barra está en z-index 9990 y quedaba por encima de las pantallas de

@@ -57,10 +57,13 @@
   }
   function initial(match){
     if(match.game==='palabras' || match.game==='carrera') return {fixture:match,names:match.names};
-    if(match.game==='erudito') return {fixture:match,phase:'answering',round:1,limit:7,teams:{
-      a:{name:match.names.a,answer:null,ready:false,score:0,next:false},
-      b:{name:match.names.b,answer:null,ready:false,score:0,next:false}
-    },correct:{value:null,lockedBy:null},winner:null};
+    if(match.game==='erudito'){
+      // Ronda única, todos los equipos del fixture grupal juegan en simultáneo.
+      const teams={};
+      (match.teams||[]).forEach(label=>{ teams[label]={name:label,answer:null,ready:false,score:0,next:false}; });
+      return {fixture:match,phase:'answering',round:1,teams,order:(match.teams||[]).slice(),
+        correct:{value:null,lockedBy:null},questionEndsAt:null,questionMs:60000,winner:null};
+    }
     return {fixture:match,names:match.names,state:'locked',winner:null,blocked:null};
   }
   function caption(m){
