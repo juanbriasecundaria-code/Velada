@@ -613,6 +613,17 @@ body.vb-clean .vb-peek { display: flex; }
   .velada-bar-dot span.warn { animation: none }
 }
 
+
+/* ── Carga masiva de audios ── */
+.bk-row{display:flex;flex-direction:column;gap:.35rem;padding:.55rem .7rem;border-radius:12px;background:var(--surface2);border:1.5px solid var(--border2)}
+.bk-row.bk-ok{border-color:rgba(60,200,120,.6)}
+.bk-row.bk-maybe{border-color:rgba(255,190,50,.8);background:rgba(255,190,50,.07)}
+.bk-row.bk-none{opacity:.85}
+.bk-top{display:flex;align-items:center;gap:.5rem;justify-content:space-between}
+.bk-title{font-size:13px;font-weight:800;color:var(--text);word-break:break-word}
+.bk-chip{font-size:10.5px;font-weight:800;white-space:nowrap;color:var(--muted)}
+.bk-sel{width:100%;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:12px;padding:.4rem .5rem}
+.bk-confirm{display:flex;align-items:center;gap:.4rem;font-size:12px;font-weight:700;color:var(--text)}
 </style>
 <style>.hub-link{position:fixed;top:0;left:max(.6rem,env(safe-area-inset-left));height:44px;margin-top:env(safe-area-inset-top);display:inline-flex;align-items:center;z-index:9992;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:transparent;border:none;padding:0 .3rem;text-decoration:none;letter-spacing:0.04em;transition:color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8}
 /* En modo Participantes sobre pantalla ancha (TV) se oculta la barra superior
@@ -906,6 +917,9 @@ body.guess-all-teams .part-gscore{font-size:clamp(28px,3.6vw,46px);line-height:1
       <button class="deck-action-btn" style="border-color:var(--purple);color:var(--purple)" onclick="randomizeMovieModes()">🎲 Modos pelis</button>
       <button class="deck-action-btn" style="border-color:var(--purple);color:var(--purple)" onclick="randomizeSongModes()">🎲 Modos canciones</button>
     </div>
+    <div class="deck-actions-row">
+      <button class="deck-action-btn" style="border-color:var(--purple);color:var(--purple)" onclick="openBulkAudio()">📂 Cargar audios en lote (carpeta)</button>
+    </div>
     <div class="add-form" id="add-movie-form" style="display:none">
       <div class="add-form-head"><div class="add-form-title">🎬 Película</div><button class="add-form-close" onclick="hideAddForms()" aria-label="Cerrar" title="Cerrar">✕</button></div>
       <div class="fc"><div class="form-label">Título (solo el conductor)</div><input class="form-input" id="nm-title" placeholder="Ej: Titanic" maxlength="80"></div>
@@ -1086,6 +1100,25 @@ body.guess-all-teams .part-gscore{font-size:clamp(28px,3.6vw,46px);line-height:1
   </div>
 </div>
 
+<div class="sheet-ov" id="bulk-ov" style="z-index:650">
+  <div class="sheet-panel" style="max-width:720px">
+    <div class="add-form-head"><div class="sheet-title">📂 Cargar audios en lote</div><button class="add-form-close" onclick="closeBulkAudio()" aria-label="Cerrar" title="Cerrar">✕</button></div>
+    <div class="sheet-sub">Elegí la carpeta con tus canciones: las que coinciden 100% con el título se asignan solas y las dudosas te las confirmo.</div>
+    <div class="deck-actions-row">
+      <button class="deck-action-btn" style="border-color:var(--purple);color:var(--purple)" onclick="document.getElementById('bulk-dir').click()">📁 Elegir carpeta</button>
+      <button class="deck-action-btn" style="border-color:var(--border2);color:var(--muted)" onclick="document.getElementById('bulk-files').click()">🎵 Elegir archivos</button>
+      <input type="file" id="bulk-dir" webkitdirectory directory multiple style="display:none" onchange="bulkPick(this)">
+      <input type="file" id="bulk-files" accept="audio/*" multiple style="display:none" onchange="bulkPick(this)">
+    </div>
+    <label class="bk-confirm"><input type="checkbox" id="bulk-incl" onchange="bulkRebuild()"> Incluir canciones que ya tienen audio o YouTube (las reemplaza)</label>
+    <div id="bulk-sum" style="font-size:12px;color:var(--muted);font-weight:700"></div>
+    <div id="bulk-list" style="display:flex;flex-direction:column;gap:.5rem"></div>
+    <div class="deck-actions-row">
+      <button class="deck-action-btn" style="border-color:var(--border2);color:var(--muted)" onclick="closeBulkAudio()">Cancelar</button>
+      <button class="deck-action-btn" id="bulk-apply" style="border-color:var(--purple);color:var(--purple)" onclick="bulkApply()" disabled>Aplicar</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -3299,6 +3332,108 @@ function submitMovie(){
 }
 function setAudioSrc(s){_audioSrc=s;document.getElementById('ast-yt').classList.toggle('on',s==='yt');document.getElementById('ast-file').classList.toggle('on',s==='file');document.getElementById('audio-yt-wrap').style.display=s==='yt'?'':'none';document.getElementById('audio-file-wrap').style.display=s==='file'?'':'none';}
 function handleAudioFile(input){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{_audioData=e.target.result;document.getElementById('audio-file-preview').textContent='✓ '+f.name;};r.readAsDataURL(f);input.value='';}
+
+// ─── CARGA MASIVA DE AUDIOS (carpeta → canciones del mazo) ───────
+const _BK_STOP=new Set(['the','a','an','de','la','el','los','las','y','and','feat','ft','featuring','official','video','audio','lyrics','lyric','letra','hd','hq','oficial','version','remastered','remaster','mp3','con','by','music','clip','videoclip']);
+let _bkFiles=[],_bkRows=[];
+function bkTokens(str,isFile){
+  let t=String(str||'');
+  if(isFile){t=t.replace(/\.[a-z0-9]{2,5}$/i,'').replace(/^\s*\d{1,3}\s*[-._)]\s*/,'');}
+  t=t.replace(/\[[\w-]{11}\]/g,' ').replace(/[\(\[\{][^\)\]\}]*(official|video|audio|lyric|letra|hd|hq|remaster|clip|live)[^\)\]\}]*[\)\]\}]/gi,' ');
+  t=t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim();
+  const out=[];t.split(' ').forEach(w=>{if(w&&!_BK_STOP.has(w)&&!out.includes(w))out.push(w);});
+  return out;
+}
+function bkLev(a,b){const m=a.length,n=b.length;if(Math.abs(m-n)>1)return 9;const d=[];for(let i=0;i<=m;i++){d[i]=[i];}for(let j=0;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];}
+function bkScore(A,B){
+  if(!A.length||!B.length)return{score:0,exact:false};
+  let ex=0,fz=0;const used=new Set();
+  A.forEach(a=>{
+    if(B.includes(a)){ex++;used.add(a);return;}
+    if(a.length>=5){const f=B.find(b=>!used.has(b)&&b.length>=5&&!A.includes(b)&&bkLev(a,b)<=1);if(f){fz++;used.add(f);}}
+  });
+  const exact=(ex===A.length&&A.length===B.length);
+  let score=2*(ex+0.8*fz)/(A.length+B.length);
+  if(!exact){
+    if(ex===A.length&&A.length>=2)score=Math.max(score,.7);   // el archivo tiene todo el título (y algo más)
+    else if(ex===B.length&&B.length>=2)score=Math.max(score,.7); // el título tiene todo el nombre del archivo
+    score=Math.min(score,.99);
+  }else score=1;
+  return{score,exact};
+}
+function openBulkAudio(){document.getElementById('bulk-ov').classList.add('open');bulkRebuild();}
+function closeBulkAudio(){document.getElementById('bulk-ov').classList.remove('open');}
+function bkIsAudio(f){return (f.type&&f.type.indexOf('audio/')===0)||/\.(mp3|wav|ogg|m4a|aac|flac|opus|weba|webm)$/i.test(f.name);}
+function bulkPick(input){
+  const fs=Array.from(input.files||[]).filter(bkIsAudio);
+  input.value='';
+  if(!fs.length){showToast('No encontré audios ahí');return;}
+  _bkFiles=fs.sort((a,b)=>a.name.localeCompare(b.name,'es'));
+  bulkRebuild();
+}
+function bulkRebuild(){
+  const incl=document.getElementById('bulk-incl').checked;
+  const cards=deck.filter(c=>c.type==='song'&&(incl||(!c.audioData&&!c.youtubeId)));
+  const fT=_bkFiles.map(f=>bkTokens(f.webkitRelativePath?f.name:f.name,true));
+  const pairs=[];
+  cards.forEach((c,ci)=>{const A=bkTokens(c.title,false);fT.forEach((B,fi)=>{const r=bkScore(A,B);if(r.score>=.35)pairs.push({ci,fi,score:r.score,exact:r.exact});});});
+  pairs.sort((x,y)=>y.score-x.score);
+  const cu=new Set(),fu=new Set(),asg={};
+  pairs.forEach(p=>{if(cu.has(p.ci)||fu.has(p.fi))return;cu.add(p.ci);fu.add(p.fi);asg[p.ci]=p;});
+  _bkRows=cards.map((c,ci)=>{const p=asg[ci];return{card:c,fi:p?p.fi:-1,level:p?(p.exact?'ok':'maybe'):'none',score:p?p.score:0,confirmed:!!(p&&p.exact)};});
+  bulkRender();
+}
+function bulkRender(){
+  const list=document.getElementById('bulk-list'),sum=document.getElementById('bulk-sum'),ap=document.getElementById('bulk-apply');
+  if(!_bkFiles.length){list.innerHTML='';sum.textContent='Todavía no elegiste carpeta.';ap.disabled=true;ap.textContent='Aplicar';return;}
+  const usedBy={};_bkRows.forEach((r,i)=>{if(r.fi>=0)usedBy[r.fi]=i;});
+  list.innerHTML=_bkRows.map((r,i)=>{
+    const opts='<option value="-1">— sin audio —</option>'+_bkFiles.map((f,fi)=>'<option value="'+fi+'"'+(fi===r.fi?' selected':'')+'>'+esc(f.name)+(usedBy[fi]!==undefined&&usedBy[fi]!==i?'  (ya asignado)':'')+'</option>').join('');
+    let chip,cls;
+    if(r.fi<0){chip='❌ Sin coincidencia';cls='bk-none';}
+    else if(r.level==='ok'){chip='✅ Coincide 100%';cls='bk-ok';}
+    else if(r.level==='manual'){chip='✋ Elegido a mano';cls='bk-ok';}
+    else{chip='❓ ¿Va acá? ('+Math.round(r.score*100)+'%)';cls='bk-maybe';}
+    const conf=(r.fi>=0&&r.level==='maybe')?'<label class="bk-confirm"><input type="checkbox" '+(r.confirmed?'checked':'')+' onchange="bulkConfirm('+i+',this.checked)"> Sí, este audio va en esta canción</label>':'';
+    return '<div class="bk-row '+cls+'"><div class="bk-top"><div class="bk-title">'+esc(r.card.title)+'</div><div class="bk-chip">'+chip+'</div></div><select class="bk-sel" onchange="bulkChoose('+i+',this.value)">'+opts+'</select>'+conf+'</div>';
+  }).join('')||'<div style="font-size:12px;color:var(--muted)">No hay canciones para completar (activá “Incluir…” si querés reemplazar).</div>';
+  const ready=_bkRows.filter(r=>r.fi>=0&&(r.level==='ok'||r.level==='manual'||r.confirmed)).length;
+  const pend=_bkRows.filter(r=>r.fi>=0&&r.level==='maybe'&&!r.confirmed).length;
+  const none=_bkRows.filter(r=>r.fi<0).length;
+  const spare=_bkFiles.length-new Set(_bkRows.filter(r=>r.fi>=0).map(r=>r.fi)).size;
+  sum.textContent=_bkFiles.length+' audios · '+ready+' listas · '+pend+' por confirmar · '+none+' sin audio · '+spare+' archivos sin usar';
+  ap.disabled=ready===0;ap.textContent='Aplicar ('+ready+')';
+}
+function bulkChoose(i,v){
+  const fi=parseInt(v);
+  if(fi>=0)_bkRows.forEach((r,j)=>{if(j!==i&&r.fi===fi){r.fi=-1;r.level='none';r.confirmed=false;}});
+  const r=_bkRows[i];r.fi=fi;r.level=fi>=0?'manual':'none';r.confirmed=fi>=0;
+  bulkRender();
+}
+function bulkConfirm(i,on){_bkRows[i].confirmed=!!on;bulkRender();}
+function bkRead(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.onerror=()=>rej(r.error);r.readAsDataURL(f);});}
+async function bulkApply(){
+  const todo=_bkRows.filter(r=>r.fi>=0&&(r.level==='ok'||r.level==='manual'||r.confirmed));
+  if(!todo.length)return;
+  const ap=document.getElementById('bulk-apply');ap.disabled=true;
+  let done=0,fail=0;
+  for(const r of todo){
+    ap.textContent='Cargando '+(done+fail+1)+'/'+todo.length+'…';
+    try{
+      const data=await bkRead(_bkFiles[r.fi]);
+      r.card.audioData=data;r.card.youtubeId='';
+      done++;
+    }catch(e){fail++;console.warn('[bulk] no se pudo leer',_bkFiles[r.fi].name,e);}
+  }
+  saveDeck();
+  renderDeckList();
+  try{renderCondCard();}catch(e){}
+  try{sendState();}catch(e){}
+  closeBulkAudio();
+  _bkFiles=[];_bkRows=[];
+  showToast('🎵 '+done+' audio(s) cargados'+(fail?' · '+fail+' con error':''),3500);
+}
+
 function submitSong(){const t=document.getElementById('ns-title').value.trim();if(!t){showToast('Falta el título');return;}const ei=parseInt(document.getElementById('add-song-form').dataset.ei);let youtubeId='',startAt=0,audioData='',endAt=0;if(_audioSrc==='yt'){youtubeId=ytIdFromUrl(document.getElementById('ns-url').value.trim());startAt=parseInt(document.getElementById('ns-start').value)||0;endAt=parseInt(document.getElementById('ns-end').value)||0;}else{audioData=_audioData||'';startAt=parseInt(document.getElementById('ns-start-local').value)||0;endAt=parseInt(document.getElementById('ns-end-local').value)||0;}const _pl=parseLyricsInput(document.getElementById('ns-lyrics').value);const lyrics=_pl.lyrics;const lyricTimes=_pl.lyricTimes;const bonusQ=document.getElementById('ns-bonusq').value.trim();const correctRadio=document.querySelector('input[name="ns-bonus-correct"]:checked');const correctSlot=correctRadio?parseInt(correctRadio.value):-1;let bonusOptions=[],bonusCorrect=-1;[0,1,2,3].forEach(slot=>{const v=document.getElementById('ns-bonus-opt'+slot).value.trim();if(v){if(slot===correctSlot)bonusCorrect=bonusOptions.length;bonusOptions.push(v);}});const card={id:isNaN(ei)?nextId++:deck[ei].id,type:'song',title:t,youtubeId,startAt,endAt:(endAt>startAt?endAt:0),audioData,lyrics,lyricTimes:lyricTimes||null,songMode:_songMode||'audio',bonusQ,bonusOptions,bonusCorrect};if(!isNaN(ei))deck[ei]=card;else deck.push(card);saveDeck();if(order.length!==deck.length){order=deck.map((_,i)=>i);cardIdx=0;saveOrder();renderCondCard();updateCount();}renderDeckList();hideAddForms();const _msg=isNaN(ei)?'Canción agregada ✓':'Actualizada ✓';showToast(lyricTimes?`${_msg} · 🎤 ${lyricTimes.length} tiempos LRC`:_msg);}
 function ytIdFromUrl(url){if(!url)return'';url=url.trim();const m=url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);return m?m[1]:(url.length===11?url:'');}
 
