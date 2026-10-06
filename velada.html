@@ -3755,6 +3755,65 @@ body.solo-impostor #tv-btn{ opacity:.42 }
 .bk-nota{ margin-top:.7rem; font-size:10.5px; color:var(--muted);
   text-align:center; font-style:italic }
 
+/* ── Cuadro de eliminación ── */
+.bk2-cfg{ display:grid; grid-template-columns:1fr 1fr; gap:.6rem; margin-bottom:.9rem }
+.bk2-f{ display:flex; flex-direction:column; gap:.25rem; min-width:0; font-size:11px; font-weight:700; color:var(--muted) }
+.bk2-f select, .bk2-f input[type=text]{ width:100%; padding:.5rem .6rem; border-radius:var(--radius);
+  border:1px solid var(--border2); background:var(--surface2); color:var(--text); font-family:inherit; font-size:13px }
+.bk2-full{ grid-column:1 / -1 }
+.bk2-chk{ flex-direction:row; align-items:center; gap:.5rem; align-self:end; padding:.5rem 0; font-size:13px; color:var(--text) }
+.bk2-chk input{ width:18px; height:18px; accent-color:var(--gold) }
+.bk2-aviso{ margin-bottom:.8rem; padding:.6rem .7rem; border-radius:11px; font-size:11.5px; line-height:1.5;
+  color:var(--gold); background:rgba(245,200,66,.1); border:1px solid rgba(245,200,66,.3) }
+.bk2-cols{ display:flex; gap:.7rem; overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:.4rem;
+  -webkit-overflow-scrolling:touch }
+.bk2-col{ flex:1 0 215px; min-width:215px; display:flex; flex-direction:column; gap:.55rem; scroll-snap-align:start }
+.bk2-colhead{ display:flex; flex-direction:column; gap:.35rem }
+.bk2-coltit{ font-size:12px; font-weight:800; color:var(--muted); text-align:center }
+.bk2-col.final .bk2-coltit{ color:var(--gold) }
+.bk2-game{ width:100%; padding:.4rem .55rem; border-radius:9px; border:1px solid var(--border2);
+  background:var(--surface); color:var(--text); font-family:inherit; font-size:12px; text-align:center }
+.bk2-matches{ display:flex; flex-direction:column; justify-content:space-around; gap:.6rem; flex:1 }
+.bk2-match{ display:flex; flex-direction:column; gap:.35rem; padding:.55rem; border-radius:14px;
+  background:var(--surface2); border:1px solid var(--border) }
+.bk2-col.final .bk2-match{ border-color:rgba(245,200,66,.4);
+  background:linear-gradient(160deg,rgba(245,200,66,.07),var(--surface2) 60%) }
+.bk2-team{ display:flex; align-items:stretch; gap:.35rem; border-radius:11px; background:var(--surface);
+  border:1.5px solid var(--border2); transition:border-color .25s, background .25s, opacity .25s }
+.bk2-team.vacio{ border-style:dashed; opacity:.6; padding:.55rem .6rem; align-items:center; gap:.45rem }
+.bk2-team.gano{ border-color:var(--accent); background:rgba(200,240,96,.1) }
+.bk2-team.perdio{ opacity:.55 }
+.bk2-pick{ flex:1; min-width:0; display:flex; align-items:center; gap:.45rem; padding:.55rem .6rem;
+  background:none; border:0; color:inherit; font-family:inherit; text-align:left; cursor:pointer }
+.bk2-pick:disabled{ cursor:default }
+.bk2-pick:focus-visible, .bk2-ser button:focus-visible, .bk2-ms-btn:focus-visible, .bk2-link:focus-visible{
+  outline:2px solid var(--gold); outline-offset:2px }
+.bk2-seed{ font-size:10px; font-weight:800; color:var(--muted); min-width:1.6em }
+.bk2-nom{ flex:1; min-width:0; font-size:13.5px; font-weight:800; color:var(--text);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+.bk2-team.vacio .bk2-nom{ font-weight:600; color:var(--muted); font-size:12px }
+.bk2-team.gano .bk2-nom{ color:var(--accent) }
+.bk2-pts{ font-size:10px; font-weight:700; color:var(--muted) }
+.bk2-ok{ font-size:12px; font-weight:900; color:var(--accent) }
+.bk2-emp{ font-size:10px; font-weight:900; color:var(--gold); border:1px solid rgba(245,200,66,.5);
+  border-radius:99px; padding:0 .35em }
+.bk2-ser{ display:flex; align-items:center; gap:.25rem; padding-right:.4rem }
+.bk2-ser button{ width:26px; height:26px; border-radius:8px; border:1px solid var(--border2);
+  background:var(--surface2); color:var(--text); font-family:inherit; font-size:15px; line-height:1; cursor:pointer }
+.bk2-ser b{ min-width:1.1em; text-align:center; font-size:14px; color:var(--text) }
+.bk2-ms{ font-size:11.5px; font-weight:800; color:var(--gold); text-align:center; padding:.4rem .5rem;
+  border-radius:9px; background:rgba(245,200,66,.1) }
+.bk2-ms span{ display:block; margin-top:2px; font-size:10.5px; font-weight:600; color:var(--muted) }
+.bk2-ms.hecho{ font-weight:700 }
+.bk2-ms-btn{ align-self:center; padding:.3rem .7rem; border-radius:99px; border:1px dashed var(--border2);
+  background:transparent; color:var(--muted); font-family:inherit; font-size:11px; font-weight:700; cursor:pointer }
+.bk2-ms-btn:disabled, .bk2-pick:disabled{ opacity:.7 }
+.bk2-bronce{ margin-top:.9rem; max-width:340px; margin-left:auto; margin-right:auto; display:flex; flex-direction:column; gap:.5rem }
+.bk2-congelado{ margin-top:.7rem; text-align:center; font-size:11.5px; color:var(--muted) }
+.bk2-link{ background:none; border:0; padding:0; font-family:inherit; font-size:11.5px; font-weight:700;
+  color:var(--gold); text-decoration:underline; cursor:pointer }
+@media (prefers-reduced-motion: reduce){ .bk2-team{ transition:none } }
+
 /* ── Modo pánico ── */
 .panic-btn{ width:100%; padding:.7rem; margin-bottom:.75rem; border-radius:var(--radius);
   border:1.5px solid rgba(255,95,95,.35); background:rgba(255,95,95,.07);
@@ -4127,7 +4186,7 @@ body.solo-impostor #tv-btn{ opacity:.42 }
 
   <div class="section-header">
     <span class="section-title"><span class="dot-indicator fase2"></span>Clasificación grupal</span>
-    <span class="especial-badge">★ 1° equipo clasifica</span>
+    <span class="especial-badge">★ Clasifica la mitad de los equipos</span>
   </div>
   <div class="card" style="padding:0">
     <div class="table-wrap">
@@ -4216,7 +4275,7 @@ body.solo-impostor #tv-btn{ opacity:.42 }
 const RULES_DEFAULT = {
   general: {
     intro: 'La noche tiene rondas comunes en orden aleatorio y una final. Guess Movies/Songs, 100 Argentinos Dicen y ¿Quién lo dijo? se juegan con todos los equipos juntos y suman al ranking grupal. Impostor tiene su turno en el mismo fixture, se juega individualmente y solo suma a su ranking individual.',
-    pointsIntro: 'Cada juego define su propio puntaje (con eventual bonus). Al final de la fase grupal se suman los puntos de todas las estaciones y el mejor equipo clasifica.',
+    pointsIntro: 'Cada juego define su propio puntaje (con eventual bonus). Al final de la fase grupal se suman los puntos de todas las estaciones y los mejores equipos clasifican al cuadro de la fase final.',
     tiebreak: ['Resultado directo entre ellos.', 'Mayor cantidad de bonus obtenidos.', 'Mini-ronda relámpago definida por el organizador.'],
   },
   impostor: {
@@ -4826,16 +4885,16 @@ function renderReglas() {
             <div class="phase-timeline-meta">
               <span class="score-pill lose phase-timeline-tag">${rc.f2.length} estaciones</span>
               <span class="score-pill draw phase-timeline-tag" style="color:#c060e8;background:rgba(192,96,232,0.12)">🗣️ Ronda común: ¿Quién lo dijo?</span>
-              <span class="score-pill win phase-timeline-tag">Clasifica: 1° equipo</span>
+              <span class="score-pill win phase-timeline-tag">${bracketQTexto()}</span>
             </div>
           </div>
         </div>
         <div class="phase-timeline-item">
           <div class="phase-timeline-dot">2</div>
           <div class="phase-timeline-body">
-            <div class="phase-timeline-title">Final — Todos contra todos</div>
+            <div class="phase-timeline-title">Fase final — Cuadro de eliminación</div>
             <div class="phase-timeline-meta">
-              <span class="score-pill lose phase-timeline-tag">1 juego</span>
+              <span class="score-pill lose phase-timeline-tag">1 juego por ronda</span>
             </div>
           </div>
         </div>
@@ -9278,6 +9337,7 @@ function resetEverything() {
       state.tegRound = { byTeam: {} };
       state.activeCommonRound = null;
       state.autoResultadosAplicados = {};
+      try { bracketLimpiar(); } catch (e) {}
       state.lastTab = 'reglas';
       saveState();
       resetDigitalGameScores();
@@ -12239,7 +12299,7 @@ function cerSndFinale() {
 // Editable config for the Final tab
 const FINAL_CONFIG_DEFAULT = {
   juego: '',
-  intro: 'El 1° y el 2° de la fase grupal se enfrentan en la gran final. Si algún integrante no desea participar, puede ser reemplazado antes de comenzar.',
+  intro: 'La gran final cierra un cuadro de eliminación: los clasificados de la fase grupal se cruzan por rondas y los dos que llegan a la final juegan por el campeonato. Si algún integrante no desea participar, puede ser reemplazado antes de comenzar.',
   formato: 'A definir por el organizador. Se recomienda un juego que permita participación simultánea de todos (ej: trivia con buzzer, Kahoot, Carrera de Mentes grupal o desafío especial creado para la ocasión).',
   puntos: 'El puntaje de la final se define según el juego elegido. El primero en llegar al objetivo gana la noche.',
   nota: 'El formato de la final lo define el organizador. Sugerencias: trivia con buzzer, Kahoot, Carrera de Mentes grupal o desafío especial.',
@@ -12483,13 +12543,13 @@ function renderGamePostersEditor() {
 }
 
 // ============================================================
-// 3ER PUESTO (mismo esquema que la final, entre el 3° y el 4° de la fase grupal)
+// 3ER PUESTO (mismo esquema que la final, entre los perdedores de las semifinales)
 // ============================================================
 const TERCER_CONFIG_DEFAULT = {
   juego: '',
-  formato: 'A definir por el organizador. Mismo espíritu que la final, pero entre el 3° y el 4° de la fase grupal.',
+  formato: 'A definir por el organizador. Mismo espíritu que la final, entre los dos perdedores de las semifinales.',
   puntos: 'El puntaje del 3er puesto se define según el juego elegido. El primero en llegar al objetivo se queda con el bronce.',
-  nota: 'El 3° de la fase grupal juega contra el 4°.',
+  nota: 'Los dos perdedores de las semifinales juegan por el 3er puesto.',
   companero: '',
   duplaEquipo: '',
   ganador: '',
@@ -13688,80 +13748,415 @@ function descargarDiario() {
   document.head.appendChild(sc);
 }
 
+// <bracket-puro>
+// ── CUADRO DE ELIMINACIÓN — funciones puras (sin DOM ni estado) ──────────────
+// Clasifican la mitad de los equipos, redondeada hacia arriba a la próxima potencia de 2.
+function bracketQDefault(nTeams) {
+  if (!(nTeams >= 2)) return 0;
+  const half = Math.ceil(nTeams / 2);
+  let q = 2;
+  while (q < half) q *= 2;
+  return q;
+}
+// Cantidades que el organizador puede elegir a mano: potencias de 2 que no superen la cantidad de equipos.
+function bracketQOpciones(nTeams) {
+  const out = [];
+  if (!(nTeams >= 2)) return out;
+  for (let q = 2; q <= nTeams; q *= 2) out.push(q);
+  return out;
+}
+function bracketQValido(q, nTeams) { return bracketQOpciones(nTeams).indexOf(q) !== -1; }
+// Orden de cabezas de serie clásico: 1° vs último, 2° vs penúltimo, y 1° y 2° solo se cruzan en la final.
+function bracketSeedOrder(q) {
+  let o = [1, 2];
+  while (o.length < q) {
+    const m = o.length * 2 + 1;
+    const n = [];
+    o.forEach(s => { n.push(s, m - s); });
+    o = n;
+  }
+  return o.slice(0, q);
+}
+function bracketRondaInfo(nMatches) {
+  if (nMatches === 1) return { key: 'final', label: 'Final' };
+  if (nMatches === 2) return { key: 'semis', label: 'Semifinales' };
+  if (nMatches === 4) return { key: 'cuartos', label: 'Cuartos de final' };
+  if (nMatches === 8) return { key: 'octavos', label: 'Octavos de final' };
+  return { key: 'ronda' + (nMatches * 2), label: 'Ronda de ' + (nMatches * 2) };
+}
+// seeds: nombres ordenados por ranking de la fase grupal (el 1° primero). winners: { idCruce: nombreGanador }.
+// Devuelve las rondas con los cruces resueltos, el partido por el 3er puesto (si q >= 4) y el podio.
+// Un ganador que ya no corresponde a ese cruce se descarta (queda fuera de res.winners).
+function buildBracket(seeds, q, winners) {
+  winners = winners || {};
+  seeds = seeds || [];
+  const out = { q: q, rounds: [], bronce: null, champion: '', runnerUp: '', third: '', fourth: '', winners: {} };
+  if (!(q >= 2) || (q & (q - 1)) !== 0) return out;
+  const order = bracketSeedOrder(q);
+  const seedDe = name => { const i = seeds.indexOf(name); return i === -1 || i >= q ? null : i + 1; };
+  const resolver = (m) => {
+    const w = winners[m.id];
+    const ok = w && ((m.a && m.a.name === w) || (m.b && m.b.name === w));
+    if (!ok) return;
+    m.winner = w;
+    m.loser = (m.a && m.a.name === w) ? (m.b && m.b.name) || '' : (m.a && m.a.name) || '';
+    out.winners[m.id] = w;
+  };
+  let prev = null;
+  for (let n = q / 2; n >= 1; n = n / 2) {
+    const info = bracketRondaInfo(n);
+    const matches = [];
+    for (let i = 0; i < n; i++) {
+      let a, b;
+      if (!prev) {
+        a = { seed: order[2 * i], name: seeds[order[2 * i] - 1] || null };
+        b = { seed: order[2 * i + 1], name: seeds[order[2 * i + 1] - 1] || null };
+      } else {
+        const pa = prev[2 * i], pb = prev[2 * i + 1];
+        a = { seed: pa.winner ? seedDe(pa.winner) : null, name: pa.winner || null, from: pa.id };
+        b = { seed: pb.winner ? seedDe(pb.winner) : null, name: pb.winner || null, from: pb.id };
+      }
+      const m = { id: info.key + '-' + i, round: info.key, index: i, a: a, b: b, winner: '', loser: '' };
+      resolver(m);
+      matches.push(m);
+    }
+    out.rounds.push({ key: info.key, label: info.label, matches: matches });
+    prev = matches;
+  }
+  const fin = out.rounds[out.rounds.length - 1].matches[0];
+  out.champion = fin.winner;
+  out.runnerUp = fin.loser;
+  if (q >= 4) {
+    const semis = out.rounds.find(r => r.matches.length === 2).matches;
+    const slot = (s) => ({ seed: s.loser ? seedDe(s.loser) : null, name: s.loser || null, from: s.id, perdedor: true });
+    const br = { id: 'bronce-0', round: 'bronce', index: 0, a: slot(semis[0]), b: slot(semis[1]), winner: '', loser: '' };
+    resolver(br);
+    out.bronce = br;
+    out.third = br.winner;
+    out.fourth = br.loser;
+  }
+  return out;
+}
+// ranking: [{n, t}] ordenado de mayor a menor puntaje. Devuelve los grupos con el mismo puntaje
+// que tocan a los clasificados (afectan los cruces o la línea de corte).
+function bracketEmpates(ranking, q) {
+  const grupos = [];
+  let i = 0;
+  while (i < ranking.length) {
+    let j = i;
+    while (j + 1 < ranking.length && ranking[j + 1].t === ranking[i].t) j++;
+    if (j > i && i + 1 <= q) {
+      grupos.push({ desde: i + 1, hasta: j + 1, pts: ranking[i].t, names: ranking.slice(i, j + 1).map(x => x.n), corte: j + 1 > q });
+    }
+    i = j + 1;
+  }
+  return grupos;
+}
+// </bracket-puro>
+
+// ── CUADRO DE ELIMINACIÓN — estado y acciones ────────────────────────────────
+// Se guarda en state.bracket (viaja con saveState: refresh, TV, Firebase y backups).
+// Los cruces NO se guardan: se recalculan siempre con buildBracket(). Lo único que se
+// guarda es lo que decide el organizador: cantidad de clasificados, juegos, ganadores,
+// y los cabezas de serie congelados al marcar el primer resultado.
+function bracketState() {
+  if (!state.bracket || typeof state.bracket !== 'object') state.bracket = {};
+  const b = state.bracket;
+  if (!b.winners || typeof b.winners !== 'object') b.winners = {};
+  if (!b.scores || typeof b.scores !== 'object') b.scores = {};
+  if (!b.tied || typeof b.tied !== 'object') b.tied = {};
+  if (!b.vs || typeof b.vs !== 'object') b.vs = {};   // con quién se jugó cada cruce con resultado
+  if (!b.games || typeof b.games !== 'object') b.games = {};
+  if (b.qualifiers === undefined) b.qualifiers = null;
+  if (typeof b.finalBo3 !== 'boolean') b.finalBo3 = false;
+  if (typeof b.muerteSubita !== 'string') b.muerteSubita = '';
+  if (!Array.isArray(b.seeds) || !b.seeds.length) b.seeds = null;
+  if (!Array.isArray(b.syncedPodio)) b.syncedPodio = [];
+  return b;
+}
+function bracketQEfectivo(b, nTeams) {
+  if (b.seeds) return b.seeds.length;
+  if (b.qualifiers && bracketQValido(b.qualifiers, nTeams)) return b.qualifiers;
+  return bracketQDefault(nTeams);
+}
+function bracketQTexto() {   // para el texto de Reglas
+  const n = TEAMS.length;
+  if (n < 2) return 'Clasifica la mitad de los equipos';
+  return 'Clasifican ' + bracketQEfectivo(bracketState(), n) + ' de ' + n;
+}
+function bracketGrupalTerminada() {
+  try { return F2_FIXTURE.every(([r, a, b]) => state.f2[r + '-' + a + '-' + b]) && commonGroupRoundsDone(); }
+  catch (e) { return false; }
+}
+// Mismo orden que usaba la pestaña Final: puntaje total de mayor a menor (empates, por orden de carga).
+function bracketRanking() {
+  const tpts = getTeamPoints();
+  return TEAMS.map((n, i) => ({ n: n, t: tpts[i] ? tpts[i].total : 0 })).sort((a, b) => b.t - a.t);
+}
+function bracketCtx() {
+  const b = bracketState();
+  const ranking = bracketRanking();
+  const nTeams = TEAMS.length;
+  const q = bracketQEfectivo(b, nTeams);
+  const seeds = b.seeds ? b.seeds.slice() : ranking.slice(0, q).map(x => x.n);
+  const pts = {};
+  ranking.forEach(x => { pts[x.n] = x.t; });
+  const empates = bracketEmpates(ranking, q);
+  const empSeeds = {};
+  empates.forEach(g => { for (let p = g.desde; p <= Math.min(g.hasta, q); p++) empSeeds[p] = true; });
+  return { b: b, ranking: ranking, nTeams: nTeams, q: q, seeds: seeds, pts: pts,
+    res: buildBracket(seeds, q, b.winners), f2Fin: bracketGrupalTerminada(),
+    congelado: !!b.seeds, empates: empates, empSeeds: empSeeds };
+}
+function bracketPartidos(res) {
+  const todos = [];
+  res.rounds.forEach(r => r.matches.forEach(m => todos.push(m)));
+  if (res.bronce) todos.push(res.bronce);
+  return todos;
+}
+function bracketBuscar(res, id) { return bracketPartidos(res).find(m => m.id === id) || null; }
+
+// El podio (FINAL/SEGUNDO/TERCER/CUARTO_CONFIG.ganador) sigue leyéndose igual: el cuadro solo escribe ahí.
+function bracketEscribirPodio(w) {
+  const tabla = [
+    ['final',   typeof FINAL_CONFIG   !== 'undefined' ? FINAL_CONFIG   : null, 'ndj_final_config'],
+    ['segundo', typeof SEGUNDO_CONFIG !== 'undefined' ? SEGUNDO_CONFIG : null, 'ndj_segundo_config'],
+    ['tercero', typeof TERCER_CONFIG  !== 'undefined' ? TERCER_CONFIG  : null, 'ndj_tercer_config'],
+    ['cuarto',  typeof CUARTO_CONFIG  !== 'undefined' ? CUARTO_CONFIG  : null, 'ndj_cuarto_config']
+  ];
+  tabla.forEach(([k, cfg, ls]) => {
+    if (!cfg || !(k in w)) return;
+    cfg.ganador = w[k] || '';
+    try { localStorage.setItem(ls, JSON.stringify(cfg)); } catch (e) {}
+  });
+}
+// Recalcula, descarta lo que ya no corresponde, vuelca el podio y guarda. Devuelve cuántos ganadores se borraron en cascada.
+function bracketCommit() {
+  const ctx = bracketCtx();
+  const b = ctx.b;
+  const antes = Object.keys(b.winners).length;
+  const vsKey = m => ((m.a && m.a.name) || '') + '|' + ((m.b && m.b.name) || '');
+  // Si el rival de un cruce cambió (porque se corrigió una ronda anterior), su resultado ya no vale.
+  let res = buildBracket(ctx.seeds, ctx.q, b.winners);
+  for (let k = 0; k < 8; k++) {
+    let cambio = false;
+    bracketPartidos(res).forEach(m => {
+      if (b.vs[m.id] && b.vs[m.id] !== vsKey(m)) {
+        delete b.winners[m.id]; delete b.scores[m.id]; delete b.tied[m.id]; delete b.vs[m.id];
+        cambio = true;
+      }
+    });
+    if (!cambio) break;
+    res = buildBracket(ctx.seeds, ctx.q, b.winners);
+  }
+  b.winners = res.winners;
+  const listos = {};
+  bracketPartidos(res).forEach(m => { if (m.a && m.a.name && m.b && m.b.name) listos[m.id] = true; });
+  Object.keys(b.tied).forEach(id => { if (!listos[id]) delete b.tied[id]; });
+  Object.keys(b.scores).forEach(id => { if (!listos[id]) delete b.scores[id]; });
+  b.vs = {};
+  bracketPartidos(res).forEach(m => { if (listos[m.id] && (b.winners[m.id] || b.scores[m.id] || b.tied[m.id])) b.vs[m.id] = vsKey(m); });
+  if (!Object.keys(b.winners).length && !Object.keys(b.scores).length && !Object.keys(b.tied).length) b.seeds = null;
+  const w = { final: res.champion, segundo: res.runnerUp };
+  if (res.bronce) { w.tercero = res.third; w.cuarto = res.fourth; }
+  if (Object.keys(w).some(k => w[k]) || b.syncedPodio.length) {
+    bracketEscribirPodio(w);
+    b.syncedPodio = Object.keys(w).filter(k => w[k]);
+  }
+  saveState();
+  renderFinal();
+  if (typeof autoAssignPodioFotos === 'function') { try { Promise.resolve(autoAssignPodioFotos()).catch(() => {}); } catch (e) {} }
+  return antes - Object.keys(b.winners).length;
+}
+function bracketAvisoGrupal() { showToast('⏳', 'Se habilita al terminar la fase grupal', false); }
+function bracketPick(id, side) {
+  const ctx = bracketCtx();
+  if (!ctx.f2Fin) { bracketAvisoGrupal(); return; }
+  const m = bracketBuscar(ctx.res, id);
+  if (!m || !m.a || !m.a.name || !m.b || !m.b.name) return;
+  const b = ctx.b;
+  if (!b.seeds) b.seeds = ctx.seeds.slice();
+  const name = (side === 0 ? m.a : m.b).name;
+  if (b.winners[id] === name) delete b.winners[id]; else b.winners[id] = name;
+  const borrados = bracketCommit();
+  if (borrados > 0) showToast('↺', 'Se borraron ' + borrados + ' resultado' + (borrados > 1 ? 's' : '') + ' de rondas siguientes', false);
+}
+function bracketScore(id, side, delta) {   // solo la final al mejor de 3
+  const ctx = bracketCtx();
+  if (!ctx.f2Fin) { bracketAvisoGrupal(); return; }
+  const m = bracketBuscar(ctx.res, id);
+  if (!m || !m.a || !m.a.name || !m.b || !m.b.name) return;
+  const b = ctx.b;
+  const sc = (b.scores[id] || [0, 0]).slice();
+  if (delta > 0 && sc[1 - side] >= 2) return;
+  if (!b.seeds) b.seeds = ctx.seeds.slice();
+  const prev = sc[side];
+  sc[side] = Math.max(0, Math.min(2, prev + delta));
+  b.scores[id] = sc;
+  if (sc[0] >= 2) b.winners[id] = m.a.name;
+  else if (sc[1] >= 2) b.winners[id] = m.b.name;
+  else if (delta < 0 && prev >= 2) delete b.winners[id];
+  bracketCommit();
+}
+function bracketTied(id) {   // empate en un cruce: se define por muerte súbita o ganador a mano
+  const ctx = bracketCtx();
+  if (!ctx.f2Fin) { bracketAvisoGrupal(); return; }
+  const m = bracketBuscar(ctx.res, id);
+  if (!m || !m.a || !m.a.name || !m.b || !m.b.name) return;
+  const b = ctx.b;
+  if (!b.seeds) b.seeds = ctx.seeds.slice();
+  if (b.tied[id]) delete b.tied[id]; else b.tied[id] = true;
+  bracketCommit();
+}
+function bracketSetQ(v) {
+  const b = bracketState();
+  if (b.seeds) return;
+  const n = parseInt(v, 10);
+  b.qualifiers = (n && bracketQValido(n, TEAMS.length)) ? n : null;
+  saveState();
+  renderFinal();
+}
+function bracketSetBo3(on) { bracketState().finalBo3 = !!on; saveState(); renderFinal(); }
+function bracketSetMS(v) { bracketState().muerteSubita = String(v || '').trim(); saveState(); renderFinal(); }
+function bracketSetGame(key, v) {
+  v = String(v || '').trim();
+  if (key === 'final' && typeof FINAL_CONFIG !== 'undefined' && FINAL_CONFIG) { FINAL_CONFIG.juego = v; saveFinalConfig(); }
+  else if (key === 'bronce' && typeof TERCER_CONFIG !== 'undefined' && TERCER_CONFIG) { TERCER_CONFIG.juego = v; saveTercerConfig(); }
+  else { bracketState().games[key] = v; saveState(); }
+  renderFinal();
+}
+// Borra los resultados del cuadro (y el podio que el cuadro había escrito). Conserva la configuración.
+function bracketLimpiar() {
+  const b = bracketState();
+  const w = {};
+  b.syncedPodio.forEach(k => { w[k] = ''; });
+  b.winners = {}; b.scores = {}; b.tied = {}; b.vs = {}; b.seeds = null; b.syncedPodio = [];
+  bracketEscribirPodio(w);
+}
+function bracketReset() {
+  showConfirmModal(
+    '¿Reiniciar el cuadro?',
+    'Borra los ganadores marcados y los puestos del podio que salieron del cuadro, y vuelve a calcular los cruces con el ranking actual. Conserva la cantidad de clasificados y los juegos elegidos.',
+    () => { bracketLimpiar(); saveState(); closeModal(); renderFinal(); showToast('↺', 'Cuadro reiniciado', false); },
+    null
+  );
+}
+
+// ── CUADRO DE ELIMINACIÓN — vista (pestaña Final) ────────────────────────────
+function bkCorto(n) { return String(n || '').split('/').map(x => x.trim().split(' ')[0]).join(' / '); }
+function bracketFuenteTxt(s) {
+  const p = String(s.from).split('-');
+  const nom = { octavos: 'Octavos', cuartos: 'Cuartos', semis: 'Semi', final: 'Final' }[p[0]] || p[0];
+  return (s.perdedor ? 'Perdedor ' : 'Ganador ') + nom + ' ' + (Number(p[1]) + 1);
+}
+function bracketMatchHtml(m, ctx, titulo) {
+  const b = ctx.b;
+  const listo = !!(m.a && m.a.name && m.b && m.b.name);
+  const bo3 = m.round === 'final' && b.finalBo3;
+  const sc = b.scores[m.id] || [0, 0];
+  const tied = !!b.tied[m.id];
+  const equipo = (side) => {
+    const s = side === 0 ? m.a : m.b;
+    const seed = s && s.seed ? s.seed + '°' : '';
+    if (!s || !s.name) {
+      return `<div class="bk2-team vacio"><span class="bk2-seed">${seed}</span><span class="bk2-nom">${s && s.from ? _escC(bracketFuenteTxt(s)) : 'Por definir'}</span></div>`;
+    }
+    const gano = m.winner && m.winner === s.name;
+    const perdio = m.winner && m.winner !== s.name;
+    const emp = s.seed && ctx.empSeeds[s.seed] ? '<span class="bk2-emp" title="Empató en puntos en la fase grupal">=</span>' : '';
+    const serie = (bo3 && listo)
+      ? `<span class="bk2-ser"><button type="button" aria-label="Restar una partida a ${_escT(bkCorto(s.name))}" onclick="bracketScore('${m.id}',${side},-1)">−</button><b>${sc[side]}</b><button type="button" aria-label="Sumar una partida a ${_escT(bkCorto(s.name))}" onclick="bracketScore('${m.id}',${side},1)">+</button></span>`
+      : '';
+    return `<div class="bk2-team${gano ? ' gano' : ''}${perdio ? ' perdio' : ''}">
+      <button type="button" class="bk2-pick" onclick="bracketPick('${m.id}',${side})"${(!ctx.f2Fin || !listo) ? ' disabled' : ''} aria-pressed="${gano ? 'true' : 'false'}">
+        <span class="bk2-seed">${seed}</span><span class="bk2-nom">${_escC(bkCorto(s.name))}</span>${emp}<span class="bk2-pts">${ctx.pts[s.name] != null ? ctx.pts[s.name] + ' pts' : ''}</span>${gano ? '<span class="bk2-ok">✓</span>' : ''}
+      </button>${serie}
+    </div>`;
+  };
+  let ms = '';
+  if (listo && !bo3) {
+    if (tied && !m.winner) {
+      ms = `<div class="bk2-ms">⚡ Empate: se define en muerte súbita${b.muerteSubita ? ' · ' + _escC(b.muerteSubita) : ''}<span>Tocá a quién ganó. Si no hay desempate, marcá el ganador a mano.</span></div>`;
+    } else if (tied && m.winner) {
+      ms = `<div class="bk2-ms hecho">⚡ Ganó en muerte súbita${b.muerteSubita ? ' · ' + _escC(b.muerteSubita) : ''}</div>`;
+    }
+    if (!m.winner || tied) {
+      ms += `<button type="button" class="bk2-ms-btn" onclick="bracketTied('${m.id}')"${ctx.f2Fin ? '' : ' disabled'}>${tied ? 'Quitar empate' : '⚡ Hubo empate'}</button>`;
+    }
+  }
+  return `<div class="bk2-match${m.winner ? ' hecho' : ''}">
+    ${titulo ? `<div class="bk2-mtit">${titulo}</div>` : ''}
+    ${equipo(0)}${equipo(1)}${ms}
+  </div>`;
+}
 function renderBracket() {
   const root = document.getElementById('bracket-root');
   if (!root) return;
+  let ctx;
+  try { ctx = bracketCtx(); } catch (e) { root.innerHTML = ''; return; }
+  const b = ctx.b, res = ctx.res;
+  if (!ctx.q || (!ctx.congelado && !ctx.ranking.some(x => x.t > 0))) { root.innerHTML = ''; return; }
 
-  let tpts;
-  try { tpts = getTeamPoints(); } catch (e) { root.innerHTML = ''; return; }
+  const nombresJuego = [];
+  try { tercerOpciones().forEach(o => { if (o.nombre && nombresJuego.indexOf(o.nombre) === -1) nombresJuego.push(o.nombre); }); } catch (e) {}
+  const juegoDe = (key) => key === 'final' ? ((FINAL_CONFIG && FINAL_CONFIG.juego) || '')
+    : key === 'bronce' ? ((TERCER_CONFIG && TERCER_CONFIG.juego) || '')
+    : (b.games[key] || '');
+  const juegoInput = (key) => `<input class="bk2-game" list="bk2-juegos" type="text" placeholder="Juego de esta ronda" value="${_escT(juegoDe(key))}" onchange="bracketSetGame('${key}', this.value)" aria-label="Juego">`;
 
-  const sortedT = TEAMS.map((n, i) => ({ n, t: tpts[i] ? tpts[i].total : 0 }))
-                       .sort((a, b) => b.t - a.t);
-
-  // ¿Terminó cada fase? Mientras no termine, el clasificado es provisorio
-  const f2Fin = F2_FIXTURE.every(([r, a, b]) => state.f2[r + '-' + a + '-' + b]) && commonGroupRoundsDone();
-
-  const corto = n => String(n || '').split('/').map(x => x.trim().split(' ')[0]).join(' / ');
-
-  // Los dos que llegan a la final
-  const cA = sortedT[0] && sortedT[0].t > 0 ? sortedT[0] : null;
-  const cB = sortedT[1] && sortedT[1].t > 0 ? sortedT[1] : null;
-
-  // Los que juegan el tercer puesto (3° y 4° de la fase grupal)
-  const tA = sortedT[2] && sortedT[2].t > 0 ? sortedT[2] : null;
-  const tB = sortedT[3] && sortedT[3].t > 0 ? sortedT[3] : null;
-
-  const g = (cfg) => { try { return cfg && cfg.ganador ? cfg.ganador : ''; } catch (e) { return ''; } };
-  const campeon = g(typeof FINAL_CONFIG   !== 'undefined' ? FINAL_CONFIG   : null);
-  const segundo = g(typeof SEGUNDO_CONFIG !== 'undefined' ? SEGUNDO_CONFIG : null);
-  const tercero = g(typeof TERCER_CONFIG  !== 'undefined' ? TERCER_CONFIG  : null);
-  const cuarto  = g(typeof CUARTO_CONFIG  !== 'undefined' ? CUARTO_CONFIG  : null);
-
-  // Una ranura del cuadro: puede estar vacía, provisoria o confirmada
-  const slot = (ent, etiqueta, provisorio, ganador) => {
-    if (!ent) return `<div class="bk-slot vacio">
-        <span class="bk-lbl">${etiqueta}</span>
-        <span class="bk-nom">Por definir</span></div>`;
-    const esGanador = ganador && corto(ganador) === corto(ent.n);
-    return `<div class="bk-slot${esGanador ? ' gano' : ''}${provisorio ? ' prov' : ''}">
-      <span class="bk-lbl">${etiqueta}${provisorio ? ' · provisorio' : ''}</span>
-      <span class="bk-nom">${_escC(corto(ent.n))}</span>
-      <span class="bk-pts">${ent.t} pts</span>
+  const cols = res.rounds.map(rd => {
+    const esFinal = rd.key === 'final';
+    return `<div class="bk2-col${esFinal ? ' final' : ''}">
+      <div class="bk2-colhead">
+        <div class="bk2-coltit">${esFinal ? '🏆 ' : ''}${rd.label}${esFinal && b.finalBo3 ? ' · mejor de 3' : ''}</div>
+        ${juegoInput(rd.key)}
+      </div>
+      <div class="bk2-matches">${rd.matches.map(m => bracketMatchHtml(m, ctx, '')).join('')}</div>
     </div>`;
-  };
+  }).join('');
 
-  const hayAlgo = cA || cB || tA || tB;
-  if (!hayAlgo) { root.innerHTML = ''; return; }
+  const bronce = res.bronce ? `<div class="bk2-bronce">
+      <div class="bk2-colhead">
+        <div class="bk2-coltit">🥉 Partido por el 3er puesto</div>
+        ${juegoInput('bronce')}
+      </div>
+      ${bracketMatchHtml(res.bronce, ctx, '')}
+    </div>` : '';
+
+  const def = bracketQDefault(ctx.nTeams);
+  const opciones = bracketQOpciones(ctx.nTeams).map(o =>
+    `<option value="${o}"${b.qualifiers === o ? ' selected' : ''}>${o} equipos${o === def ? ' (automático)' : ''}</option>`).join('');
+
+  const avisoEmpates = ctx.empates.length ? `<div class="bk2-aviso">⚠️ Empate de puntos en la fase grupal: ${ctx.empates.map(g =>
+      `${g.desde}° a ${g.hasta}° (${g.names.map(n => _escC(bkCorto(n))).join(', ')}, ${g.pts} pts)${g.corte ? ' · el empate cruza la línea de clasificación' : ''}`).join('; ')}. Hoy el orden de los cruces sale del orden de carga de los equipos: resolvelo antes de marcar el primer resultado.</div>` : '';
+
+  const final = res.champion ? `<div class="bk-res campeon">👑 ${_escC(bkCorto(res.champion))}${res.runnerUp ? ` · 2° ${_escC(bkCorto(res.runnerUp))}` : ''}${res.third ? ` · 🥉 ${_escC(bkCorto(res.third))}` : ''}${res.fourth ? ` · 4° ${_escC(bkCorto(res.fourth))}` : ''}</div>` : '';
 
   root.innerHTML = `
     <div class="section-header">
       <span class="section-title"><span class="dot-indicator final"></span>Cuadro de la noche</span>
-      ${f2Fin ? '<span class="especial-badge">definido</span>'
-                         : '<span class="especial-badge prov">en juego</span>'}
+      ${ctx.f2Fin ? '<span class="especial-badge">definido</span>' : '<span class="especial-badge prov">en juego</span>'}
     </div>
     <div class="card bk-card">
-
-      <div class="bk-llave">
-        <div class="bk-titulo">🥉 Partido por el 3er puesto</div>
-        <div class="bk-par">
-          ${slot(tA, '3° grupal', !f2Fin, tercero)}
-          <div class="bk-vs">vs</div>
-          ${slot(tB, '4° grupal', !f2Fin, tercero)}
-        </div>
-        ${tercero ? `<div class="bk-res">🥉 ${_escC(corto(tercero))}${cuarto ? ` · 4° ${_escC(corto(cuarto))}` : ''}</div>` : ''}
+      <div class="bk2-cfg">
+        <label class="bk2-f"><span>Clasifican</span>
+          <select onchange="bracketSetQ(this.value)"${ctx.congelado ? ' disabled' : ''}>
+            <option value=""${b.qualifiers ? '' : ' selected'}>Automático (${def})</option>
+            ${opciones}
+          </select>
+        </label>
+        <label class="bk2-f bk2-chk"><input type="checkbox"${b.finalBo3 ? ' checked' : ''} onchange="bracketSetBo3(this.checked)"><span>Final al mejor de 3</span></label>
+        <label class="bk2-f bk2-full"><span>Juego de muerte súbita (si hay empate)</span>
+          <input type="text" placeholder="ej: Beer Pong, piedra papel o tijera…" value="${_escT(b.muerteSubita)}" onchange="bracketSetMS(this.value)">
+        </label>
       </div>
-
-      <div class="bk-llave destacada">
-        <div class="bk-titulo">🏆 Gran final</div>
-        <div class="bk-par">
-          ${slot(cA, '1° grupal', !f2Fin, campeon)}
-          <div class="bk-vs">vs</div>
-          ${slot(cB, '2° grupal', !f2Fin, campeon)}
-        </div>
-        ${campeon ? `<div class="bk-res campeon">👑 ${_escC(corto(campeon))}${segundo ? ` · 2° ${_escC(corto(segundo))}` : ''}</div>` : ''}
-      </div>
-
-      ${!f2Fin ? `<div class="bk-nota">Los clasificados se van actualizando con cada resultado.</div>` : ''}
+      <datalist id="bk2-juegos">${nombresJuego.map(n => `<option value="${_escT(n)}">`).join('')}</datalist>
+      ${avisoEmpates}
+      <div class="bk2-cols" role="group" aria-label="Cuadro de eliminación">${cols}</div>
+      ${bronce}
+      ${final}
+      ${ctx.congelado ? `<div class="bk2-congelado">🔒 Los cruces quedaron fijos desde el primer resultado. <button type="button" class="bk2-link" onclick="bracketReset()">Reiniciar cuadro</button></div>` : ''}
+      ${!ctx.f2Fin ? '<div class="bk-nota">Los clasificados se van actualizando con cada resultado. Los ganadores se marcan cuando termina la fase grupal.</div>' : ''}
     </div>`;
 }
 
@@ -13876,7 +14271,13 @@ function renderFinal() {
     </div>`;
   }
 
-  const clasificadosHtml = sortedT.slice(0,2).map((t,i) => playerCard(t, i, 'f2')).join('') || `<div class="final-clasificado-none">Aún no hay datos suficientes.</div>`;
+  // Cuadro de eliminación: los clasificados y el partido por el 3er puesto salen de buildBracket()
+  let bkc = null; try { bkc = bracketCtx(); } catch (e) {}
+  const qN = bkc ? bkc.q : 2;
+  const byName = {}; sortedT.forEach(t => { byName[t.n] = t; });
+  const hayTercero = !bkc || !!bkc.res.bronce;
+  const _clasifNames = bkc ? bkc.seeds : sortedT.slice(0,2).map(t => t.n);
+  const clasificadosHtml = _clasifNames.map((n,i) => byName[n] ? playerCard(byName[n], i, 'f2') : '').join('') || `<div class="final-clasificado-none">Aún no hay datos suficientes.</div>`;
 
   // ---- EDIT MODE ----
   const fc = FINAL_CONFIG;
@@ -13947,8 +14348,9 @@ function renderFinal() {
 
   // ---- 3ER PUESTO: los segundos de cada fase ----
   const tc = TERCER_CONFIG;
-  const tercerClasificadosHtml = sortedT.slice(2,4).map((t,i) => playerCard(t, i + 2, 'f2')).join('')
-    || `<div class="final-clasificado-none">Aún no hay datos suficientes.</div>`;
+  const _tercerEq = (bkc && bkc.res.bronce) ? [bkc.res.bronce.a, bkc.res.bronce.b].filter(x => x && x.name) : [];
+  const tercerClasificadosHtml = (bkc ? _tercerEq.map(x => byName[x.name] ? playerCard(byName[x.name], (x.seed || 1) - 1, 'f2') : '').join('') : sortedT.slice(2,4).map((t,i) => playerCard(t, i + 2, 'f2')).join(''))
+    || `<div class="final-clasificado-none">${bkc ? 'Se define con los perdedores de las semifinales.' : 'Aún no hay datos suficientes.'}</div>`;
 
   const tercerPosterSrc = tc.juego ? gamePosterFor(tc.juego, '') : '';
   const tercerJuegoDisplay = tc.juego
@@ -14019,20 +14421,20 @@ function renderFinal() {
 
     <!-- CLASIFICADOS -->
     <div class="card">
-      <div style="font-size:15px;font-weight:600;margin-bottom:${fc.juego ? '0.5rem' : '1rem'}"><span class="dot-indicator final"></span>Clasificados a la final</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:${fc.juego ? '0.5rem' : '1rem'}"><span class="dot-indicator final"></span>${qN === 2 ? 'Clasificados a la final' : 'Clasificados al cuadro final · ' + qN}</div>
       ${fc.juego ? `<div style="margin-bottom:1rem"><span class="match-game-badge" style="font-size:12px;padding:3px 10px;border-radius:99px;background:var(--gold-dim);color:var(--gold);font-weight:600">🏆 ${fc.juego}</span></div>` : ''}
       <div class="final-players">${clasificadosHtml}</div>
       <div style="font-size:12px;color:var(--muted);padding-top:0.75rem;border-top:0.5px solid var(--border)">${fc.nota}</div>
     </div>
 
-    <!-- CLASIFICADOS AL 3ER PUESTO -->
-    <div class="card">
+    <!-- CLASIFICADOS AL 3ER PUESTO (solo si el cuadro tiene semifinales) -->
+    ${hayTercero ? `<div class="card">
       <div style="font-size:15px;font-weight:600;margin-bottom:${tc.juego ? '0.5rem' : '1rem'}"><span class="dot-indicator" style="background:#cd7f32;box-shadow:0 0 8px rgba(205,127,50,0.6)"></span>Clasificados al 3er puesto</div>
       ${tc.juego ? `<div style="margin-bottom:1rem"><span class="match-game-badge" style="font-size:12px;padding:3px 10px;border-radius:99px;background:var(--accent-dim,rgba(200,240,96,.13));color:var(--accent);font-weight:600">🥉 ${tc.juego}</span></div>` : ''}
       <div class="final-players">${tercerClasificadosHtml}</div>
       ${tercerOpciones().length ? `<button class="tj-open-btn" onclick="openTercerGallery()">🎮 Ver las ${tercerOpciones().length} opciones de juego</button>` : ''}
       <div style="font-size:12px;color:var(--muted);padding-top:0.75rem;border-top:0.5px solid var(--border);margin-top:0.85rem">${tc.nota}</div>
-    </div>
+    </div>` : ''}
 
     <!-- CAMPEONES (carga directa para los créditos) -->
     <div class="card">
