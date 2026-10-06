@@ -1652,12 +1652,13 @@ function fbPushState(st){
   _lastFbStateJson=j;
   try{fbStateRef.set(safe);}catch(e){}
 }
+let _pLocalAt=0;
 function startPartStateListener(){
   if(!fbStateRef)return;
-  fbStateRef.on('value',snap=>{const d=snap.val();if(d&&d.type==='state')renderParticipant(FirebaseTeamMaps.fromWire(d));});
+  fbStateRef.on('value',snap=>{if(Date.now()-_pLocalAt<2500)return;const d=snap.val();if(d&&d.type==='state')renderParticipant(FirebaseTeamMaps.fromWire(d));});
 }
 function startHeartbeat(){if(_hb)clearInterval(_hb);_hb=setInterval(sendState,200);sendState();}
-function onLive(raw){try{const d=typeof raw==='string'?JSON.parse(raw):raw;if(d.type==='state')renderParticipant(d);else if(d.type==='yt_play')partResumeSong({youtubeId:d.youtubeId,startAt:d.startAt||0});else if(d.type==='yt_restart')partPlaySong({youtubeId:d.youtubeId,startAt:d.startAt||0});else if(d.type==='yt_pause')partPauseSong();else if(d.type==='yt_stop')partStopSong();else if(d.type==='local_play'||d.type==='local_stop'){/* audio local: suena solo en la compu del conductor */};}catch(e){}}
+function onLive(raw){try{const d=typeof raw==='string'?JSON.parse(raw):raw;if(d.type==='state'){_pLocalAt=Date.now();renderParticipant(d);}else if(d.type==='yt_play')partResumeSong({youtubeId:d.youtubeId,startAt:d.startAt||0});else if(d.type==='yt_restart')partPlaySong({youtubeId:d.youtubeId,startAt:d.startAt||0});else if(d.type==='yt_pause')partPauseSong();else if(d.type==='yt_stop')partStopSong();else if(d.type==='local_play'||d.type==='local_stop'){/* audio local: suena solo en la compu del conductor */};}catch(e){}}
 
 // ─── STORAGE ─────────────────────────────────────────────────────
 function ensureRevealModes(forceShuffle){

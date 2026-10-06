@@ -168,6 +168,7 @@
     background: var(--surface2); border: 1px solid var(--border); font-size: 16px; font-weight: 900; color: var(--muted);
   }
   .feud-slot.revealed { background: var(--surface2); animation: slotPop 0.4s cubic-bezier(.2,.9,.3,1.25); }
+  .feud-slot.still, .strike-x.still { animation: none !important; }
   .slot-pts.counting { animation: slotPtsCount 0.52s ease-out; }
   @keyframes slotPtsCount {
     0%   { transform: scale(1.18); color: var(--gold); text-shadow: 0 0 14px rgba(245,200,66,0.7); }
@@ -3422,7 +3423,7 @@ function initFirebase(){
       getScore:()=>({a:fmDuelScore ? fmDuelScore.a : score.a||0,b:fmDuelScore ? fmDuelScore.b : score.b||0,
         bonusInfo:{}})});
     fbInited = true;
-    if(MODE==='participant')fbDb.ref('argentinos/live').on('value',s=>{if(s.val())onSync(JSON.stringify(s.val()));});
+    if(MODE==='participant')fbDb.ref('argentinos/live').on('value',s=>{if(Date.now()-_pLocalAt<2500)return;if(s.val())onSync(JSON.stringify(s.val()));});
     if(window.initReactions) initReactions();   // emojis de los invitados
     fbDb.ref('.info/connected').on('value', snap => {
       const ok = snap.val();
@@ -3603,7 +3604,13 @@ function snapshot() {
   };
 }
 // El contador (tm) cambia cada segundo: se excluye de la firma para no redibujar todo el tablero.
-function sigOf(s) { const c = Object.assign({}, s); delete c.t; delete c.tm; return JSON.stringify(c); }
+// La firma se normaliza: Firebase borra nulls/arrays vacíos y el conductor oculta las respuestas
+// no reveladas, así que sin esto el mismo estado daba firmas distintas según el canal y se redibujaba todo.
+function sigOf(s) {
+  const c = JSON.parse(JSON.stringify(s)); delete c.t; delete c.tm;
+  if (c.round && Array.isArray(c.round.ans)) c.round.ans = c.round.ans.map(a => a.rev ? a : { rev: false });
+  return JSON.stringify(c, (k, v) => (v === null || (Array.isArray(v) && !v.length)) ? undefined : v);
+}
 function writeSync() {
   if (MODE !== 'conductor' && MODE !== 'local') return;
   const json = JSON.stringify(snapshot());
@@ -3622,7 +3629,7 @@ let _hb = null;
 function startHeartbeat() { if (_hb) clearInterval(_hb); _hb = setInterval(writeSync, 150); writeSync(); }
 
 // Participante: escucha y renderiza
-let pLastSig = null, pLastSnap = null, _pTimerLast = null;
+let pLastSig = null, pLastSnap = null, _pTimerLast = null, _pLocalAt = 0;
 function pUpdateTimer(snap) {
   const box = document.getElementById('p-timer'), n = document.getElementById('p-timer-n');
   if (!box || !n) return;
@@ -3644,8 +3651,8 @@ function onSync(json) {
   pLastSnap = snap; pLastSig = sig;
 }
 function startParticipant() {
-  window.addEventListener('storage', (e) => { if (e.key === SYNC_KEY && e.newValue) onSync(e.newValue); });
-  if (bc) bc.onmessage = (e) => onSync(typeof e.data === 'string' ? e.data : JSON.stringify(e.data));
+  window.addEventListener('storage', (e) => { if (e.key === SYNC_KEY && e.newValue) { _pLocalAt = Date.now(); onSync(e.newValue); } });
+  if (bc) bc.onmessage = (e) => { _pLocalAt = Date.now(); onSync(typeof e.data === 'string' ? e.data : JSON.stringify(e.data)); };
   let j = null; try { j = localStorage.getItem(SYNC_KEY); } catch (e) {}
   if (j) onSync(j); else renderParticipant(null, null);
 
@@ -3656,13 +3663,14 @@ function startParticipant() {
 }
 
 function pName(snap, t) { return (snap && snap.names && snap.names[t]) || ('Equipo ' + (Math.max(0, SLOTS.indexOf(t)) + 1)); }
-function pSlots(r) {
+function pSlots(r, pr) {
   return r.ans.map((a, i) => {
     const rev = a.rev, owner = a.owner;
+    const was = !!(pr && pr.ans && pr.ans[i] && pr.ans[i].rev);
     const teamCls = rev ? (owner ? ' team-' + owner : ' team-none') : '';
     const body = rev ? `<span class="slot-text">${escapeHtml(a.t)}</span>` : `<span class="slot-hidden-tiles"><i></i><i></i><i></i><i></i></span>`;
     const pts = rev ? `<span class="slot-pts">${a.v}</span>` : `<span class="slot-pts slot-pts-hidden">?</span>`;
-    return `<div class="feud-slot${rev ? ' revealed' : ''}${teamCls} locked"><span class="slot-rank">${i + 1}</span><span class="slot-body">${body}</span>${pts}</div>`;
+    return `<div class="feud-slot${rev ? ' revealed' : ''}${rev && was ? ' still' : ''}${teamCls} locked"><span class="slot-rank">${i + 1}</span><span class="slot-body">${body}</span>${pts}</div>`;
   }).join('');
 }
 function pScoreRow(snap, r) {
@@ -3691,9 +3699,9 @@ function pStatus(snap, r) {
   if (r.phase === 'over') return { txt: r.winner ? `🏆 Gana la ronda ${pName(snap, r.winner)}` : 'Fin de la ronda', cls: '' };
   return { txt: '', cls: '' };
 }
-function pStrikes(r) {
+function pStrikes(r, pr) {
   if (r.phase !== 'play' && r.phase !== 'steal') return '';
-  const x = [0, 1, 2].map(i => `<div class="strike-x${i < r.strikes ? ' lit' : ''}">✕</div>`).join('');
+  const x = [0, 1, 2].map(i => `<div class="strike-x${i < r.strikes ? ' lit' : ''}${pr && i < pr.strikes ? ' still' : ''}">✕</div>`).join('');
   return `<div class="strikes-row"><span class="strikes-label">Strikes</span><div class="strikes">${x}</div></div>`;
 }
 
@@ -3720,7 +3728,7 @@ window.addEventListener('orientationchange', fitParticipantBoard);
 function renderParticipant(snap, prev) {
   const wrap = document.getElementById('p-wrap');
   if (!wrap) return;
-  const setHtml = (html) => { wrap.innerHTML = html; fitParticipantBoard(); };
+  const setHtml = (html) => { if (wrap._h !== html) { wrap.innerHTML = html; wrap._h = html; } fitParticipantBoard(); };
 
   // Sincronizar datos locales para nombres/puntajes
   if (snap) { if (snap.names) teamNames = snap.names; if (snap.score) score = snap.score; if (snap.target != null) targetScore = snap.target; }
@@ -3816,12 +3824,13 @@ function renderParticipant(snap, prev) {
   const r = snap.round;
   if (!r) { setHtml(`<div class="p-wait-msg">Esperando…</div>`); return; }
   const st = pStatus(snap, r);
+  const prevR = (prev && prev.round && prev.round.q === r.q) ? prev.round : null;
   setHtml(`
     ${pScoreRow(snap, r)}
     <div class="p-question">${escapeHtml(r.q)}</div>
     <div class="p-status ${st.cls}">${st.txt}</div>
-    <div class="p-board">${pSlots(r)}</div>
-    ${pStrikes(r)}`);
+    <div class="p-board">${pSlots(r, prevR)}</div>
+    ${pStrikes(r, prevR)}`);
 }
 
 // ── PORTÓN ──

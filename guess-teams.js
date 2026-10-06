@@ -29,7 +29,8 @@
     document.body.classList.toggle('guess-all-teams',enabled);
     // El marcador de dos equipos se usa solo para una partida manual sin roster.
     if(typeof MODE!=='undefined'&&MODE==='participant')document.body.classList.toggle('guess-group',enabled);
-    const el=document.getElementById('p-gboard');if(el)el.innerHTML=enabled?html(d):'';
+    const el=document.getElementById('p-gboard');
+    if(el){const h=enabled?html(d):'';if(el._h!==h){el.innerHTML=h;el._h=h;}} // no reconstruir (ni recargar fotos) si no cambió
   }
   function bind(db){
     if(model.bound||!db)return;model.bound=true;
