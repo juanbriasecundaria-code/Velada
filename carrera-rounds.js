@@ -37,7 +37,13 @@
     if(h.t==='c')s.cells[h.r][h.i]=s.cells[h.r][h.i]?0:1; else s.rival=Math.max(0,s.rival-h.d);
     s.over=null; return s; // deshacer reabre la partida
   }
+  // Coronas del rival recibidas en vivo: reemplazan al contador manual.
+  function applyRival(s,n,now){
+    n=Math.max(0,Math.min(9,n|0)); if(n===s.rival)return s;
+    s.rival=n; s.hist=s.hist.filter(h=>h.t!=='r'); s.over=null;
+    return settle(s,now||Date.now());
+  }
   function restart(s){ return fresh(s.target,s.mins); }
-  root.CarreraLogic={CATS,fresh,crowns,evaluate,settle,toggle,setRival,undo,restart};
+  root.CarreraLogic={CATS,fresh,crowns,evaluate,settle,toggle,setRival,applyRival,undo,restart};
   if(typeof module!=='undefined')module.exports=root.CarreraLogic;
 })(typeof window==='undefined'?globalThis:window);
