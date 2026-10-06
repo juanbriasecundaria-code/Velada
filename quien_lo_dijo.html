@@ -1199,12 +1199,13 @@ function setFbStatus(cls, msg){
   if(barDot) barDot.className = cls==='ok' ? 'on' : cls==='err' ? 'err' : '';
 }
 
+let _lastFbPushAt = 0;
 function fbPushLive(){
   if(!fbStateRef) return;
   const st = liveStateSnapshot();
-  const j = JSON.stringify(st);
-  if(j===_lastFbJson) return;
-  _lastFbJson = j;
+  const j = JSON.stringify(Object.assign({}, st, { t: 0 }));
+  if(j===_lastFbJson && Date.now() - _lastFbPushAt < 15000) return;   // sin cambios: solo latido cada 15s
+  _lastFbJson = j; _lastFbPushAt = Date.now();
   try{ fbStateRef.set(st); }catch(e){}
 }
 function fbPushDeck(){
@@ -1388,6 +1389,21 @@ function loadState(){
 // viven en IndexedDB de este navegador. Conductor y pantalla de participantes, si están en el mismo
 // navegador (distintas pestañas), comparten ese almacén. localStorage guarda solo el mazo "liviano".
 let _deckWasDefault = false;
+const _blobUrlCache = new Map();
+function qPlayable(src){
+  if(typeof src !== 'string' || src.indexOf('data:') !== 0) return src;
+  if(_blobUrlCache.has(src)) return _blobUrlCache.get(src);
+  try{
+    const i = src.indexOf(',');
+    const mime = (src.slice(5, i).split(';')[0]) || 'application/octet-stream';
+    const bin = atob(src.slice(i + 1));
+    const arr = new Uint8Array(bin.length);
+    for(let k = 0; k < bin.length; k++) arr[k] = bin.charCodeAt(k);
+    const url = URL.createObjectURL(new Blob([arr], { type: mime }));
+    _blobUrlCache.set(src, url);
+    return url;
+  }catch(e){ return src; }
+}
 function qIsBlob(v){ return typeof v === 'string' && v.indexOf('data:') === 0; }
 let _qIdb = null;
 function qIdbOpen(){
@@ -1796,7 +1812,7 @@ function mountCondMedia(cur){
       });
     });
   } else if(cur.mediaType === 'video-url'){
-    mount.innerHTML = `<div class="cc-media"><video id="cc-video-el" src="${escapeHtml(src)}" controls playsinline preload="metadata"></video></div>`;
+    mount.innerHTML = `<div class="cc-media"><video id="cc-video-el" src="${escapeHtml(qPlayable(src))}" controls playsinline preload="metadata"></video></div>`;
     condVideoEl = document.getElementById('cc-video-el');
     condVideoEl.addEventListener('play',   () => pushVideoSync({ url:src, playing:true,  t: condVideoEl.currentTime }));
     condVideoEl.addEventListener('pause',  () => pushVideoSync({ url:src, playing:false, t: condVideoEl.currentTime }));
@@ -1805,7 +1821,7 @@ function mountCondMedia(cur){
     // Solo audio: la carta no muestra nada, se escucha. Se sincroniza igual que un video.
     mount.innerHTML = `<div class="cc-media audio">
       <div class="media-audio-tag">🔊 Solo audio</div>
-      <audio id="cc-video-el" src="${escapeHtml(src)}" controls preload="metadata"></audio>
+      <audio id="cc-video-el" src="${escapeHtml(qPlayable(src))}" controls preload="metadata"></audio>
     </div>`;
     condVideoEl = document.getElementById('cc-video-el');
     const syncSrc = String(src).startsWith('data:') ? null : src;
@@ -1816,7 +1832,7 @@ function mountCondMedia(cur){
     // Imagen fija + audio de fondo: misma sincronización que "solo audio",
     // pero mostrando la imagen en vez del cartel "Solo audio".
     const img = cur.mediaImage ? `<img src="${escapeHtml(cur.mediaImage)}" alt="">` : '';
-    mount.innerHTML = `<div class="cc-media">${img}<audio id="cc-video-el" src="${escapeHtml(src)}" controls preload="metadata" style="width:100%;margin-top:.5rem"></audio></div>`;
+    mount.innerHTML = `<div class="cc-media">${img}<audio id="cc-video-el" src="${escapeHtml(qPlayable(src))}" controls preload="metadata" style="width:100%;margin-top:.5rem"></audio></div>`;
     condVideoEl = document.getElementById('cc-video-el');
     const syncSrc2 = String(src).startsWith('data:') ? null : src;
     condVideoEl.addEventListener('play',   () => pushVideoSync({ url:syncSrc2, audio:true, playing:true,  t: condVideoEl.currentTime }));
@@ -2050,7 +2066,7 @@ function toggleReveal(){
       const src = cur.revealUrl || cur.revealData;
       if(src){
         const kind = cur.revealType.startsWith('video') ? 'video' : 'audio';
-        // Las respuestas se revelan ya (renderCard más abajo); el clip (video o audio) recién aparece a los 3.5s
+        // Las respuestas se revelan ya (renderCard más abajo); el clip (video o audio) recién aparece a los 5s
         const cardIdAtReveal = cur.id;
         revealCueTimer = setTimeout(() => {
           revealCueTimer = null;
@@ -2058,7 +2074,7 @@ function toggleReveal(){
             revealCueState = { src, kind, cardId: cardIdAtReveal, ts: Date.now() };
             fbPushLive();
           }
-        }, 3500);
+        }, 5000);
       }
     }
   }
@@ -2327,8 +2343,12 @@ function liveStateSnapshot(){
   };
 }
 let _lastLiveState = null;
+let _lastApplyKey = null;
 function applyLive(st){
   if(!st) return;
+  const _k = JSON.stringify(Object.assign({}, st, { t: 0 }));
+  if(_k === _lastApplyKey){ _lastLiveState = st; return; }   // nada cambió: no tocamos el DOM mientras suena el video
+  _lastApplyKey = _k;
   _lastLiveState = st;
   if(st.teamScores) teamScores = st.teamScores;
   renderPartScores();
@@ -2365,7 +2385,9 @@ function playRevealCue(cue){
   if(cue.kind === 'video'){
     audioVis.classList.remove('show');
     videoEl.style.display = 'block';
-    videoEl.src = cue.src;
+    const _ps = qPlayable(cue.src);
+    videoEl.preload = 'auto';
+    if(videoEl.getAttribute('src') !== _ps) videoEl.src = _ps;   // si ya estaba precargado, no recargamos
     videoEl.currentTime = 0;
     videoEl.onended = () => overlay.classList.remove('show');
     const pr = videoEl.play();
@@ -2374,12 +2396,31 @@ function playRevealCue(cue){
     videoEl.style.display = 'none';
     audioVis.classList.add('show');
     if(!_revealAudioEl) _revealAudioEl = new Audio();
-    _revealAudioEl.src = cue.src;
+    const _pa = qPlayable(cue.src);
+    if(_revealAudioEl.getAttribute('src') !== _pa) _revealAudioEl.src = _pa;
     _revealAudioEl.currentTime = 0;
     _revealAudioEl.onended = () => overlay.classList.remove('show');
     const pr = _revealAudioEl.play();
     if(pr && pr.catch) pr.catch(() => maybeShowAudioUnlock());
   }
+}
+// Precarga el clip de revelación apenas aparece la carta, para que a los 5s arranque sin trabarse
+function prewarmRevealClip(c){
+  try{
+    const full = Array.isArray(deck) ? deck.find(x => x && x.id === c.id) : null;
+    if(!full || !full.revealType || full.revealType === 'none') return;
+    const raw = full.revealData || full.revealUrl;
+    if(!raw) return;
+    const s = qPlayable(raw);
+    if(full.revealType.startsWith('video')){
+      const v = document.getElementById('reveal-cue-video');
+      if(v){ v.preload = 'auto'; if(v.getAttribute('src') !== s){ v.src = s; v.load(); } }
+    } else {
+      if(!_revealAudioEl) _revealAudioEl = new Audio();
+      _revealAudioEl.preload = 'auto';
+      if(_revealAudioEl.getAttribute('src') !== s){ _revealAudioEl.src = s; _revealAudioEl.load(); }
+    }
+  }catch(e){}
 }
 function closeRevealCue(){
   const overlay = document.getElementById('reveal-cue-overlay');
@@ -2419,7 +2460,7 @@ function mountPartMedia(c){
       <div class="part-audio-icon">🔊</div>
       <div class="part-audio-eq"><span></span><span></span><span></span><span></span><span></span></div>
       <div class="part-audio-txt">Escuchá con atención</div>
-      <audio id="part-video-el" src="${escapeHtml(src)}" playsinline preload="auto"></audio>
+      <audio id="part-video-el" src="${escapeHtml(qPlayable(src))}" playsinline preload="auto"></audio>
     </div>`;
     partVideoEl = document.getElementById('part-video-el');
     const box = document.getElementById('part-audio-box');
@@ -2432,7 +2473,7 @@ function mountPartMedia(c){
   if(isImageAudio){
     // Imagen fija + audio de fondo (oculto, se sincroniza igual que "solo audio")
     const img = c.mediaImage ? `<img src="${escapeHtml(c.mediaImage)}" alt="">` : '';
-    mount.innerHTML = `<div class="part-media">${img}<audio id="part-video-el" src="${escapeHtml(src)}" playsinline preload="auto"></audio></div>`;
+    mount.innerHTML = `<div class="part-media">${img}<audio id="part-video-el" src="${escapeHtml(qPlayable(src))}" playsinline preload="auto"></audio></div>`;
     partVideoEl = document.getElementById('part-video-el');
     if(_pendingVideoSync){ applyVideoSync(_pendingVideoSync, c); _pendingVideoSync = null; }
     return;
@@ -2450,7 +2491,7 @@ function mountPartMedia(c){
       });
     });
   } else if(c.mediaType === 'video-url'){
-    mount.innerHTML = `<div class="part-media"><video id="part-video-el" src="${escapeHtml(src)}" playsinline preload="metadata"></video></div>`;
+    mount.innerHTML = `<div class="part-media"><video id="part-video-el" src="${escapeHtml(qPlayable(src))}" playsinline preload="metadata"></video></div>`;
     partVideoEl = document.getElementById('part-video-el');
     if(_pendingVideoSync){ applyVideoSync(_pendingVideoSync, c); _pendingVideoSync = null; }
   } else {
@@ -2522,6 +2563,7 @@ function renderPartCard(st){
     _lastRevealCueTs = 0;
     closeRevealCue();
     mountPartMedia(c);
+    prewarmRevealClip(c);
     _lastPartCardId = c.id;
   }
   renderPartText(c, st);
@@ -3857,6 +3899,8 @@ window.qldPhotos = window.qldPhotos || {};
   let last=null;
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) last=null; });
   function tick(ts){
+    const _sp = document.getElementById('splash');
+    if(document.hidden || (_sp && _sp.style.display === 'none')){ last=null; requestAnimationFrame(tick); return; }
     if(!last){ last=ts; requestAnimationFrame(tick); return; }
     const dt=Math.min(ts-last,32); last=ts;
     for(let c=0;c<cols;c++){
@@ -3909,7 +3953,7 @@ window.qldPhotos = window.qldPhotos || {};
     return false;
   }
 
-  var ultimo = null;
+  var ultimo = null, _revT = null;
   function revisar(){
     if(body.classList.contains('vb-clean')) return;   // el modo limpio manda
     var v = hayOverlay();
@@ -3921,12 +3965,12 @@ window.qldPhotos = window.qldPhotos || {};
 
   // Revisamos ante cualquier cambio del DOM y también por si algo cambia solo
   try{
-    new MutationObserver(revisar).observe(document.documentElement, {
+    new MutationObserver(function(){ if(_revT) return; _revT = setTimeout(function(){ _revT = null; revisar(); }, 400); }).observe(document.documentElement, {
       attributes:true, childList:true, subtree:true,
       attributeFilter:['class','style']
     });
   }catch(e){}
-  setInterval(revisar, 700);
+  setInterval(revisar, 1500);
   setTimeout(revisar, 300);
 
   // ── MODO LIMPIO ──────────────────────────────────────────────────
