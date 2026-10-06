@@ -11522,8 +11522,10 @@ function escHtmlName(s) {
 // de abajo. Las fotos de cada integrante (si ya están cargadas) se arman
 // solas vía entityPhotos/playerAvatarHtml.
 function championCandidates(inputId) {
-  // La final y el 3er puesto son entre equipos de la fase grupal.
-  return TEAMS.slice();
+  // La final y el 3er puesto son entre equipos de la fase grupal y, si hay fases nuevas, sus clasificados.
+  const out = TEAMS.slice();
+  try { if (typeof bracketCtx === 'function' && typeof FasesExtra !== 'undefined') bracketCtx().seeds.forEach(n => { if (n && out.indexOf(n) < 0) out.push(n); }); } catch (e) {}
+  return out;
 }
 
 // ── FOTOS DEL PODIO (1er/2do puesto de la final y del juego x el 3er puesto) ──
@@ -14582,7 +14584,21 @@ function renderFinal() {
   const byName = {}; sortedT.forEach(t => { byName[t.n] = t; });
   const hayTercero = !bkc || !!bkc.res.bronce;
   const _clasifNames = bkc ? bkc.seeds : sortedT.slice(0,2).map(t => t.n);
-  const clasificadosHtml = _clasifNames.map((n,i) => byName[n] ? playerCard(byName[n], i, 'f2') : '').join('') || `<div class="final-clasificado-none">Aún no hay datos suficientes.</div>`;
+  // Clasificados que vienen de una fase nueva (no están en la tabla de la Fase grupal)
+  function extraCard(name, pos) {
+    const info = (typeof FasesExtra !== 'undefined' && FasesExtra.seedInfo) ? FasesExtra.seedInfo(name) : null;
+    const badge = info && info.done ? `<span class="final-clasificado-tag">✓ Clasificado</span>` : `<span class="final-provisorio-tag">provisorio</span>`;
+    return `<div class="final-player">
+      <div class="pos-badge ${pos === 0 ? 'gold' : 'accent'}">${pos+1}</div>
+      <div style="flex:1">
+        <div style="font-weight:500;font-size:13px">${escHtmlName(name)}</div>
+        <div style="font-size:11px;color:var(--muted)">${info ? escHtmlName(info.label) + ' · ' + info.pos + '.º' : 'Fase adicional'}</div>
+      </div>
+      ${badge}
+    </div>`;
+  }
+  const cardFor = (n, i) => byName[n] ? playerCard(byName[n], i, 'f2') : extraCard(n, i);
+  const clasificadosHtml = _clasifNames.map((n,i) => cardFor(n, i)).join('') || `<div class="final-clasificado-none">Aún no hay datos suficientes.</div>`;
 
   // ---- EDIT MODE ----
   const fc = FINAL_CONFIG;
@@ -14654,7 +14670,7 @@ function renderFinal() {
   // ---- 3ER PUESTO: los segundos de cada fase ----
   const tc = TERCER_CONFIG;
   const _tercerEq = (bkc && bkc.res.bronce) ? [bkc.res.bronce.a, bkc.res.bronce.b].filter(x => x && x.name) : [];
-  const tercerClasificadosHtml = (bkc ? _tercerEq.map(x => byName[x.name] ? playerCard(byName[x.name], (x.seed || 1) - 1, 'f2') : '').join('') : sortedT.slice(2,4).map((t,i) => playerCard(t, i + 2, 'f2')).join(''))
+  const tercerClasificadosHtml = (bkc ? _tercerEq.map(x => cardFor(x.name, (x.seed || 1) - 1)).join('') : sortedT.slice(2,4).map((t,i) => playerCard(t, i + 2, 'f2')).join(''))
     || `<div class="final-clasificado-none">${bkc ? 'Se define con los perdedores de las semifinales.' : 'Aún no hay datos suficientes.'}</div>`;
 
   const tercerPosterSrc = tc.juego ? gamePosterFor(tc.juego, '') : '';
@@ -14864,7 +14880,7 @@ function renderFinal() {
       </div>
       <details class="podio-map">
         <summary>Ver equipos 1 al 56 y sus nombres de archivo</summary>
-        <div class="podio-map-list">${VeladaDuplas.mapping().map(row => `<div class="podio-map-row"><code>${row.file}</code><span>${row.names.map(escHtmlName).join(' / ')}</span></div>`).join('')}</div>
+        <div class="podio-map-list">${(window.VeladaDuplas ? VeladaDuplas.mapping() : []).map(row => `<div class="podio-map-row"><code>${row.file}</code><span>${row.names.map(escHtmlName).join(' / ')}</span></div>`).join('')}</div>
       </details>
     </div>
   `;
@@ -19155,4 +19171,4 @@ document.addEventListener('keydown', function(e) {
 })();
 </script>
 <script src="ensayo-guiado.js?v=20261005e"></script>
-<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-view.js?v=20261006fx2"></script><script src="fases-extra.js?v=20261006fx2"></script>
+<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-view.js?v=20261006fx2"></script><script src="fases-extra.js?v=20261006fx3"></script>

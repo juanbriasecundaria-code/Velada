@@ -125,6 +125,19 @@
     for (var k = 0; k < max; k++) listas.forEach(function (l) { if (l[k] && !visto[l[k]]) { visto[l[k]] = 1; out.push(l[k]); } });
     return out;
   }
+  // Datos de origen de un clasificado (fase y puesto), para mostrarlo en la Final como a los de la Fase grupal.
+  function seedInfo(name) {
+    var activas = extras().filter(function (p) { return (+p.clasifican.cantidad || 0) > 0 && (p.fixture || []).length; });
+    for (var a = 0; a < activas.length; a++) {
+      var p = activas[a], top = ranking(p).slice(0, +p.clasifican.cantidad).map(function (r) { return r.n; });
+      var t = p.tipo === 'individual' ? Math.max(1, +p.clasifican.tamanoGrupo || 1) : 1, k = 0;
+      for (var i = 0; i < top.length; i += t, k++) {
+        var nm = p.tipo === 'individual' ? top.slice(i, i + t).join(' / ') : top[i];
+        if (nm === name) { var res = phaseResults(p.id); return { label: p.emoji + ' ' + p.nombre, pos: i + 1, done: (p.fixture || []).every(function (m) { return res[key(m)]; }) }; }
+      }
+    }
+    return null;
+  }
   function allDone() {
     return extras().every(function (p) {
       if (!((+p.clasifican.cantidad || 0) > 0)) return true;
@@ -153,7 +166,7 @@
   function init() { ensurePhases(); ensureDom(); render(); }
 
   root.FasesExtra = {
-    buildFixture: buildFixture, ranking: ranking, finalSeeds: finalSeeds, allDone: allDone, renderSeeds: renderSeeds, seedsHtml: seedsHtml,
+    buildFixture: buildFixture, ranking: ranking, finalSeeds: finalSeeds, seedInfo: seedInfo, allDone: allDone, renderSeeds: renderSeeds, seedsHtml: seedsHtml,
     moveSeed: function (i, d) { var ctx = bracketCtx(), a = ctx.seeds.slice(), k = i + d; if (k < 0 || k >= a.length || Object.keys(ctx.b.winners || {}).length) return; var t = a[i]; a[i] = a[k]; a[k] = t; ctx.b.seeds = a; saveState(); renderFinal(); },
     autoSeeds: function () { var b = bracketState(); if (Object.keys(b.winners || {}).length) return; b.seeds = null; saveState(); renderFinal(); }, init: init, render: function (id) { if (id) { var p = phaseById(id), el = document.getElementById('page-fx-' + id); if (p && el) el.innerHTML = pageHtml(p); } render(); },
     create: function () {
