@@ -1481,7 +1481,7 @@ function renderScores(){
   if(!wrap) return;
   const vals = teams.map(t => teamScores[t.index]||0);
   const max = Math.max(0, ...vals);
-  wrap.innerHTML = teams.map(t => {
+  const _h = teams.map(t => {
     const pts = teamScores[t.index]||0;
     const leader = max > 0 && pts === max;
     const recent = teamScoresRecent[t.index] && (Date.now() - teamScoresRecent[t.index] < 2500);
@@ -1493,6 +1493,7 @@ function renderScores(){
       <div class="score-chip-pts">${pts}</div>
     </button>`;
   }).join('');
+  if(wrap._h !== _h){ wrap.innerHTML = _h; wrap._h = _h; }
 }
 // ── AJUSTE DE LA PANTALLA DE PARTICIPANTES (evita scroll/recortes en TVs) ──
 // Mide el alto REAL que ocupan los hijos de un contenedor flex. No se puede
@@ -1560,7 +1561,7 @@ function renderPartScores(){
   if(!wrap) return;
   const vals = teams.map(t => teamScores[t.index]||0);
   const max = Math.max(0, ...vals);
-  wrap.innerHTML = teams.map(t => {
+  const _h = teams.map(t => {
     const pts = teamScores[t.index]||0;
     const leader = max > 0 && pts === max;
     const shortLabel = (t.members && t.members.length) ? t.members.join(' & ') : t.label;
@@ -1570,6 +1571,7 @@ function renderPartScores(){
       <div class="part-chip-pts">${pts}</div>
     </div>`;
   }).join('');
+  if(wrap._h !== _h){ wrap.innerHTML = _h; wrap._h = _h; }   // no recargar fotos si no cambió
   fitParticipantWrap();
 }
 function quickAssignPrompt(teamIdx){
@@ -2372,12 +2374,13 @@ function renderPartText(c, st){
       <div><span class="aq">✓ Quién lo dijo</span><div class="av">${escapeHtml(c.who || '—')}</div></div>
       ${c.ending ? `<div style="margin-top:.4rem"><span class="aq">✓ Cómo termina</span><div class="av">${escapeHtml(c.ending)}</div></div>` : ''}
     </div>` : '';
-  mount.innerHTML = `
+  const _h = `
     ${promptBlockHtml}
     ${optionsHtml}
     ${hints.join('')}
     ${answerHtml}
   `;
+  if(mount._h !== _h){ mount.innerHTML = _h; mount._h = _h; }   // evita repetir animaciones/imágenes
 }
 // Las imágenes subidas (base64) no viajan en el estado en vivo por peso — llegan con el mazo.
 // Acá completamos las que falten buscando la carta completa en el mazo local del participante.

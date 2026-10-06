@@ -2207,15 +2207,18 @@ function renderTV() {
       const animCls=changed?'enter-'+slotIdx:'';
       return '<div class="podium-slot slot-'+slotIdx+' '+animCls+'"><div class="podium-avatar-wrap">'+crown+'<div style="position:relative;z-index:1">'+figHtml+'</div></div>'+nameHtml+ptsHtml+'<div class="podium-block"><span class="podium-block-num">'+POS_LABELS[slotIdx]+'</span></div></div>';
     });
-    podiumEl.innerHTML=slots.join('');
+    // No reconstruir el podio (fotos, glow) si nada cambió: renderTV se llama desde 6 canales.
+    const _podHtml=slots.join('');
+    if(podiumEl._h!==_podHtml){podiumEl.innerHTML=_podHtml;podiumEl._h=_podHtml;}
 
     // Rank list (4th+)
     const rankEl=document.getElementById('tv-rank-'+phase);
     const rest=sorted.slice(3);
-    rankEl.innerHTML=rest.length?rest.map((e,i)=>{
+    const _rankHtml=rest.length?rest.map((e,i)=>{
       const av=tvAvatarHtml(e.n,e.i,photos);
       return '<div class="tv-rank-row" data-ent="'+String(e.n).replace(/"/g,'&quot;')+'"><span class="tv-rank-pos">'+(i+4)+'°</span><span class="tv-rank-name">'+av+'<span>'+e.n+'</span></span><span class="tv-rank-pts'+(isF1?'':' f2')+'">'+e.pts.total+' pts</span></div>';
     }).join(''):'';
+    if(rankEl._h!==_rankHtml){rankEl.innerHTML=_rankHtml;rankEl._h=_rankHtml;}
 
     // Quién sumó desde la última actualización: se le hace un flash a la fila y
     // el total sube contando. Antes la tabla cambiaba sin que se notara nada.

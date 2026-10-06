@@ -552,6 +552,7 @@ body { animation: appEnter .32s ease-out both; }
   .gh-sel-btn:hover::after{ transform:translateX(120%); }
   /* Entrada escalonada */
   .gh-sel-btn{ animation: selIn .38s cubic-bezier(.2,1.1,.35,1) both; }
+  body.sel-painted .gh-sel-btn{ animation: none; }
   @keyframes selIn{ from{opacity:0; transform:translateY(12px) scale(.96)} to{opacity:1; transform:none} }
   .gh-sel-hint{ text-align:center; font-size:11.5px; color:var(--muted); margin-top:1.1rem; }
   .gh-subtitle{ font-size:12.5px; color:var(--muted); margin-top:.35rem; }
@@ -1380,6 +1381,7 @@ function renderNocheEnVivo() {
 let _rosterAviso = '';
 
 function renderSelection() {
+  setTimeout(() => document.body.classList.add('sel-painted'), 600);
   const app = document.getElementById('app');
   // Esta pantalla usa todo el ancho disponible; el resto del panel no
   document.body.classList.add('sel-mode');
@@ -1984,7 +1986,10 @@ function renderDashboard(myName) {
   `;
   // Entrada escalonada: cada bloque entra 45 ms después del anterior, así la
   // pantalla se arma sola en vez de aparecer entera de golpe.
-  Array.from(app.children).forEach((el, i) => {
+  // Solo en el primer pintado: antes se repetía en cada actualización en vivo y la pantalla parpadeaba.
+  const _primerPintado = globalThis._dashAnimWho !== myName;
+  globalThis._dashAnimWho = myName;
+  if (_primerPintado) Array.from(app.children).forEach((el, i) => {
     if (i > 11) return;                       // más allá ya no se percibe
     el.style.setProperty('--d', (i * 45) + 'ms');
     el.classList.add('gh-in');
@@ -1992,6 +1997,7 @@ function renderDashboard(myName) {
 
   document.getElementById('gh-switch-btn').addEventListener('click', () => {
     localStorage.removeItem('ndj_guest_who');
+    globalThis._dashAnimWho = null;
     render();
   });
   const certBtn = document.getElementById('gh-cert-btn');
@@ -3287,7 +3293,7 @@ function render() {
   const who = localStorage.getItem('ndj_guest_who');
   const tabbar = document.getElementById('tabbar');
   if (who && PLAYERS.includes(who)) {
-    document.body.classList.remove('sel-mode');
+    document.body.classList.remove('sel-mode', 'sel-painted');
     tabbar.classList.remove('hidden');
     renderDashboard(who);
     renderVivo();
