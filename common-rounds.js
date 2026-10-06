@@ -23,10 +23,10 @@
   };
   window.commonRoundHtml=function(id,n){
     if(id==='teg' && typeof tegRoundHtml==='function')return tegRoundHtml(n);
-    const names={guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?',teg:'🌍 TEG Express',erudito:'El Erudito'};
-    const action=id==='teg'?'activateTegRound':id==='guess'?'activateGuessRound':id==='argentinos'?'activateArgentinosRound':id==='erudito'?'activateEruditoRound':'activateCommonRound';
-    const activate=id==='teg'||id==='guess'||id==='argentinos'||id==='erudito'?action+'('+n+',this)':action+'(\''+id+'\','+n+',this)';
-    const colors={guess:'#bf8cff',argentinos:'#f0bc54',impostor:'#ef7979',qld:'#6bc5ec',teg:'#c8f060',erudito:'#4ecb7e'};
+    const names={guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?',teg:'🌍 TEG Express'};
+    const action=id==='teg'?'activateTegRound':id==='guess'?'activateGuessRound':id==='argentinos'?'activateArgentinosRound':'activateCommonRound';
+    const activate=id==='teg'||id==='guess'||id==='argentinos'?action+'('+n+',this)':action+'(\''+id+'\','+n+',this)';
+    const colors={guess:'#bf8cff',argentinos:'#f0bc54',impostor:'#ef7979',qld:'#6bc5ec',teg:'#c8f060'};
     const roster=id==='impostor'?'Ranking individual':TEAMS.map(commonEscape).join(' · ');
     return '<div class="fixture-round"><div class="round-label">Ronda '+n+' <span class="bye-tag">'+names[id]+' · '+(id==='impostor'?'individual · no suma al ranking grupal':'todos los equipos juntos')+'</span><button class="fixture-edit-toggle" onclick="'+activate+'">▶ Activar ronda '+n+'</button></div><div class="match-row '+(commonRoundDone(id)?'done':'')+'" onclick="openCommonResultModal(\''+id+'\')"><span class="match-game-badge" style="color:'+colors[id]+';background:'+colors[id]+'22">'+names[id]+'</span><span class="match-players">'+roster+'</span><span class="match-result">'+(commonRoundDone(id)?'✓ Cargado':(window._commonResults||{})[id]?'Resultado disponible':'Abrir / cargar')+'</span></div></div>';
   };
@@ -52,7 +52,7 @@
       if(limit>=0&&index>limit && !(window._commonResults||{})[id])return;
       const result=(window._commonResults||{})[id],firma=JSON.stringify(result||null);
       if(commonRoundDone(id)&&(!result||(state.autoResultadosAplicados||{})['common-'+id]===firma))return;
-      rows.push({common:id,phase:'f2',round:index+1,matchId:'common-'+id,gameName:{guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?',teg:'🌍 TEG Express',erudito:'El Erudito'}[id],status:result?'auto':'pending',resultado:result,firma});
+      rows.push({common:id,phase:'f2',round:index+1,matchId:'common-'+id,gameName:{guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?',teg:'🌍 TEG Express'}[id],status:result?'auto':'pending',resultado:result,firma});
     });return rows;
   };
   window.commonAutoRowHtml=function(row){
@@ -62,7 +62,7 @@
   window.applyCommonAutoRow=function(row){
     if(row.status!=='auto')return false;
     const res=row.resultado,byTeam=res.byTeam||res.byGroup;
-    if(row.common==='guess'||row.common==='argentinos'||row.common==='teg'||row.common==='erudito'){
+    if(row.common==='guess'||row.common==='argentinos'||row.common==='teg'){
       if(!byTeam||!TEAMS.every(t=>Number.isFinite(byTeam[t])))return false;
       state[row.common+'Round']={byTeam:Object.assign({},byTeam),ts:res.ts||Date.now()};
       if(row.common==='argentinos'&&state.adjust)state.adjust.f2=(state.adjust.f2||[]).filter(x=>x.label!=='100 Argentinos');
@@ -88,11 +88,11 @@ window.editCommonCellPts=function(name,id){
 window.nextCommonRound=function(){return ensureCommonRoundOrder().find(id=>!commonRoundDone(id));};
 window.commonGroupRoundsDone=function(){return ensureCommonRoundOrder().filter(id=>!id.startsWith('duel:')&&id!=='impostor').every(commonRoundDone);};
 
-window.hasCommonRoundResults=function(){return ['guess','argentinos','impostor','qld','teg','erudito'].some(commonRoundDone);};
+window.hasCommonRoundResults=function(){return ['guess','argentinos','impostor','qld','teg'].some(commonRoundDone);};
 
 function commonEscape(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 window.openCommonResultModal=function(id){
-  const names={guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?',teg:'🌍 TEG Express',erudito:'El Erudito'};
+  const names={guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?',teg:'🌍 TEG Express'};
   let bg=document.getElementById('common-result-modal');
   if(!bg){bg=document.createElement('div');bg.id='common-result-modal';bg.className='modal-bg';bg.setAttribute('role','dialog');bg.setAttribute('aria-modal','true');document.body.append(bg);bg.onclick=e=>{if(e.target===bg)bg.classList.remove('open');};}
   window._commonEditing=id;

@@ -55,8 +55,8 @@
   function choose(p){
     if(!connected || !BuzzerRounds.allowed(match,p.name,p.side))return;
     player=p.name;
-    if(currentGame==='palabras' || currentGame==='erudito' || currentGame==='carrera'){
-      const file={palabras:'palabras_a_tiempo.html',erudito:'el_erudito.html',carrera:'carrera_de_mentes.html'}[currentGame];
+    if(currentGame==='palabras' || currentGame==='timesup' || currentGame==='erudito' || currentGame==='carrera'){
+      const file={palabras:'palabras_a_tiempo.html',timesup:'times_up.html',erudito:'el_erudito.html',carrera:'carrera_de_mentes.html'}[currentGame];
       const query=new URLSearchParams({match:match.id,player:p.name});
       location.href=file+'?'+query.toString();return;
     }

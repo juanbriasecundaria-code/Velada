@@ -1,6 +1,4 @@
-/* Ronda única con todos los equipos del cruce activo. La identidad (nombre +
-   equipo) se elige de la lista de participantes del fixture; el lado del
-   estado compartido ya no es 'a'/'b', es el nombre del equipo. */
+/* Numeric answers stay unchanged; identity is selected from the active fixture. */
 window.connectEruditoRound=function(ref){
   const query=new URLSearchParams(location.search);
   const tx=ref.transaction.bind(ref);
@@ -12,18 +10,13 @@ window.connectEruditoRound=function(ref){
   document.querySelector('.team-pick-sub').textContent='Elegí tu nombre';
   const oldPick=pickTeam;
   function permitted(cur,id,name,side){return !!(connected&&cur&&cur.fixture&&cur.fixture.id===id&&BuzzerRounds.allowed(cur.fixture,name,side));}
-  function serverNow(){ return window._erServerNow ? window._erServerNow() : Date.now(); }
   // All existing writes, including child updates, are checked against the same match.
   ref.transaction=function(fn,cb,local){
     const id=selectedId, name=identity, side=myTeam;
     return tx(cur=>{
       if(!permitted(cur,id,name,side))return;
       const next=fn(cur);
-      if(next){
-        next.fixture=cur.fixture;
-        next.order=(cur.fixture.teams||Object.keys(next.teams||{})).slice();
-        (cur.fixture.teams||[]).forEach(label=>{ if(next.teams&&next.teams[label]) next.teams[label].name=label; });
-      }
+      if(next){next.fixture=cur.fixture;next.teams.a.name=cur.fixture.names.a;next.teams.b.name=cur.fixture.names.b;}
       return next;
     },cb,local===undefined?false:local);
   };
@@ -34,10 +27,7 @@ window.connectEruditoRound=function(ref){
         const bits=path.split('/');let parent=cur;
         bits.slice(0,-1).forEach(k=>{parent=parent[k]||(parent[k]={});});
         const k=bits[bits.length-1];
-        if(merge && Object.prototype.hasOwnProperty.call(value,'answer')){
-          if(parent[k] && parent[k].ready)return;                 // ya envió, no se puede pisar
-          if(cur.questionEndsAt!=null && serverNow()>cur.questionEndsAt)return; // fuera de tiempo: se rechaza
-        }
+        if(merge && Object.prototype.hasOwnProperty.call(value,'answer') && parent[k] && parent[k].ready)return;
         parent[k]=merge?Object.assign({},parent[k],value):value;
         return cur;
       });
@@ -50,7 +40,7 @@ window.connectEruditoRound=function(ref){
     oldPick(p.side);
     updateBanner();
   }
-  pickTeam=function(){ /* La selección manual de lado queda deshabilitada. */ };
+  pickTeam=function(){ /* Side-only selection is intentionally disabled. */ };
   const oldLeave=leaveGame;
   leaveGame=function(e){identity=null;selectedId=null;oldLeave(e);render();};
   function updateBanner(){
@@ -63,7 +53,7 @@ window.connectEruditoRound=function(ref){
     if(!connected){title.textContent+=' · Esperando conexión';return;}
     if(!match||!match.active)return;
     match.players.forEach(p=>{
-      const b=document.createElement('button');b.className='team-pick-btn tp-team';
+      const b=document.createElement('button');b.className='team-pick-btn tp-'+p.side;
       b.textContent=p.name+' · '+p.teamLabel;b.onclick=()=>choose(p);choices.append(b);
     });
   }

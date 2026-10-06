@@ -26,7 +26,6 @@
       if((games||[]).includes('Guess Movie/Song'))ids.push('guess');
       if((games||[]).includes('100 Argentinos Dicen'))ids.push('argentinos');
       if((games||[]).includes('TEG Express'))ids.push('teg');
-      if((games||[]).includes('El Erudito'))ids.push('erudito');
       return ids.concat(['impostor','qld']);
     },
     order: function(state,fixture,games) {

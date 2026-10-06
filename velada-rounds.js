@@ -106,42 +106,6 @@
   };
 })();
 
-/* El Erudito: ronda propia, todos los equipos juntos, respuesta numérica simultánea. */
-(function(){
-  const NAME='El Erudito';
-  window.eruditoRoundHtml=function(){
-    const gi=GAMES_F2.indexOf(NAME);
-    if(gi===-1||!F2_FIXTURE.length) return '';
-    const r=commonRoundNumber('erudito'), done=commonRoundDone('erudito');
-    const c=GAME_COLORS_F2[gi]||['var(--surface2)','var(--muted)'];
-    return '<div class="fixture-round"><div class="round-label">Ronda '+r+' <span class="bye-tag">🧠 Todos juegan juntos · aproximación numérica</span>'
-      +'<button class="fixture-edit-toggle" style="margin-left:10px" onclick="activateEruditoRound('+r+',this)">▶ Activar ronda '+r+'</button></div>'
-      +'<div class="match-row '+(done?'done':'')+'" onclick="openCommonResultModal(\'erudito\')"><span class="match-game-badge" style="background:'+c[0]+';color:'+c[1]+';font-weight:600">'+NAME+'</span>'
-      +'<span class="match-players" style="font-size:12px">Todos los equipos (1 min. por pregunta)</span>'
-      +'<span class="match-result '+(done?'set':'')+'">'+(done?'✓ Cargado':'Abrir / cargar')+'</span></div></div>';
-  };
-  window.activateEruditoRound=async function(round,button){
-    const db=window._rtdb;
-    if(!db||!db.ref().update){showToast('⚠️','Todavía no hay conexión. Probá de nuevo en unos segundos.',false);return;}
-    if(!confirm('¿Activar la ronda '+round+' (El Erudito, todos los equipos juntos)?\n\nSe cierran los cruces de los demás juegos en los celulares y se reinicia el marcador de El Erudito para esta ronda.'))return;
-    if(button)button.disabled=true;
-    try{
-      const token=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10), updates={};
-      const match=BuzzerRounds.buildGroup(round,{players:PLAYERS,teams:TEAMS,fullNames:FULL_NAMES},token,'erudito');
-      Object.keys(BuzzerRounds.paths).forEach(game=>{
-        const p=BuzzerRounds.paths[game];
-        if(game==='erudito'){updates[p]=BuzzerRounds.initial(match);return;}
-        updates[p+'/fixture']={active:false,id:token+'-closed',round:round,phase:'f2'};
-        if(game==='movies'||game==='argentinos'){updates[p+'/state']='locked';updates[p+'/winner']=null;}
-      });
-      await db.ref().update(updates);
-      state.activeMatches=[];state.activeCommonRound={id:'erudito',round};saveState();
-      showToast('🧠','Ronda '+round+' publicada. Los celulares ya pueden elegir su nombre.',false);
-    }catch(e){showToast('⚠️','No se pudo activar: '+e.message,false);}
-    finally{if(button)button.disabled=false;}
-  };
-})();
-
 /* Guess Movies & Songs: ronda propia, todos los equipos juntos, un solo buzzer con cola. */
 (function(){
   const NAME='Guess Movie/Song';

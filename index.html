@@ -36,6 +36,7 @@ function _onFbError(){window._fbScriptsDone=true;window._fbError='No se pudo car
   --blue:#60b4f0;--blue-dim:rgba(96,180,240,.13);
   --green:#4cdb7a;--green-dim:rgba(76,219,122,.14);
   --purple:#c060e8;--purple-dim:rgba(192,96,232,.15);
+  --orange:#ff9f43;--orange-dim:rgba(255,159,67,.14);
   --radius:14px;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overscroll-behavior:none}
@@ -91,6 +92,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 .game-erudito .game-arrow{margin-left:auto;font-size:18px;opacity:.55;line-height:1}
 .game-impostor{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
 .game-impostor .game-arrow{margin-left:auto;font-size:18px;opacity:.55;line-height:1}
+.game-timesup{background:var(--orange-dim);border-color:var(--orange);color:var(--orange)}
+.game-timesup .game-arrow{margin-left:auto;font-size:18px;opacity:.55;line-height:1}
 .edit-names-btn{margin-top:.9rem;background:none;border:none;color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;letter-spacing:.03em;text-decoration:underline;text-underline-offset:3px;opacity:.8;padding:.4rem .8rem}
 .edit-names-btn:active{opacity:1}
 .bzn-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:600;display:none;align-items:center;justify-content:center;padding:1.25rem}
@@ -391,7 +394,7 @@ body { animation: appEnter .32s ease-out both; }
 .skip-splash #splash{display:none!important}
 
 </style>
-<script src="qld-turns.js?v=20261005d"></script><script src="buzzer-rounds.js?v=20261005d"></script>
+<script src="qld-turns.js?v=20261005d"></script><script src="buzzer-rounds.js?v=20261005e"></script>
 </head>
 <body>
 <script>if(new URLSearchParams(location.search).get('hub')) document.documentElement.classList.add('skip-splash');</script>
@@ -491,6 +494,14 @@ body { animation: appEnter .32s ease-out both; }
       </div>
       <span class="game-arrow">›</span>
     </a>
+    <button class="game-btn game-timesup" onclick="selectGame('timesup')">
+      <span class="game-btn-icon">🎭</span>
+      <div class="game-btn-info">
+        <span class="game-btn-name">Time's Up</span>
+        <span class="game-btn-sub">Pistas y adivinanzas contra reloj</span>
+      </div>
+      <span class="game-arrow">›</span>
+    </button>
   </div>
 
   <div class="error-box" id="error-box"></div>
@@ -604,6 +615,7 @@ const FB_CFG = {
 // Ruta en Firebase según el juego
 const GAME_PATHS = {
   palabras:   'velada/palabras',
+  timesup:    'velada/timesup',
   erudito:    'velada/erudito',
   carrera:    'velada/carrera',
   movies:     'velada/buzzer',
@@ -613,6 +625,7 @@ const GAME_PATHS = {
 
 const GAME_META = {
   palabras:   { icon:'⏱️', name:'Palabras a Tiempo' },
+  timesup:    { icon:'🎭', name:"Time's Up" },
   erudito:    { icon:'🧠', name:'El Erudito' },
   carrera:    { icon:'👑', name:'Carrera de Mentes' },
   movies:     { icon:'🎬', name:'Guess Movies & Songs' },
@@ -1678,6 +1691,6 @@ window.qldPhotos = window.qldPhotos || {};
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, pedir, { passive: true }));
 })();
 </script>
-<script src="hub-rounds.js?v=20261005d"></script>
+<script src="hub-rounds.js?v=20261005e"></script>
 </body>
 </html>
