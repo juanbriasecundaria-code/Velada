@@ -1587,7 +1587,13 @@ function dismissSplash(){
   sp.classList.add('fade');
   setTimeout(()=>{
     sp.style.display = 'none';
-    const savedMode = localStorage.getItem(SK.MODE);
+    // El modo se recuerda POR PESTAÑA (sessionStorage), no por navegador: así podés tener conductor y
+    // participantes abiertos a la vez en el mismo navegador sin usar incógnito.
+    try{ localStorage.removeItem(SK.MODE); }catch(e){}   // limpia el valor viejo compartido entre pestañas
+    let savedMode = null;
+    try{ savedMode = sessionStorage.getItem(SK.MODE); }catch(e){}
+    // Atajo: abrir quien_lo_dijo.html#participantes (o ?modo=participante) entra directo a la pantalla de participantes
+    if(/^#?participante/i.test(location.hash) || /[?&]modo=participante/i.test(location.search)) savedMode = 'participant';
     if(savedMode === 'participant' || savedMode === 'conductor'){
       applyMode(savedMode);
     } else {
@@ -1614,7 +1620,7 @@ function qldResultWrite(p){
 }
 function applyMode(m){
   MODE = m;
-  try{ localStorage.setItem(SK.MODE, m); }catch(e){}
+  try{ sessionStorage.setItem(SK.MODE, m); }catch(e){}
   document.getElementById('gate').classList.remove('active');
   document.getElementById('gate').style.display = 'none';
   loadState();
@@ -1631,8 +1637,8 @@ function applyMode(m){
   }
 }
 function exitMode(){
-  try{ localStorage.removeItem(SK.MODE); }catch(e){}
-  location.reload();
+  try{ sessionStorage.removeItem(SK.MODE); localStorage.removeItem(SK.MODE); }catch(e){}
+  if(location.hash || location.search) location.replace(location.pathname); else location.reload();
 }
 
 // ── RENDER: SCORES ──
