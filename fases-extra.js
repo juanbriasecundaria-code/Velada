@@ -43,23 +43,45 @@
   function betsHtml(p) {
     var bw = betWin(p.id), pend = pendingRound(p), open = !!bw.open, who = {};
     if (open && bw.round) (p.fixture || []).forEach(function (m) { if (m[0] === bw.round) Object.keys(((state.betsX || {})[p.id] || {})[key(m)] || {}).forEach(function (n) { who[n] = 1; }); });
-    var n = Object.keys(who).length, h = '<div class="section-header" style="margin-top:1.25rem"><span class="section-title">🃏 Apuestas ' + (open ? '· ABIERTAS' : '· cerradas') + '</span></div><div class="card" style="padding:0.75rem;font-size:13px">';
-    if (!(p.fixture || []).length) return h + 'Generá el fixture para habilitar apuestas.</div>';
-    if (open) h += 'Los invitados pueden apostar los duelos de la <b>Ronda ' + bw.round + '</b>. Cerralas antes de jugar.' + (n ? ' <b>' + n + ' ya apostaron.</b>' : '') + '<div style="margin-top:0.5rem"><button class="btn" onclick="FasesExtra.closeBets(\'' + p.id + '\')">🔒 Cerrar apuestas</button></div>';
-    else if (pend) h += 'Apuestas cerradas. Al abrirlas corresponden a la <b>Ronda ' + pend + '</b>. Cada acierto suma 1 punto ' + (p.tipo === 'individual' ? 'al apostador' : 'al equipo del apostador') + '; si apuesta a su propio duelo y lo pierde, se le anulan sus puntos de apuestas.<div style="margin-top:0.5rem"><button class="btn btn-primary" onclick="FasesExtra.openBets(\'' + p.id + '\')">🔓 Abrir apuestas · Ronda ' + pend + '</button></div>';
-    else h += 'No quedan rondas pendientes para apostar.';
-    return h + '</div>';
+    var n = Object.keys(who).length, btn = function (col, bg, fn, txt) { return '<button onclick="' + fn + '" style="width:100%;padding:0.8rem;border-radius:var(--radius);border:1.5px solid ' + col + ';background:' + bg + ';color:' + col + ';font-family:inherit;font-size:14px;font-weight:800;cursor:pointer">' + txt + '</button>'; };
+    var hasFx = !!(p.fixture || []).length, body, txt = 'font-size:12px;color:var(--muted);margin:0.5rem 0 0.7rem;line-height:1.5';
+    if (!hasFx) body = '<div style="' + txt + '">Generá el fixture para habilitar apuestas.</div>';
+    else if (open) body = '<div style="' + txt + '">Los invitados pueden apostar los duelos de la <b style="color:var(--gold)">Ronda ' + bw.round + '</b>. Cerralas antes de empezar a jugar.' + (n ? ' <b style="color:var(--success)">' + n + ' ya apostaron.</b>' : '') + '</div>' + btn('var(--danger)', 'rgba(255,95,95,0.12)', "FasesExtra.closeBets('" + p.id + "')", '🔒 Cerrar apuestas de la Ronda ' + bw.round);
+    else if (pend) body = '<div style="' + txt + '">Apuestas cerradas. Al abrirlas van a corresponder a la <b style="color:var(--gold)">Ronda ' + pend + '</b>. Cada acierto suma 1 punto ' + (p.tipo === 'individual' ? 'al apostador' : 'al equipo del apostador') + '; si apuesta a su propio duelo y lo pierde, se le anulan sus puntos de apuestas.</div>' + btn('var(--success)', 'rgba(78,203,126,0.12)', "FasesExtra.openBets('" + p.id + "')", '🔓 Abrir apuestas · Ronda ' + pend);
+    else body = '<div style="' + txt + '">🏁 No quedan rondas pendientes para apostar.</div>';
+    return '<div class="card" style="margin-top:1.25rem;border-color:' + (open ? 'var(--gold)' : 'var(--border2)') + '"><div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem"><span style="font-size:12px;font-weight:700;color:' + (open ? 'var(--gold)' : 'var(--muted)') + '">🃏 Apuestas ' + (open ? '· ABIERTAS' : '· cerradas') + '</span>' +
+      '<span style="font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;padding:3px 9px;border-radius:99px;background:' + (open ? 'rgba(245,200,66,0.15)' : 'var(--surface2)') + ';color:' + (open ? 'var(--gold)' : 'var(--muted)') + '">' + (open ? 'Ronda ' + bw.round : 'en pausa') + '</span></div>' + body + '</div>';
   }
   function comodinesHtml(p) {
-    var list = state['comodines_' + p.id] || [];
-    var h = '<div class="section-header" style="margin-top:1.25rem"><span class="section-title">🎰 Comodines</span></div><div class="card" style="padding:0.75rem"><button class="btn btn-primary" onclick="openRuleta(\'' + p.id + '\')">🎰 Ruleta de comodines</button>';
-    h += list.slice().reverse().map(function (c) {
+    var list = state['comodines_' + p.id] || [], ent = p.tipo === 'individual' ? 'jugador' : 'equipo';
+    var h = '<div class="section-header" style="margin-top:1.25rem"><span class="section-title"><span class="dot-indicator impostor"></span>Ruleta de comodines</span></div><div class="card" style="margin-bottom:1.25rem">' +
+      '<p style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:0.75rem">Girala cuando quieras condimentar la noche: elige un ' + ent + ' al azar y le toca un comodín (bueno o malo). Ninguno mueve más de 1 punto.</p>' +
+      '<button onclick="openRuleta(\'' + p.id + '\')" style="width:100%;padding:0.85rem;border-radius:var(--radius);border:1.5px solid var(--gold);background:var(--gold-dim);color:var(--gold);font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;letter-spacing:0.02em">🎰 Girar la ruleta</button>';
+    if (list.length) h += '<div style="margin-top:0.9rem">' + list.slice().reverse().map(function (c) {
       var cm = (typeof comodinByKey === 'function' && comodinByKey(c.key)) || { emoji: '🎲', name: c.key };
       var st = c.status === 'pending' ? '⏳ pendiente' : ((c.delta || 0) > 0 ? '+' : '') + (c.delta || 0) + ' pt' + (c.note ? ' · ' + esc(c.note) : '');
-      return '<div style="display:flex;gap:0.5rem;align-items:center;font-size:13px;padding:0.25rem 0"><span style="flex:1">' + esc(cm.emoji) + ' ' + esc(cm.name) + ' — <b>' + esc(String(c.player).split(' ')[0]) + '</b> · ' + st + '</span><button class="btn" onclick="deleteComodin(\'' + c.id + '\',\'' + p.id + '\')">✕</button></div>';
-    }).join('');
+      return '<div style="display:flex;gap:0.5rem;align-items:center;font-size:13px;padding:0.25rem 0"><span style="flex:1">' + esc(cm.emoji) + ' ' + esc(cm.name) + ' — <b>' + esc(String(c.player).split(' ')[0]) + '</b> · ' + st + '</span><button onclick="deleteComodin(\'' + c.id + '\',\'' + p.id + '\')" title="Borrar" style="padding:0.3rem 0.45rem;border-radius:8px;border:1px solid rgba(255,95,95,0.25);background:transparent;color:var(--danger);cursor:pointer;font-size:11px">✕</button></div>';
+    }).join('') + '</div>';
     return h + '</div>';
   }
+
+
+  // Estilos acotados a las fases nuevas (no tocan la Fase grupal ni otras pantallas): botones, inputs y checks con el look de la Fase grupal.
+  (function injectStyle() {
+    try {
+      if (typeof document === 'undefined' || !document.head || document.getElementById('fx-style')) return;
+      var S = '.page[data-fx]', N = '#fx-new-host', st = document.createElement('style'); st.id = 'fx-style';
+      st.textContent =
+        S + ' .btn,' + N + ' .btn{background:var(--surface2);color:var(--text);border:1px solid var(--border2);border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}' +
+        S + ' .btn.btn-primary,' + N + ' .btn.btn-primary{background:var(--accent);color:#0f0f13;border-color:var(--accent)}' +
+        S + ' .btn:disabled,' + N + ' .btn:disabled{opacity:.45;cursor:default}' +
+        S + ' input[type=number],' + S + ' input[type=text],' + N + ' input[type=text]{padding:0.4rem 0.55rem;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface);color:var(--text);font-family:inherit;font-size:13px}' +
+        S + ' input[type=number]:focus,' + S + ' input[type=text]:focus,' + N + ' input[type=text]:focus{outline:none;border-color:var(--accent)}' +
+        S + ' input[type=checkbox]{accent-color:var(--accent)}' +
+        S + ' select.rule-edit-input,' + N + ' select.rule-edit-input{color-scheme:dark}';
+      document.head.appendChild(st);
+    } catch (e) {}
+  })();
 
   var cfgOpen = {};
   var jsq = function (v) { return esc(String(v == null ? '' : v).replace(/\\/g, '\\\\').replace(/'/g, "\\'")); };
