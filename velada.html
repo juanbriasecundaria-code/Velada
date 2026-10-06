@@ -3813,6 +3813,14 @@ body.solo-impostor #tv-btn{ opacity:.42 }
 .bk2-link{ background:none; border:0; padding:0; font-family:inherit; font-size:11.5px; font-weight:700;
   color:var(--gold); text-decoration:underline; cursor:pointer }
 @media (prefers-reduced-motion: reduce){ .bk2-team{ transition:none } }
+.bk2-top{ display:flex; justify-content:center; margin-bottom:.8rem }
+.bk2-acts{ display:flex; gap:.4rem; flex-wrap:wrap; justify-content:center }
+.bk2-act{ padding:.3rem .75rem; border-radius:99px; border:1px solid var(--accent); background:transparent;
+  color:var(--accent); font-family:inherit; font-size:11px; font-weight:800; cursor:pointer }
+.bk2-act.on{ border-color:var(--gold); color:var(--gold) }
+.bk2-act:disabled{ opacity:.5; cursor:default }
+.bk2-act:focus-visible{ outline:2px solid var(--gold); outline-offset:2px }
+.bk2-live{ text-align:center; font-size:11px; font-weight:700; color:var(--accent) }
 
 /* ── Modo pánico ── */
 .panic-btn{ width:100%; padding:.7rem; margin-bottom:.75rem; border-radius:var(--radius);
@@ -8151,6 +8159,7 @@ function limpiarResultadoAuto(matchId) {
 
 function confirmAutoResultados() {
   if (!_autoModalState) return;
+  if (_autoModalState.bracket) { bracketConfirmarAuto(); return; }   // modal del cuadro de la final
   let aplicados = 0;
   const comoMsgsAll = [];
   const adjustsToAdd = []; // [{phase, adjust:{name,pts,label}}]
@@ -13866,6 +13875,8 @@ function bracketState() {
   if (!b.scores || typeof b.scores !== 'object') b.scores = {};
   if (!b.tied || typeof b.tied !== 'object') b.tied = {};
   if (!b.vs || typeof b.vs !== 'object') b.vs = {};   // con quién se jugó cada cruce con resultado
+  if (!b.act || typeof b.act !== 'object') b.act = {};   // cruce -> id del marcador digital activado
+  if (!b.auto || typeof b.auto !== 'object') b.auto = {};   // id del marcador -> firma del resultado ya aplicado
   if (!b.games || typeof b.games !== 'object') b.games = {};
   if (b.qualifiers === undefined) b.qualifiers = null;
   if (typeof b.finalBo3 !== 'boolean') b.finalBo3 = false;
@@ -13943,6 +13954,7 @@ function bracketCommit() {
     bracketPartidos(res).forEach(m => {
       if (b.vs[m.id] && b.vs[m.id] !== vsKey(m)) {
         delete b.winners[m.id]; delete b.scores[m.id]; delete b.tied[m.id]; delete b.vs[m.id];
+        bracketOlvidar(m.id);
         cambio = true;
       }
     });
@@ -13956,6 +13968,7 @@ function bracketCommit() {
   Object.keys(b.scores).forEach(id => { if (!listos[id]) delete b.scores[id]; });
   b.vs = {};
   bracketPartidos(res).forEach(m => { if (listos[m.id] && (b.winners[m.id] || b.scores[m.id] || b.tied[m.id])) b.vs[m.id] = vsKey(m); });
+  Object.keys(b.act).forEach(id => { if (b.winners[id]) delete b.act[id]; });
   if (!Object.keys(b.winners).length && !Object.keys(b.scores).length && !Object.keys(b.tied).length) b.seeds = null;
   const w = { final: res.champion, segundo: res.runnerUp };
   if (res.bronce) { w.tercero = res.third; w.cuarto = res.fourth; }
@@ -14030,16 +14043,249 @@ function bracketLimpiar() {
   const b = bracketState();
   const w = {};
   b.syncedPodio.forEach(k => { w[k] = ''; });
-  b.winners = {}; b.scores = {}; b.tied = {}; b.vs = {}; b.seeds = null; b.syncedPodio = [];
+  b.winners = {}; b.scores = {}; b.tied = {}; b.vs = {}; b.act = {}; b.auto = {}; b.seeds = null; b.syncedPodio = [];
   bracketEscribirPodio(w);
 }
 function bracketReset() {
   showConfirmModal(
     '¿Reiniciar el cuadro?',
     'Borra los ganadores marcados y los puestos del podio que salieron del cuadro, y vuelve a calcular los cruces con el ranking actual. Conserva la cantidad de clasificados y los juegos elegidos.',
-    () => { bracketLimpiar(); saveState(); closeModal(); renderFinal(); showToast('↺', 'Cuadro reiniciado', false); },
+    () => { bracketLimpiar(); bracketBorrarRemotos(k => k.indexOf('f2-bracket-') === 0); saveState(); closeModal(); renderFinal(); showToast('↺', 'Cuadro reiniciado', false); },
     null
   );
+}
+
+// ── CUADRO: activar cruces y cargar resultados de los juegos digitales ───────
+// Mismo contrato que la fase grupal: el juego digital publica su marcador en velada/enVivo/<id> y el
+// organizador lo congela en velada/resultados/<id>. En el cuadro, id = 'f2-bracket-<cruce>'; la final
+// al mejor de 3 suma '-g<N>' (una entrada por partida de la serie). Cada juego digital guarda un solo
+// cruce a la vez, por eso la activación es cruce por cruce.
+const BRACKET_RONDA_CORTA = { octavos: 'Octavos', cuartos: 'Cuartos', semis: 'Semifinal', final: 'Final', bronce: '3er puesto' };
+let _bracketBusy = false;
+function bracketJuegoDe(key) {
+  const b = bracketState();
+  if (key === 'final') return (typeof FINAL_CONFIG !== 'undefined' && FINAL_CONFIG && FINAL_CONFIG.juego) || '';
+  if (key === 'bronce') return (typeof TERCER_CONFIG !== 'undefined' && TERCER_CONFIG && TERCER_CONFIG.juego) || '';
+  return b.games[key] || '';
+}
+function bracketGid(juego) { return (juego && typeof BuzzerRounds !== 'undefined') ? BuzzerRounds.gameId(juego) : null; }
+function bracketLiveKey(m, b) {
+  let k = 'bracket-' + m.id;
+  if (m.round === 'final' && b.finalBo3) { const sc = b.scores[m.id] || [0, 0]; k += '-g' + (sc[0] + sc[1] + 1); }
+  return k;
+}
+// Borra de Firebase los marcadores y resultados del cuadro que cumplan el filtro (mejor esfuerzo).
+function bracketBorrarRemotos(filtro) {
+  if (window._autoResultados) Object.keys(window._autoResultados).forEach(k => { if (filtro(k)) delete window._autoResultados[k]; });
+  const db = window._rtdb;
+  if (!db) return;
+  ['velada/resultados', 'velada/enVivo'].forEach(path => {
+    db.ref(path).once('value').then(s => {
+      const v = s.val() || {}, u = {};
+      Object.keys(v).forEach(k => { if (filtro(k)) u[k] = null; });
+      if (Object.keys(u).length) return db.ref(path).update(u);
+    }).catch(() => {});
+  });
+}
+// Un cruce cambió de rivales: lo que había cargado (a mano o automático) ya no vale.
+function bracketOlvidar(id) {
+  const b = bracketState();
+  const base = 'f2-bracket-' + id;
+  const es = k => k === base || k.indexOf(base + '-g') === 0;
+  delete b.act[id];
+  Object.keys(b.auto).forEach(k => { if (es(k)) delete b.auto[k]; });
+  bracketBorrarRemotos(es);
+}
+async function bracketActivar(id) {
+  if (_bracketBusy) return;
+  const ctx = bracketCtx();
+  if (!ctx.f2Fin) { bracketAvisoGrupal(); return; }
+  const m = bracketBuscar(ctx.res, id);
+  if (!m || m.winner || !m.a || !m.a.name || !m.b || !m.b.name) return;
+  const juego = bracketJuegoDe(m.round), gid = bracketGid(juego);
+  if (!gid) { showToast('ℹ️', juego ? 'Ese juego no tiene pantalla digital: marcá el ganador a mano' : 'Elegí primero el juego de esta ronda', false); return; }
+  const db = window._rtdb;
+  if (!db || !db.ref().update) { showToast('⚠️', 'Todavía no hay conexión. Probá de nuevo en unos segundos.', false); return; }
+  const ia = TEAMS.indexOf(m.a.name), ib = TEAMS.indexOf(m.b.name);
+  if (ia < 0 || ib < 0) { showToast('⚠️', 'No se encontró uno de los equipos en el roster', false); return; }
+  if (!confirm('¿Activar este cruce en los celulares?\n\n' + bkCorto(m.a.name) + ' vs ' + bkCorto(m.b.name) + ' · ' + juego +
+      '\n\nSe cambia la selección de participantes y se reinicia el marcador de ese juego. Los resultados del cuadro no se modifican.')) return;
+  _bracketBusy = true;
+  try {
+    const key = bracketLiveKey(m, ctx.b);
+    const token = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+    const match = BuzzerRounds.buildMatch('f2', [0, ia, ib, 0],
+      { players: PLAYERS, teams: TEAMS, fullNames: FULL_NAMES, games: [juego] }, token);
+    match.key = key;
+    match.round = BRACKET_RONDA_CORTA[m.round] || m.round;
+    // Activar reinicia el marcador de este cruce: se borra cualquier marcador o resultado anterior con el mismo id.
+    const liveId = 'f2-' + key;
+    const updates = { [BuzzerRounds.paths[match.game]]: BuzzerRounds.initial(match) };
+    updates['velada/enVivo/' + liveId] = null;
+    updates['velada/resultados/' + liveId] = null;
+    await db.ref().update(updates);
+    if (window._autoResultados) delete window._autoResultados[liveId];
+    delete ctx.b.auto[liveId];
+    ctx.b.act[id] = liveId;
+    state.activeCommonRound = null;
+    state.activeMatches = [];
+    saveState();
+    renderFinal();
+    showToast('🔔', 'Cruce activado. Los celulares ya pueden elegir su nombre.', false);
+  } catch (e) { showToast('⚠️', 'No se pudo activar: ' + e.message, false); }
+  finally { _bracketBusy = false; }
+}
+// Cruces del cuadro con equipos definidos, sin ganador y con un juego digital: los únicos que pueden tener marcador.
+function bracketCandidatosAuto(ctx) {
+  const out = [];
+  bracketPartidos(ctx.res).forEach(m => {
+    if (m.winner || !m.a || !m.a.name || !m.b || !m.b.name) return;
+    const juego = bracketJuegoDe(m.round), gid = bracketGid(juego);
+    if (!gid) return;
+    const key = bracketLiveKey(m, ctx.b);
+    out.push({ id: m.id, juego: juego, gid: gid, key: key, liveId: 'f2-' + key, nameA: m.a.name, nameB: m.b.name,
+      roundLabel: BRACKET_RONDA_CORTA[m.round] || m.round,
+      gameNo: (m.round === 'final' && ctx.b.finalBo3) ? parseInt(key.split('-g')[1], 10) : null });
+  });
+  return out;
+}
+async function bracketCargarAuto() {
+  const ctx = bracketCtx();
+  if (!ctx.f2Fin) { bracketAvisoGrupal(); return; }
+  const bg = document.getElementById('auto-modal-bg');
+  const body = document.getElementById('auto-modal-body');
+  bg.classList.add('open');
+  body.textContent = 'Leyendo marcadores actuales…';
+  _autoModalState = { bracket: true, rows: [], manual: {} };
+  const cands = bracketCandidatosAuto(ctx);
+  let results = {};
+  if (window._rtdb) {
+    try {
+      // Igual que la fase grupal: el botón del organizador congela una foto de cada marcador digital.
+      const [liveSnap, resultSnap] = await Promise.all([
+        window._rtdb.ref('velada/enVivo').once('value'),
+        window._rtdb.ref('velada/resultados').once('value')
+      ]);
+      const live = liveSnap.val() || {};
+      results = resultSnap.val() || {};
+      const updates = {};
+      let otros = 0;
+      cands.forEach(c => {
+        const d = live[c.liveId], mk = d && d.marcador;
+        if (d && d.names && (d.names.a !== c.nameA || d.names.b !== c.nameB)) { otros++; return; }
+        if (results[c.liveId] || !d || d.matchId !== c.liveId || d.game !== c.gid || !mk ||
+            !Number.isFinite(mk.a) || !Number.isFinite(mk.b)) return;
+        updates[c.liveId] = { winner: mk.a > mk.b ? 'a' : mk.b > mk.a ? 'b' : 'empate',
+          marcador: { a: mk.a, b: mk.b }, bonusInfo: d.bonusInfo || {}, t: Date.now() };
+      });
+      if (Object.keys(updates).length) {
+        await window._rtdb.ref('velada/resultados').update(updates);
+        Object.assign(results, updates);
+        window._autoResultados = Object.assign(window._autoResultados || {}, updates);
+      }
+      if (otros) showToast('⚠️', otros + ' marcador(es) pertenecen a otros participantes: activá el cruce correcto desde el cuadro', false);
+    } catch (e) {
+      console.warn('No se pudieron leer los marcadores en vivo', e);
+      showToast('⚠️', 'No se pudieron leer los marcadores (' + (e.code || e.message || 'error de conexión') + '); marcá los ganadores a mano', false);
+    }
+  } else {
+    showToast('⚠️', 'Sin conexión con Firebase todavía — probá en unos segundos', false);
+  }
+  if (!bg.classList.contains('open') || !_autoModalState || !_autoModalState.bracket) return;
+  cands.forEach(c => {
+    const r = results[c.liveId];
+    if (!r) return;
+    const firma = JSON.stringify(r);
+    if (ctx.b.auto[c.liveId] === firma) return;   // ya aplicado antes
+    const tie = (r.winner === 'empate' || r.winner === 'tie');
+    if (!tie && r.winner !== 'a' && r.winner !== 'b') return;   // dato inesperado: se salta
+    _autoModalState.rows.push(Object.assign({}, c, { resultado: r, firma: firma, tie: tie,
+      side: tie ? null : (r.winner === 'a' ? 0 : 1), choice: null }));
+  });
+  renderBracketAutoModal();
+}
+function renderBracketAutoModal() {
+  const body = document.getElementById('auto-modal-body');
+  if (!body || !_autoModalState || !_autoModalState.bracket) return;
+  const rows = _autoModalState.rows;
+  if (!rows.length) {
+    body.innerHTML = '<div style="padding:1rem 0;color:var(--muted);font-size:13px">No hay resultados nuevos en el cuadro. Activá un cruce, jugalo y volvé a abrir esto cuando termine. Los juegos físicos se marcan a mano en el cuadro.</div>';
+    return;
+  }
+  body.innerHTML = '<div class="section-header" style="margin-top:0.5rem"><span class="section-title">🏆 Cuadro de la noche</span></div>' + rows.map(row => {
+    const mk = row.resultado.marcador || {};
+    const marcador = (mk.a != null ? mk.a : '?') + ' - ' + (mk.b != null ? mk.b : '?');
+    const serie = row.gameNo ? ' · partida ' + row.gameNo + ' de la serie' : '';
+    const detalle = row.tie
+      ? `<div style="font-size:12px;color:var(--gold)">⚡ Empate: se define en muerte súbita. Elegí quién ganó.</div>
+         <div style="display:flex;gap:0.4rem;flex-wrap:wrap">
+           <button class="modal-player-btn${row.choice === 0 ? ' selected' : ''}" style="flex:1;min-width:90px" onclick="bracketAutoElegir('${row.liveId}',0)">${_escC(firstName(row.nameA))}</button>
+           <button class="modal-player-btn${row.choice === 1 ? ' selected' : ''}" style="flex:1;min-width:90px" onclick="bracketAutoElegir('${row.liveId}',1)">${_escC(firstName(row.nameB))}</button>
+         </div>`
+      : `<div style="font-size:12px;color:var(--muted)">Ganador: <b style="color:var(--text)">${_escC(firstName(row.side === 0 ? row.nameA : row.nameB))}</b></div>`;
+    return `<div class="match-row" style="flex-direction:column;align-items:stretch;gap:0.35rem;border-left:2px solid var(--accent)">
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <span class="match-game-badge" style="background:var(--surface2);color:var(--muted)">${_escC(row.juego)}</span>
+        <span class="match-players" style="font-size:12px;flex:1">${_escC(row.roundLabel)} · ${_escC(firstName(row.nameA))} vs ${_escC(firstName(row.nameB))}${serie}</span>
+        <button class="btn btn-ghost" style="padding:0.2rem 0.5rem;font-size:11px" onclick="bracketLimpiarAuto('${row.liveId}')" title="Borra el resultado de Firebase para volver a jugarlo">🧹 Limpiar</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted)">Marcador: ${marcador}</div>
+      ${detalle}
+    </div>`;
+  }).join('');
+}
+function bracketAutoElegir(liveId, side) {
+  if (!_autoModalState || !_autoModalState.bracket) return;
+  const row = _autoModalState.rows.find(r => r.liveId === liveId);
+  if (!row) return;
+  row.choice = side;
+  renderBracketAutoModal();
+}
+function bracketLimpiarAuto(liveId) {
+  if (!confirm('¿Limpiar este resultado?\n\nEl juego digital lo vuelve a detectar como cruce pendiente y se puede jugar de nuevo.')) return;
+  if (!window._rtdb) { showToast('⚠️', 'Sin conexión con Firebase todavía — probá en unos segundos', false); return; }
+  try {
+    window._rtdb.ref('velada/resultados/' + liveId).set(null);
+    if (window._autoResultados) delete window._autoResultados[liveId];
+    showToast('🧹', 'Resultado limpiado', false);
+  } catch (e) { showToast('⚠️', 'No se pudo limpiar: ' + e.message, false); return; }
+  if (_autoModalState && _autoModalState.bracket) {
+    _autoModalState.rows = _autoModalState.rows.filter(r => r.liveId !== liveId);
+    renderBracketAutoModal();
+  }
+}
+function bracketConfirmarAuto() {
+  const st = _autoModalState;
+  if (!st || !st.bracket) return;
+  const ctx = bracketCtx();
+  const b = ctx.b;
+  let aplicados = 0, sinElegir = 0;
+  st.rows.forEach(row => {
+    const side = row.tie ? row.choice : row.side;
+    if (side === null || side === undefined) { sinElegir++; return; }   // empate sin ganador elegido: queda pendiente
+    const m = bracketBuscar(buildBracket(ctx.seeds, ctx.q, b.winners), row.id);
+    if (!m || m.winner || !m.a || !m.b || m.a.name !== row.nameA || m.b.name !== row.nameB) return;
+    if (!b.seeds) b.seeds = ctx.seeds.slice();
+    const name = side === 0 ? row.nameA : row.nameB;
+    if (row.gameNo) {   // final al mejor de 3: cada resultado es una partida de la serie
+      const sc = (b.scores[row.id] || [0, 0]).slice();
+      if (sc[0] >= 2 || sc[1] >= 2) return;
+      sc[side] += 1;
+      b.scores[row.id] = sc;
+      if (sc[side] >= 2) b.winners[row.id] = name;
+    } else {
+      b.winners[row.id] = name;
+      if (row.tie) b.tied[row.id] = true;
+    }
+    b.auto[row.liveId] = row.firma;
+    delete b.act[row.id];
+    aplicados++;
+  });
+  closeAutoResultadosModal();
+  if (!aplicados) { showToast('ℹ️', sinElegir ? 'Elegí quién ganó en los empates para aplicarlos' : 'No se aplicó nada — no había resultados nuevos', false); return; }
+  bracketCommit();
+  showToast('✅', aplicados + ' resultado' + (aplicados === 1 ? '' : 's') + ' cargado' + (aplicados === 1 ? '' : 's') +
+    (sinElegir ? ' · ' + sinElegir + ' empate' + (sinElegir === 1 ? '' : 's') + ' sin ganador elegido' : ''), false);
 }
 
 // ── CUADRO DE ELIMINACIÓN — vista (pestaña Final) ────────────────────────────
@@ -14080,13 +14326,20 @@ function bracketMatchHtml(m, ctx, titulo) {
     } else if (tied && m.winner) {
       ms = `<div class="bk2-ms hecho">⚡ Ganó en muerte súbita${b.muerteSubita ? ' · ' + _escC(b.muerteSubita) : ''}</div>`;
     }
-    if (!m.winner || tied) {
-      ms += `<button type="button" class="bk2-ms-btn" onclick="bracketTied('${m.id}')"${ctx.f2Fin ? '' : ' disabled'}>${tied ? 'Quitar empate' : '⚡ Hubo empate'}</button>`;
-    }
+  }
+  // Acciones: activar el juego digital del cruce y marcar empate
+  let acts = '';
+  let activo = false;
+  if (listo && !m.winner && bracketGid(bracketJuegoDe(m.round))) {
+    activo = b.act[m.id] === 'f2-' + bracketLiveKey(m, b);
+    acts += `<button type="button" class="bk2-act${activo ? ' on' : ''}" onclick="bracketActivar('${m.id}')"${ctx.f2Fin ? '' : ' disabled'}>${activo ? '↻ Reactivar' : '▶ Activar'}${bo3 ? ' partida ' + (sc[0] + sc[1] + 1) : ''}</button>`;
+  }
+  if (listo && !bo3 && (!m.winner || tied)) {
+    acts += `<button type="button" class="bk2-ms-btn" onclick="bracketTied('${m.id}')"${ctx.f2Fin ? '' : ' disabled'}>${tied ? 'Quitar empate' : '⚡ Hubo empate'}</button>`;
   }
   return `<div class="bk2-match${m.winner ? ' hecho' : ''}">
     ${titulo ? `<div class="bk2-mtit">${titulo}</div>` : ''}
-    ${equipo(0)}${equipo(1)}${ms}
+    ${equipo(0)}${equipo(1)}${activo ? '<div class="bk2-live">🟢 Activado en los celulares</div>' : ''}${ms}${acts ? `<div class="bk2-acts">${acts}</div>` : ''}
   </div>`;
 }
 function renderBracket() {
@@ -14099,9 +14352,7 @@ function renderBracket() {
 
   const nombresJuego = [];
   try { tercerOpciones().forEach(o => { if (o.nombre && nombresJuego.indexOf(o.nombre) === -1) nombresJuego.push(o.nombre); }); } catch (e) {}
-  const juegoDe = (key) => key === 'final' ? ((FINAL_CONFIG && FINAL_CONFIG.juego) || '')
-    : key === 'bronce' ? ((TERCER_CONFIG && TERCER_CONFIG.juego) || '')
-    : (b.games[key] || '');
+  const juegoDe = bracketJuegoDe;
   const juegoInput = (key) => `<input class="bk2-game" list="bk2-juegos" type="text" placeholder="Juego de esta ronda" value="${_escT(juegoDe(key))}" onchange="bracketSetGame('${key}', this.value)" aria-label="Juego">`;
 
   const cols = res.rounds.map(rd => {
@@ -14152,6 +14403,7 @@ function renderBracket() {
       </div>
       <datalist id="bk2-juegos">${nombresJuego.map(n => `<option value="${_escT(n)}">`).join('')}</datalist>
       ${avisoEmpates}
+      ${ctx.f2Fin ? '<div class="bk2-top"><button type="button" class="fixture-edit-toggle" onclick="bracketCargarAuto()">🔄 Cargar resultados automáticamente</button></div>' : ''}
       <div class="bk2-cols" role="group" aria-label="Cuadro de eliminación">${cols}</div>
       ${bronce}
       ${final}
