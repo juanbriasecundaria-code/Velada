@@ -15567,9 +15567,8 @@ function rollCredits() {
     if (typeof FasesView !== 'undefined') {
       FasesView.extras(state).forEach(p => {
         if (!Object.keys(state[p.id] || {}).length) return;
-        // Top 3 de la fase (incluye a los que quedaron con 0 pts, así el podio siempre tiene su lugar)
-        const rk = FasesView.rank(p, state, PLAYERS, TEAMS).map(r => ({ n: r.n, pts: r.pts }));
-        if (rk.some(r => r.pts > 0)) fxCreditsHtml += `<div class="cr-role role-fase1">${esc(p.emoji ? p.emoji + ' ' : '')}${esc(p.nombre)} - Podio final</div>${podium(rk, tName)}`;
+        const rk = FasesView.rank(p, state, PLAYERS, TEAMS).map(r => ({ n: r.n, pts: r.pts })).filter(r => r.pts > 0);
+        if (rk.length) fxCreditsHtml += `<div class="cr-role role-fase1">Podio · ${esc(p.nombre)}</div>${podium(rk, tName)}`;
       });
     }
   } catch (e) {}
@@ -15589,7 +15588,8 @@ function rollCredits() {
 
         <div class="cr-block">
           <div class="cr-divider"></div>
-          <div class="cr-role role-fase2">Fase grupal - Podio final</div>
+          ${sortedI.length ? `<div class="cr-role role-fase1">Podio · Impostor</div>${podium(sortedI, pName)}` : ''}
+          <div class="cr-role role-fase2">Podio · Fase grupal</div>
           ${podium(sortedT, tName)}
           ${fxCreditsHtml}
         </div>
@@ -16871,11 +16871,18 @@ function _runGrandFinale() {
   // 1) Arrancar la canción completa (~2:56) desde el inicio: suena de corrido
   //    durante toda la ceremonia y los créditos terminan cuando ella termina.
   startCeremonyMusic();
-  // 2) Podio individual (10s tras mostrarse) → podio grupal (10s tras mostrarse) → resumen Wrapped → créditos
-  // Si por lo que sea el resumen Wrapped falla, no dejamos la noche colgada:
-  // se cae directo a los créditos igual.
-  podiumReveal('individual', () => {
-    podiumReveal('grupal', () => {
+  // 2) Orden del cierre: podio grupal → podio de cada fase creada (solo las que
+  //    tienen resultados) → resumen Wrapped → créditos. El podio de Impostor no va en el cierre.
+  //    Si por lo que sea el resumen Wrapped falla, no dejamos la noche colgada:
+  //    se cae directo a los créditos igual.
+  const podiosExtra = (typeof extraPhases === 'function' ? extraPhases() : [])
+    .filter(p => Object.keys(phaseResults(p.id) || {}).length > 0);
+  const runExtraPodiums = (i, done) => {
+    if (i >= podiosExtra.length) return done();
+    podiumReveal(podiosExtra[i].id, () => runExtraPodiums(i + 1, done));
+  };
+  podiumReveal('grupal', () => {
+    runExtraPodiums(0, () => {
       try { showWrapped(() => rollCredits()); }
       catch (e) { console.error('[Wrapped] fallo general, salteando a créditos:', e); rollCredits(); }
     });
@@ -17348,7 +17355,13 @@ function podiumReveal(phaseKind, onContinue) {
   _resumeAudio();
 
   let sorted, eyebrow;
-  if (phaseKind === 'individual') {
+  // Fase creada por el organizador (f3, f4...): ranking propio, no el de grupal ni el de impostor
+  const xPhase = (phaseKind !== 'individual' && phaseKind !== 'grupal' && typeof phaseById === 'function') ? phaseById(phaseKind) : null;
+  if (xPhase) {
+    sorted = FasesView.rank(xPhase, state, PLAYERS, TEAMS).map(r => ({ n: r.n, i: r.i, pts: r.pts }))
+      .sort((a, b) => b.pts - a.pts);
+    eyebrow = `${xPhase.emoji || '🎯'} ${xPhase.nombre} · Podio final`;
+  } else if (phaseKind === 'individual') {
     const ppts = (typeof getPlayerPoints === 'function') ? getPlayerPoints() : PLAYERS.map(() => ({ total: 0 }));
     sorted = PLAYERS.map((n, i) => ({ n, i, pts: (ppts[i] ? ppts[i].total : 0) }))
       .sort((a, b) => b.pts - a.pts);
@@ -17366,6 +17379,21 @@ function podiumReveal(phaseKind, onContinue) {
   let statsChipsHtml = '';
   let factText = '';
   try {
+    if (xPhase) {
+      const resX = phaseResults(xPhase.id);
+      const playedX = (xPhase.fixture || []).filter(m => resX[`${m[0]}-${m[1]}-${m[2]}`]).length;
+      if (playedX > 0) {
+        const cardsX = [{ icon: '🎮', value: playedX, label: `partido${playedX === 1 ? '' : 's'} jugado${playedX === 1 ? '' : 's'}` }];
+        if (sorted.length >= 2 && sorted[0].pts - sorted[1].pts > 0) cardsX.push({ icon: '📈', value: `+${sorted[0].pts - sorted[1].pts}`, label: 'ventaja del 1° sobre el 2°' });
+        const totalX = sorted.reduce((s, e) => s + (e.pts || 0), 0);
+        if (totalX > 0) cardsX.push({ icon: '🧮', value: totalX, label: 'puntos repartidos' });
+        statsChipsHtml = cardsX.map(c =>
+          `<div class="pr-stat-card"><span class="pr-stat-icon">${c.icon}</span>`
+          + `<span class="pr-stat-value">${c.value}</span>`
+          + `<span class="pr-stat-label">${c.label}</span></div>`
+        ).join('');
+      }
+    } else {
     const ps = computePhaseStats(phaseKind === 'individual' ? 'individual' : 'grupal');
     if (ps.matchesPlayed > 0) {
       const cards = [];
@@ -17394,6 +17422,7 @@ function podiumReveal(phaseKind, onContinue) {
       if (ps.draws > 0) facts.push(`Hubo ${ps.draws} empate${ps.draws === 1 ? '' : 's'} en esta fase.`);
       facts.push(`Se jugaron ${ps.matchesPlayed} partido${ps.matchesPlayed === 1 ? '' : 's'} en esta fase.`);
       if (facts.length) factText = facts[Math.floor(Math.random() * facts.length)];
+    }
     }
   } catch (e) {}
 
