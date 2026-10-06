@@ -4577,8 +4577,8 @@ function renderReglas() {
 
   // Progreso real de una estación, según los resultados ya cargados en el fixture
   function stationProgress(phase, idx) {
-    const fixture = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-    const st = (phase === 'f1' ? state.f1 : state.f2) || {};
+    const fixture = phaseCtx(phase).fixture;
+    const st = phaseCtx(phase).store || {};
     const matches = fixture.filter(m => m[3] === idx);
     if (!matches.length) return null;
     const doneCount = matches.filter(m => st[`${m[0]}-${m[1]}-${m[2]}`]).length;
@@ -6961,7 +6961,7 @@ function toggleFixtureEdit(phase) {
 }
 
 function saveFixtureMatch(phase, matchIdx, selectA, selectB, selectG) {
-  const fixture = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
+  const fixture = phaseCtx(phase).fixture;
   const newA = parseInt(selectA.value);
   const newB = parseInt(selectB.value);
   const newG = parseInt(selectG.value);
@@ -6982,7 +6982,7 @@ function saveFixtureMatch(phase, matchIdx, selectA, selectB, selectG) {
   // Remove old result if players changed
   const newKey = `${match[0]}-${newA}-${newB}`;
   if (oldKey !== newKey) {
-    const store = phase === 'f1' ? state.f1 : state.f2;
+    const store = phaseCtx(phase).store;
     if (store[oldKey]) { delete store[oldKey]; }
   }
   // Recompute byes for F1 y F2
@@ -7425,9 +7425,9 @@ function renderNextMatch(phase) {
   const el = document.getElementById('next-match-' + phase);
   if (!el) return;
   if(phase==='f2'){const id=nextCommonRound();if(id&&!id.startsWith('duel:')){el.innerHTML=commonRoundHtml(id,commonRoundNumber(id));return;}}
-  const fixture = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-  const stateMap = phase === 'f1' ? state.f1 : state.f2;
-  const names   = phase === 'f1' ? PLAYERS : TEAMS;
+  const fixture = phaseCtx(phase).fixture;
+  const stateMap = phaseCtx(phase).store;
+  const names   = rosterOfPhase(phase);
   const games   = phase === 'f1' ? GAMES_F1 : (RULES_CONFIG ? RULES_CONFIG.f2.map(g => g.name) : []);
   const colors  = phase === 'f1' ? GAME_COLORS_F1 : (typeof GAME_COLORS_F2 !== 'undefined' ? GAME_COLORS_F2 : []);
   const dotCls  = phase === 'f1' ? 'fase1' : 'fase2';
@@ -7473,7 +7473,7 @@ function setWhoFilter(phase, value) {
 function renderMyNext(phase) {
   const el = document.getElementById('my-next-' + phase);
   if (!el) return;
-  const names = phase === 'f1' ? PLAYERS : TEAMS;
+  const names = rosterOfPhase(phase);
   const who = _whoFilter[phase];
   const label = phase === 'f1' ? 'jugador' : 'equipo';
   const selectOpts = [`<option value="">🔍 Buscá tu nombre (${label})…</option>`]
@@ -7487,8 +7487,8 @@ function renderMyNext(phase) {
   }
 
   const idx = parseInt(who);
-  const fixture = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-  const stateMap = phase === 'f1' ? state.f1 : state.f2;
+  const fixture = phaseCtx(phase).fixture;
+  const stateMap = phaseCtx(phase).store;
   const games = phase === 'f1' ? GAMES_F1 : (RULES_CONFIG ? RULES_CONFIG.f2.map(g => g.name) : []);
   const mine = fixture.filter(([r, a, b]) => a === idx || b === idx);
   const pending = mine.filter(([r, a, b]) => !stateMap[`${r}-${a}-${b}`]).sort((x, y) => x[0] - y[0]);
@@ -7708,7 +7708,7 @@ let modalCtx = null;
 
 function openModal(phase, key, game, nameA, nameB, idxA, idxB) {
   modalCtx = { phase, key, game, nameA, nameB, idxA, idxB };
-  const existing = phase === 'f1' ? state.f1[key] : state.f2[key];
+  const existing = phaseCtx(phase).store[key];
 
   document.querySelector('.modal').classList.toggle('f2', phase === 'f2');
 
@@ -7832,7 +7832,7 @@ function saveResult() {
   }
 
   // ── Regular save ───────────────────────────────────────────
-  const store = modalCtx.phase === 'f1' ? state.f1 : state.f2;
+  const store = phaseCtx(modalCtx.phase).store;
   // Store previous value for undo
   _lastResult = {
     phase: modalCtx.phase,
@@ -7915,7 +7915,7 @@ function resolvePendingComodines(phase, key, winner, bonus) {
 function applyResultadoSilencioso(phase, key, winner, bonus) {
   // Fases nuevas: solo ganador/empate (los puntos salen de la configuración de la fase); sin bonus ni comodines.
   if (phase !== 'f1' && phase !== 'f2') { phaseCtx(phase).store[key] = { winner, t: Date.now() }; return resolvePendingComodines(phase, key, winner, false); }
-  const store = phase === 'f1' ? state.f1 : state.f2;
+  const store = phaseCtx(phase).store;
   store[key] = { winner, bonus, t: Date.now() };
   return resolvePendingComodines(phase, key, winner, bonus);
 }
@@ -9129,7 +9129,7 @@ function renderWallPanel() {
 
 function undoLastResult() {
   if (!_lastResult) return;
-  const store = _lastResult.phase === 'f1' ? state.f1 : state.f2;
+  const store = phaseCtx(_lastResult.phase).store;
   if (_lastResult.prev === null) {
     delete store[_lastResult.key];
   } else {
@@ -9146,7 +9146,7 @@ function undoLastResult() {
 }
 
 function deleteResult() {
-  const store = modalCtx.phase === 'f1' ? state.f1 : state.f2;
+  const store = phaseCtx(modalCtx.phase).store;
   _lastResult = {
     phase: modalCtx.phase,
     key: modalCtx.key,
@@ -12003,9 +12003,9 @@ let _prevPodiumTop3F2 = '';
 // Victorias/derrotas por entidad (jugador en f1, equipo en f2), desde los fixtures.
 // Sirve para el 🔥 (3+ victorias) / 🤡 (3+ derrotas) del podio.
 function getWinLoss(phase) {
-  const entities = phase === 'f1' ? PLAYERS : TEAMS;
-  const fixture  = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-  const map      = phase === 'f1' ? state.f1 : state.f2;
+  const entities = rosterOfPhase(phase);
+  const fixture  = phaseCtx(phase).fixture;
+  const map      = phaseCtx(phase).store;
   const wl = {};
   entities.forEach(n => { wl[n] = { wins: 0, losses: 0 }; });
   fixture.forEach(([r, a, b]) => {
@@ -13087,8 +13087,8 @@ function resetElencoEdits() {
 const PANIC_BACKUP = 'ndj_panic_backup';
 
 function panicInfo(fase) {
-  const fx    = fase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-  const store = fase === 'f1' ? state.f1 : state.f2;
+  const fx    = phaseCtx(fase).fixture;
+  const store = phaseCtx(fase).store;
   const rondas = [...new Set(fx.map(m => m[0]))].sort((a, b) => a - b);
   const jugadas = rondas.filter(r =>
     fx.some(m => m[0] === r && store[m[0] + '-' + m[1] + '-' + m[2]]));
@@ -16898,7 +16898,7 @@ function combinedChronoEntriesOuter() {
   const entries = [];
   combined.forEach(({ type, m }, fixtureIdx) => {
     const [r, a, b, g] = m;
-    const bucket = type === 'f1' ? state.f1 : state.f2;
+    const bucket = phaseCtx(type).store;
     const res = bucket[`${r}-${a}-${b}`];
     if (!res) return;
     entries.push({ type, r, a, b, g, res, fixtureIdx, key: `${r}-${a}-${b}`, t: (typeof res.t === 'number' ? res.t : null) });

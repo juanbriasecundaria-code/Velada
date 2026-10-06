@@ -52,6 +52,8 @@ function node(){const classes=new Set();return {innerHTML:'',textContent:'',valu
  // El editor se renderiza con todas las estaciones originales, incluso sin bonus_label.
  const els={};const rules=context({bracketQTexto:()=>'',document:{getElementById:id=>els[id]||(els[id]=node())},setTimeout(){},_reglasAllExpanded:false,_rulesEditMode:true,_ctrlPanelOpen:false,FINAL_CONFIG:null,FINAL_CONFIG_DEFAULT:{nota:'',intro:'',formato:'',puntos:''},COMODINES:[],COMODIN_WHEN_LABEL:{},F1_FIXTURE:[],F2_FIXTURE:[],TEAMS:['A','B','C'],state:{f1:{},f2:{}},canEditStations:()=>true,initReglasScrollSpy(){},RoundPlan:{order:()=>[]}});
  const html=read('velada.html');vm.runInContext(extract(html,'const RULES_DEFAULT =','function _applyRulesParsed'),rules);vm.runInContext('RULES_CONFIG=JSON.parse(JSON.stringify(RULES_DEFAULT));GAMES_F2=RULES_CONFIG.f2.map(g=>g.name);',rules);
+ Object.assign(rules,{F1_FIXTURE:[],GAMES_F1:[],PLAYERS:rules.PLAYERS||[],TEAMS:rules.TEAMS||[],state:rules.state||{f1:{},f2:{}}});
+ vm.runInContext(extract(html,'// Fases con cruces: f1','function computeAutoResultadosRows'),rules);
  vm.runInContext(extract(html,'function renderReglas()','// ── Chips sticky'),rules);
  // Todas las referencias de interfaz adicionales se resuelven explícitamente debajo.
  rules.renderReglas();assert(els['reglas-root'].innerHTML.includes('rule-edit-f2-7-bonus_label'));
