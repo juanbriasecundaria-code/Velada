@@ -45,6 +45,9 @@ button.gold{background:var(--gold);color:#14141c;border-color:var(--gold)}
 #timer{font:800 22px ui-monospace,Menlo,monospace;color:var(--gold);text-align:center;margin:8px 0}
 .chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0;font-size:12px;color:var(--muted);align-items:center}
 .chips .b{padding:6px 10px;min-height:36px;font-size:13px}.chips .b.sel{border-color:var(--gold);color:var(--gold)}
+#cgate{display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:18px}
+#cgate .b{min-height:36px;padding:6px 12px;font-size:12px;color:var(--muted)}
+#cgate input{background:var(--surface2);color:var(--text);border:1.5px solid var(--border);border-radius:10px;padding:8px 10px;font-size:14px;width:130px;min-height:36px}
 #over{position:fixed;inset:0;background:rgba(10,10,14,.94);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;z-index:100}
 #over.show{display:flex}#over .big{font-size:84px}#over h2{font-size:30px}#over p{color:var(--muted);max-width:320px}
 </style>
@@ -59,6 +62,7 @@ button.gold{background:var(--gold);color:#14141c;border-color:var(--gold)}
   <div id="rows"></div>
   <div class="foot">3 casilleros tachados = <b>1 corona</b> 👑</div>
 </div>
+<div id="cond" hidden>
 <div class="score">
   <div><div class="crowns" id="mine"></div><div style="font-size:12px;color:var(--muted)">Nuestras coronas</div></div>
   <div class="rv"><span>Rival</span><button class="b" id="rvm">−</button><b id="rvn" style="font-size:20px;color:var(--text)">0</b><button class="b" id="rvp">+</button></div>
@@ -66,6 +70,8 @@ button.gold{background:var(--gold);color:#14141c;border-color:var(--gold)}
 <div id="timer"></div>
 <div class="chips" id="chips"></div>
 <div class="tools"><button class="b" id="undo">↩️ Deshacer</button><button class="b" id="tbtn">⏱️ Iniciar tiempo</button><button class="b" id="rst">🔄 Reiniciar</button></div>
+</div>
+<div id="cgate"><button class="b" id="clock">🔒 Conductor</button><span id="cpass" hidden><input id="cpi" type="password" placeholder="Contraseña" autocomplete="off"> <button class="b gold" id="cok">Entrar</button></span></div>
 <div id="over"><div class="big" id="ov-i"></div><h2 id="ov-t"></h2><p id="ov-p"></p><button class="b gold" id="ov-r">🔄 Reiniciar y seguir jugando</button><button class="b" id="ov-c">Ver la hoja</button></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -77,6 +83,9 @@ button.gold{background:var(--gold);color:#14141c;border-color:var(--gold)}
 <script>
 const L=CarreraLogic, q=new URLSearchParams(location.search), $=id=>document.getElementById(id);
 let match=null, connected=false, db=null, S=L.fresh(3), dismissed=false;
+const CONDUCTOR_PASS='100'; // ← cambiá la contraseña del conductor acá
+let COND=false; try{COND=sessionStorage.getItem('carrera_mode')==='conductor';}catch(e){}
+let cfgRef=null, lastCfg='';
 let hojas={}, hojasRef=null, hojasId=null, hojasLoaded=false, lastPub='';
 const KEY=()=>'carrera_v1_'+(match&&match.id||'manual');
 function load(){try{const r=JSON.parse(localStorage.getItem(KEY()));if(r&&r.cells)return r;}catch(e){}return L.fresh(3);}
@@ -113,11 +122,28 @@ function syncRival(){
   const n=teamCrowns(rivalSide());
   if(n!==S.rival){L.applyRival(S,n,Date.now());dismissed=false;save();}
 }
+const cfgPath=()=>BuzzerRounds.paths.carrera+'/config/'+safeKey(match.id);
+function publishCfg(){
+  if(!COND||!db||!connected||!match||!match.active)return;
+  const c={target:S.target,mins:S.mins,endAt:S.endAt||null}, sig=match.id+'|'+JSON.stringify(c);
+  if(sig===lastCfg)return; lastCfg=sig;
+  db.ref(cfgPath()).set({...c,t:firebase.database.ServerValue.TIMESTAMP}).catch(()=>{lastCfg='';});
+}
+function onCfg(c){
+  if(COND||!c)return;
+  let ch=false;
+  if(c.target&&c.target!==S.target){S.target=c.target;ch=true;}
+  if((c.mins|0)!==S.mins){S.mins=c.mins|0;ch=true;}
+  const e=c.endAt||null; if(e!==S.endAt){S.endAt=e;ch=true;}
+  if(ch){L.settle(S,Date.now());save();render();}
+}
 function watchHojas(){
   const id=match&&match.id||null; if(id===hojasId)return;
   if(hojasRef){hojasRef.off();hojasRef=null;}
-  hojas={};hojasLoaded=false;hojasId=id;lastPub='';
+  if(cfgRef){cfgRef.off();cfgRef=null;}
+  hojas={};hojasLoaded=false;hojasId=id;lastPub='';lastCfg='';
   if(!id||!db)return;
+  cfgRef=db.ref(cfgPath());cfgRef.on('value',s=>onCfg(s.val()),()=>{});
   hojasRef=db.ref(hojasPath());
   hojasRef.on('value',s=>{hojas=s.val()||{};hojasLoaded=true;render();},()=>{hojasLoaded=false;});
 }
@@ -153,7 +179,7 @@ function render(){
     $('ov-p').textContent=L.crowns(S.cells)+' a '+S.rival+' en coronas'+(o.reason==='tiempo'?' · terminó el tiempo':'')+'. El conductor carga el resultado desde la velada.';
   }
   $('over').classList.toggle('show',!!o&&!dismissed);
-  tick();publish();
+  tick();publish();publishCfg();
 }
 function tick(){
   if(S.endAt&&!S.over){const left=S.endAt-Date.now();if(left<=0){L.settle(S,Date.now());save();render();return;}
@@ -195,6 +221,24 @@ $('rst').onclick=restart;$('ov-r').onclick=()=>act(()=>{S=L.restart(S);});$('ov-
     BuzzerAutoLive.watchReset('carrera',()=>db,()=>{S=L.restart(S);dismissed=false;save();render();});
   }catch(e){console.warn('Sin Firebase: modo manual',e);}
 })();
+// ── Modo conductor (contraseña): solo él ve Coronas para ganar, Tiempo, Rival y herramientas ──
+function applyCond(on){
+  COND=on; try{sessionStorage.setItem('carrera_mode',on?'conductor':'');}catch(e){}
+  $('cond').hidden=!on; $('cpass').hidden=true; $('cpi').value='';
+  $('clock').textContent=on?'🔓 Salir de modo conductor':'🔒 Conductor';
+  if(on){lastCfg='';publishCfg();}
+}
+function condCheck(){
+  if($('cpi').value.trim()===CONDUCTOR_PASS)applyCond(true);
+  else{alert('Contraseña incorrecta');$('cpi').value='';}
+}
+$('clock').onclick=()=>{
+  if(COND){applyCond(false);return;}
+  $('cpass').hidden=!$('cpass').hidden; if(!$('cpass').hidden)setTimeout(()=>$('cpi').focus(),50);
+};
+$('cok').onclick=condCheck;
+$('cpi').onkeydown=e=>{if(e.key==='Enter')condCheck();};
+applyCond(COND);
 S=load();render();
 </script>
 </body>
