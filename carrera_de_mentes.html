@@ -121,21 +121,30 @@ function watchHojas(){
   hojasRef=db.ref(hojasPath());
   hojasRef.on('value',s=>{hojas=s.val()||{};hojasLoaded=true;render();},()=>{hojasLoaded=false;});
 }
+// Evita reconstruir el DOM si no cambió: así no parpadean las fotos ni los casilleros ya marcados
+const _html={};
+function setHtml(id,h){if(_html[id]===h)return;_html[id]=h;$(id).innerHTML=h;}
+let rowsCache=[];
+function setRows(list){
+  const el=$('rows');
+  if(el.children.length!==list.length){el.innerHTML=list.join('');rowsCache=list.slice();return;}
+  list.forEach((h,i)=>{if(rowsCache[i]!==h){const t=document.createElement('div');t.innerHTML=h;el.replaceChild(t.firstChild,el.children[i]);rowsCache[i]=h;}});
+}
 function render(){
   syncRival();
   const valid=match&&match.active, visitor=q.has('match');
   const stale=visitor&&(!valid||q.get('match')!==match.id);
-  $('gate').innerHTML=stale?'El cruce cambió. <a href="index.html?game=carrera">Volvé a elegir tu nombre</a>':
-    valid?'Ronda '+match.round+(connected?'':' · Sin conexión: la hoja se guarda en este celular'):'Partida manual · sin cruce asignado';
-  $('vs').innerHTML=valid?teamHtml('a')+'<i>VS</i>'+teamHtml('b'):'';
+  setHtml('gate',stale?'El cruce cambió. <a href="index.html?game=carrera">Volvé a elegir tu nombre</a>':
+    valid?'Ronda '+match.round+(connected?'':' · Sin conexión: la hoja se guarda en este celular'):'Partida manual · sin cruce asignado');
+  setHtml('vs',valid?teamHtml('a')+'<i>VS</i>'+teamHtml('b'):'');
   $('who').textContent=valid?'EQUIPO: '+match.names[mySide()]+(q.get('player')?' · '+q.get('player'):''):'NOMBRE: ________';
-  $('rows').innerHTML=L.CATS.map((c,r)=>'<div class="row'+(S.cells[r].every(Boolean)?' full':'')+'" style="--c:'+c.c+'"><div class="ltr">'+c.k+'</div><div class="nm"><b><em>'+c.e+'</em>'+c.n.toUpperCase()+'</b><span>'+c.s+'</span></div><div class="boxes">'+
-    S.cells[r].map((v,i)=>'<button class="box'+(v?' on':'')+'" data-r="'+r+'" data-i="'+i+'" aria-label="'+c.n+' casillero '+(i+1)+'">'+(v?'✕':'')+'</button>').join('')+'</div></div>').join('');
+  setRows(L.CATS.map((c,r)=>'<div class="row'+(S.cells[r].every(Boolean)?' full':'')+'" style="--c:'+c.c+'"><div class="ltr">'+c.k+'</div><div class="nm"><b><em>'+c.e+'</em>'+c.n.toUpperCase()+'</b><span>'+c.s+'</span></div><div class="boxes">'+
+    S.cells[r].map((v,i)=>'<button class="box'+(v?' on':'')+'" data-r="'+r+'" data-i="'+i+'" aria-label="'+c.n+' casillero '+(i+1)+'">'+(v?'✕':'')+'</button>').join('')+'</div></div>'));
   const n=L.crowns(S.cells);
   const auto=liveOn()&&hojasLoaded;
   $('rvp').disabled=$('rvm').disabled=auto;document.querySelector('.rv span').textContent=auto?'Rival · en vivo':'Rival';
   $('mine').textContent=n?'👑'.repeat(n):'—';$('rvn').textContent=S.rival;
-  $('chips').innerHTML='Coronas para ganar: '+[1,2,3,4,5].map(t=>'<button class="b'+(S.target===t?' sel':'')+'" data-t="'+t+'">'+t+'</button>').join('')+'<br style="flex-basis:100%">Tiempo: '+[0,5,10,15].map(m=>'<button class="b'+(S.mins===m?' sel':'')+'" data-m="'+m+'">'+(m?m+' min':'Sin límite')+'</button>').join('');
+  setHtml('chips','Coronas para ganar: '+[1,2,3,4,5].map(t=>'<button class="b'+(S.target===t?' sel':'')+'" data-t="'+t+'">'+t+'</button>').join('')+'<br style="flex-basis:100%">Tiempo: '+[0,5,10,15].map(m=>'<button class="b'+(S.mins===m?' sel':'')+'" data-m="'+m+'">'+(m?m+' min':'Sin límite')+'</button>').join(''));
   $('tbtn').disabled=!S.mins||!!S.endAt||!!S.over;$('undo').disabled=!S.hist.length;
   const o=S.over;
   if(o&&!dismissed){
