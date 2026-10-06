@@ -46,7 +46,7 @@
       button.style.cssText='display:flex;flex-direction:column;gap:5px;align-items:center';
       button.insertAdjacentHTML('beforeend',avatarHtml(p.name));
       const n=document.createElement('span');n.textContent=p.name;button.append(n);
-      if(match.phase==='f2' && !match.group){
+      if(match.phase!=='f1' && !match.group && p.teamLabel!==p.name){
         const team=document.createElement('small');team.style.cssText='font-size:11px;opacity:.65';team.textContent=p.teamLabel;button.append(team);
       }
       button.onclick=()=>choose(p);wrap.append(button);
@@ -77,7 +77,7 @@
     nameA=match.names.a;nameB=match.names.b;
     oldTeam(p.side);
     document.getElementById('bz-game-tag').textContent=GAME_META[currentGame].name+' · Ronda '+match.round;
-    document.getElementById('bz-team-name').textContent=p.name+(match.phase==='f2'?' · '+p.teamLabel:'');
+    document.getElementById('bz-team-name').textContent=p.name+(match.phase!=='f1' && p.teamLabel!==p.name?' · '+p.teamLabel:'');
   }
   selectGame=function(game){
     clear();box.style.display='';

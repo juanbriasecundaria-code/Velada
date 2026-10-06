@@ -4066,7 +4066,7 @@ body.solo-impostor #tv-btn{ opacity:.42 }
   cursor:pointer; font-family:inherit; padding:1px }
 </style>
 <style>.hub-link{position:fixed;top:max(0.75rem,env(safe-area-inset-top));left:max(0.75rem,env(safe-area-inset-left));z-index:99999;font-size:11px;font-weight:700;color:rgba(240,239,232,0.7);background:rgba(10,10,14,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:99px;padding:0.38rem 0.85rem;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);letter-spacing:0.04em;transition:color 0.15s,border-color 0.15s;white-space:nowrap}.hub-link:hover{color:#f0efe8;border-color:rgba(255,255,255,0.25)}body:has(.ceremony.show) .hub-link{display:none}</style><script src="team-maps.js?v=20261005d"></script><script src="buzzer-rounds.js?v=20261005e"></script>
-<script src="velada-rounds.js?v=20261005d"></script>
+<script src="velada-rounds.js?v=20261007fx3"></script>
 <script src="common-rounds.js?v=20261005teg1"></script>
 </head>
 <body>
@@ -6336,7 +6336,11 @@ function syncFixtureToFirebase() {
       f2: { fixture: F2_FIXTURE, teams: TEAMS, fullNames: FULL_NAMES, games: GAMES_F2, roundOrder: state.roundOrder || [] },
       updated: Date.now()
     };
-    const firma = JSON.stringify({ f1: payload.f1, f2: payload.f2 });
+    // Fases nuevas (f3, f4…): mismo formato que f2, para que los juegos lean sus cruces.
+    extraPhases().forEach(p => {
+      payload[p.id] = { fixture: p.fixture || [], teams: p.tipo === 'individual' ? PLAYERS : TEAMS, players: PLAYERS, fullNames: FULL_NAMES, games: p.games || [], nombre: p.nombre || p.id };
+    });
+    const firma = JSON.stringify(Object.assign({}, payload, { updated: 0 }));
     if (firma === window._fixtureFirma) return; // no cambió nada, no re-escribir
     window._fixtureFirma = firma;
     Promise.resolve(window._rtdb.ref('velada/fixture').set(payload)).catch(e => {
@@ -6580,8 +6584,7 @@ function resetBuzzers(){
     db.ref(p).set(payload)
       .then(() => { ok++; if(ok === 2) {
         state.activeMatches = (state.activeMatches || []).filter(active => {
-          const fixture = active.phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-          const games = active.phase === 'f1' ? GAMES_F1 : GAMES_F2;
+          const pc = phaseCtx(active.phase), fixture = pc.fixture, games = pc.games;
           const match = fixture.find(m => m[0]+'-'+m[1]+'-'+m[2] === active.key);
           return match && !['movies', 'argentinos'].includes(BuzzerRounds.gameId(games[match[3]]));
         });
@@ -7872,8 +7875,8 @@ function saveResult() {
 // de los jugadores/equipos involucrados se resuelven solos y quedan
 // registrados con su delta.
 function resolvePendingComodines(phase, key, winner, bonus) {
-  const ROSTER = phase === 'f1' ? PLAYERS : TEAMS;
-  const comosArr = phase === 'f1' ? 'comodines' : 'comodinesF2';
+  const ROSTER = rosterOfPhase(phase);
+  const comosArr = comosArrName(phase);
   const parts = String(key).split('-').map(Number);
   const a = parts[1], b = parts[2];
   if (isNaN(a) || isNaN(b)) return [];
@@ -7910,6 +7913,8 @@ function resolvePendingComodines(phase, key, winner, bonus) {
 // "Cargar resultados automáticamente" para volcar varios cruces de una vez
 // y mostrar un único resumen al final, en vez de un toast por cruce.
 function applyResultadoSilencioso(phase, key, winner, bonus) {
+  // Fases nuevas: solo ganador/empate (los puntos salen de la configuración de la fase); sin bonus ni comodines.
+  if (phase !== 'f1' && phase !== 'f2') { phaseCtx(phase).store[key] = { winner, t: Date.now() }; return resolvePendingComodines(phase, key, winner, false); }
   const store = phase === 'f1' ? state.f1 : state.f2;
   store[key] = { winner, bonus, t: Date.now() };
   return resolvePendingComodines(phase, key, winner, bonus);
@@ -7956,21 +7961,41 @@ function primeraRondaNoCargada(fixture, roster, store) {
   return rondas.length ? rondas[rondas.length - 1] + 1 : null; // todo cargado
 }
 
+// Fases con cruces: f1 (vacía), f2 (Fase grupal) y las fases nuevas (f3, f4…).
+function extraPhases() { return (typeof getPhases === 'function' ? getPhases() : []).filter(p => p.id !== 'f1' && p.id !== 'f2'); }
+function phaseCtx(phase) {
+  if (phase === 'f1') return { fixture: F1_FIXTURE, games: GAMES_F1, roster: PLAYERS, store: state.f1, label: '' };
+  if (phase === 'f2') return { fixture: F2_FIXTURE, games: GAMES_F2, roster: TEAMS, store: state.f2, label: '' };
+  const p = (typeof phaseById === 'function' && phaseById(phase)) || {};
+  if (!state[phase]) state[phase] = {};
+  const nm = String((p.emoji || '') + ' ' + (p.nombre || phase)).trim().replace(/[<>&"']/g, '');
+  return { fixture: p.fixture || [], games: p.games || [], roster: p.tipo === 'individual' ? PLAYERS : TEAMS, store: state[phase], label: nm };
+}
+// Comodines (ruleta) por fase: f1 → 'comodines', f2 → 'comodinesF2', fases nuevas → 'comodines_<id>'.
+function comosArrName(phase) { return phase === 'f1' ? 'comodines' : phase === 'f2' ? 'comodinesF2' : 'comodines_' + phase; }
+function rosterOfPhase(phase) {
+  if (phase === 'f1') return PLAYERS;
+  if (phase === 'f2') return TEAMS;
+  const p = (typeof phaseById === 'function' && phaseById(phase)) || null;
+  return p && p.tipo === 'individual' ? PLAYERS : TEAMS;
+}
+function rerenderPhase(phase) {
+  if (phase === 'f1') renderFase1();
+  else if (phase === 'f2') renderFase2();
+  else if (typeof FasesExtra !== 'undefined') FasesExtra.render(phase);
+}
 function computeAutoResultadosRows() {
   const resultados = window._autoResultados || {};
   const rows = commonAutoRows();
   const order=ensureCommonRoundOrder();
   const firstPending=order.findIndex(id=>!commonRoundDone(id));
-  ['f2'].forEach(phase => {
-    const fixture = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-    const games = phase === 'f1' ? GAMES_F1 : GAMES_F2;
-    const roster = phase === 'f1' ? PLAYERS : TEAMS;
-    const store = phase === 'f1' ? state.f1 : state.f2;
+  ['f2'].concat(extraPhases().map(p => p.id)).forEach(phase => {
+    const pc = phaseCtx(phase), fixture = pc.fixture, games = pc.games, roster = pc.roster, store = pc.store;
     const rondaLimite = primeraRondaNoCargada(fixture, roster, store);
     fixture.forEach(([round, a, b, g]) => {
       if (!roster[a] || !roster[b]) return;
       if (phase==='f2' && firstPending>=0 && order.indexOf('duel:'+round)>firstPending) return;
-      if (phase==='f1' && rondaLimite !== null && round > rondaLimite) return; // ronda futura: todavía no se habilita
+      if (phase!=='f2' && rondaLimite !== null && round > rondaLimite) return; // ronda futura: todavía no se habilita
       const key = round + '-' + a + '-' + b;
       const matchId = phase + '-' + key;
       const gameName = games[g];
@@ -7981,10 +8006,10 @@ function computeAutoResultadosRows() {
         // Ya se aplicó exactamente este resultado antes: no re-mostrarlo.
         if (state.autoResultadosAplicados && state.autoResultadosAplicados[matchId] === firma) return;
         rows.push({ status: 'auto', phase, round, a, b, g, key, matchId, gameName, gid, resultado, firma,
-          nameA: roster[a], nameB: roster[b] });
+          nameA: roster[a], nameB: roster[b], phaseLabel: pc.label });
       } else if (!store[key]) {
         rows.push({ status: 'pending', phase, round, a, b, g, key, matchId, gameName, gid,
-          nameA: roster[a], nameB: roster[b] });
+          nameA: roster[a], nameB: roster[b], phaseLabel: pc.label });
       }
     });
   });
@@ -8005,6 +8030,7 @@ function resultadoWinnerIdx(row) {
 
 // Reglas de puntaje (ver spec): bonus por juego, y el caso especial de
 function computeBonus(row) {
+  if (row.phase !== 'f1' && row.phase !== 'f2') return { bonus: false, adjust: null };
   const r = row.resultado;
   const marcador = r.marcador || {};
   const diff = Math.abs((marcador.a || 0) - (marcador.b || 0));
@@ -8040,6 +8066,7 @@ function computeBonus(row) {
 // Puntos previstos (solo para mostrar en el modal — el cálculo real de la
 // tabla lo hace siempre Puntos.jugadores/equipos vía RULES_CONFIG).
 function previewPts(phase, g, winner, bonus) {
+  if (phase !== 'f1' && phase !== 'f2') { const P = FasesView.pts(phaseById(phase) || {}); return winner === 'empate' ? P.draw : P.win; }
   const cfg = RULES_CONFIG && RULES_CONFIG[phase] && RULES_CONFIG[phase][g];
   if (winner === 'empate') return cfg ? cfg.pts_draw : 1;
   const winPts = cfg ? cfg.pts_win : 3, bonusPts = cfg ? cfg.pts_bonus : 1;
@@ -8062,13 +8089,12 @@ async function openAutoResultadosModal() {
       const results = resultSnap.val() || {};
       const updates = {};
       const valid = new Map();
-      ['f1','f2'].forEach(phase => {
-        const fixture = phase === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-        const games = phase === 'f1' ? GAMES_F1 : GAMES_F2;
+      ['f1','f2'].concat(extraPhases().map(p => p.id)).forEach(phase => {
+        const pc = phaseCtx(phase), fixture = pc.fixture, games = pc.games;
         fixture.forEach(([r,a,b,g]) => {
           const gid = BuzzerRounds.gameId(games[g]);
           if (gid) {
-            const roster = phase === 'f1' ? PLAYERS : TEAMS;
+            const roster = pc.roster;
             valid.set(phase+'-'+r+'-'+a+'-'+b+':'+gid, {a:roster[a],b:roster[b]});
           }
         });
@@ -8134,7 +8160,7 @@ function renderAutoResultadosModal() {
       return `<div class="match-row" style="flex-direction:column;align-items:stretch;gap:0.25rem;border-left:2px solid var(--accent)">
         <div style="display:flex;align-items:center;gap:0.5rem">
           <span class="match-game-badge" style="background:var(--surface2);color:var(--muted)">${row.gameName}</span>
-          <span class="match-players" style="font-size:12px;flex:1">${firstName(row.nameA)} vs ${firstName(row.nameB)} · R${row.round}</span>
+          <span class="match-players" style="font-size:12px;flex:1">${firstName(row.nameA)} vs ${firstName(row.nameB)} · R${row.round}${row.phaseLabel ? ' · ' + row.phaseLabel : ''}</span>
           <button class="btn btn-ghost" style="padding:0.2rem 0.5rem;font-size:11px" onclick="limpiarResultadoAuto('${row.matchId}')" title="Borra el resultado de Firebase para volver a jugarlo">🧹 Limpiar</button>
         </div>
         <div style="font-size:12px;color:var(--muted)">Marcador: ${marcador} · Ganador: <b style="color:var(--text)">${winnerName}</b>${b.bonus ? ' +bonus' : ''} · ${pts} pts</div>
@@ -8154,13 +8180,13 @@ function renderAutoResultadosModal() {
       return `<div class="match-row" style="flex-direction:column;align-items:stretch;gap:0.4rem">
         <div style="display:flex;align-items:center;gap:0.5rem">
           <span class="match-game-badge" style="background:var(--surface2);color:var(--muted)">${row.gameName}</span>
-          <span class="match-players" style="font-size:12px;flex:1">R${row.round} · ${firstName(row.nameA)} vs ${firstName(row.nameB)}</span>
+          <span class="match-players" style="font-size:12px;flex:1">R${row.round}${row.phaseLabel ? ' · ' + row.phaseLabel : ''} · ${firstName(row.nameA)} vs ${firstName(row.nameB)}</span>
         </div>
         <div style="display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center">
           <button class="modal-player-btn${selA}" style="flex:1;min-width:90px" onclick="setAutoManualWinner('${row.matchId}',${row.a})">${firstName(row.nameA)}</button>
           <button class="empate-btn${selE}" style="flex:1;min-width:90px" onclick="setAutoManualWinner('${row.matchId}','empate')">Empate</button>
           <button class="modal-player-btn${selB}" style="flex:1;min-width:90px" onclick="setAutoManualWinner('${row.matchId}',${row.b})">${firstName(row.nameB)}</button>
-          <button class="modal-player-btn${m.bonus ? ' selected' : ''}" style="flex:0 0 auto;min-width:70px" onclick="toggleAutoManualBonus('${row.matchId}')" ${m.winner === 'empate' || m.winner == null ? 'disabled' : ''}>+bonus</button>
+          <button class="modal-player-btn${m.bonus ? ' selected' : ''}" style="flex:0 0 auto;min-width:70px" onclick="toggleAutoManualBonus('${row.matchId}')" ${m.winner === 'empate' || m.winner == null || (row.phase !== 'f1' && row.phase !== 'f2') ? 'disabled' : ''}>+bonus</button>
         </div>
         ${row.gid ? '<div style="font-size:11px;color:var(--muted)">Sin marcador digital para este cruce. Revisá el modo conductor, la conexión y los participantes activos.</div>' : ''}
       </div>`;
@@ -8248,6 +8274,7 @@ function confirmAutoResultados() {
   }
   if (comoMsgsAll.length) setTimeout(() => showToast('🎰', comoMsgsAll.join(' · '), false), 1400);
   renderFase1(); renderFase2();
+  try { if (typeof FasesExtra !== 'undefined') FasesExtra.render(); } catch (e) {}
   updateNavProgress();
 }
 
@@ -8725,7 +8752,7 @@ function renderComodinesPanel(phase) {
   phase = phase || 'f1';
   const el = document.getElementById(phase === 'f1' ? 'comodines-f1' : 'comodines-f2');
   if (!el) return;
-  const comosArr = phase === 'f1' ? 'comodines' : 'comodinesF2';
+  const comosArr = comosArrName(phase);
   const list = state[comosArr] || [];
   const entityLabel = phase === 'f1' ? 'jugador' : 'equipo';
   const rows = list.slice().reverse().map(c => {
@@ -8760,10 +8787,10 @@ function renderComodinesPanel(phase) {
 function deleteComodin(id, phase) {
   phase = phase || 'f1';
   if (!confirm('¿Borrar este comodín? Si ya sumó/restó puntos, se revierte.')) return;
-  const comosArr = phase === 'f1' ? 'comodines' : 'comodinesF2';
+  const comosArr = comosArrName(phase);
   state[comosArr] = (state[comosArr] || []).filter(c => c.id !== id);
   saveState();
-  if (phase === 'f1') renderFase1(); else renderFase2();
+  rerenderPhase(phase);
 }
 
 // ── RULETA ───────────────────────────────────────────────────────────
@@ -8809,7 +8836,7 @@ function buildWheelSVG(names) {
 
 function openRuleta(phase) {
   _ruletaPhase = phase || 'f1';
-  const ROSTER = _ruletaPhase === 'f1' ? PLAYERS : TEAMS;
+  const ROSTER = rosterOfPhase(_ruletaPhase);
   if (!ROSTER.length) return;
   _resumeAudio();
   let ov = document.getElementById('ruleta-overlay');
@@ -8866,7 +8893,7 @@ function broadcastMote(payload) {
 function spinRuleta() {
   if (_ruletaBusy) return;
   _ruletaBusy = true;
-  const ROSTER = _ruletaPhase === 'f1' ? PLAYERS : TEAMS;
+  const ROSTER = rosterOfPhase(_ruletaPhase);
   const goBtn   = document.getElementById('ruleta-go');
   const svg     = document.getElementById('ruleta-wheel-svg');
   const nameEl  = document.getElementById('ruleta-result-name');
@@ -8924,7 +8951,7 @@ function spinRuleta() {
 }
 function revealComodin(player, cm) {
   const phase = _ruletaPhase;
-  const ROSTER = phase === 'f1' ? PLAYERS : TEAMS;
+  const ROSTER = rosterOfPhase(phase);
   const cardEl = document.getElementById('ruleta-card');
   const goBtn  = document.getElementById('ruleta-go');
   if (!cardEl) return;
@@ -8939,7 +8966,7 @@ function revealComodin(player, cm) {
 
   const actions = document.getElementById('rc-actions');
   const finish = (extra) => { applyComodin(player, cm, extra); };
-  const pickLabel = phase === 'f1' ? '¿A quién le saca el punto?' : '¿A qué equipo le saca el punto?';
+  const pickLabel = ROSTER === PLAYERS ? '¿A quién le saca el punto?' : '¿A qué equipo le saca el punto?';
 
   if (cm.when === 'target') {
     // Robo: elegir a quién sacarle el punto
@@ -8949,8 +8976,10 @@ function revealComodin(player, cm) {
     window._ruletaTarget = (victim) => finish({ victim });
   } else if (cm.when === 'donate') {
     // Donación: al último de la tabla (automático)
-    const pts = phase === 'f1' ? getPlayerPoints() : getTeamPoints();
-    const sorted = ROSTER.map((n, i) => ({ n, t: pts[i].total })).filter(x => x.n !== player).sort((a,b) => a.t - b.t);
+    let totalOf;
+    if (phase === 'f1' || phase === 'f2') { const pts = phase === 'f1' ? getPlayerPoints() : getTeamPoints(); totalOf = (n, i) => pts[i].total; }
+    else { const rk = FasesView.rank(phaseById(phase), state, PLAYERS, TEAMS); totalOf = n => { const r = rk.filter(x => x.n === n)[0]; return r ? r.pts : 0; }; }
+    const sorted = ROSTER.map((n, i) => ({ n, t: totalOf(n, i) })).filter(x => x.n !== player).sort((a,b) => a.t - b.t);
     const lucky = sorted.length ? sorted[0].n : null;
     actions.innerHTML = `<div class="rc-pick-label">El punto va para <b style="color:var(--success)">${lucky ? lucky.split(' ')[0] : '—'}</b> (último de la tabla)</div>
       <button class="ruleta-confirm" onclick="_ruletaConfirm()">Aplicar</button>`;
@@ -8964,7 +8993,7 @@ function revealComodin(player, cm) {
 }
 function applyComodin(player, cm, extra) {
   const phase = _ruletaPhase;
-  const comosArr = phase === 'f1' ? 'comodines' : 'comodinesF2';
+  const comosArr = comosArrName(phase);
   const id = 'c' + Date.now() + Math.floor(Math.random() * 999);
   const entry = { id, player, key: cm.key, status: 'pending', delta: 0, note: '', ts: Date.now() };
   if (cm.when === 'now') {
@@ -8984,7 +9013,7 @@ function applyComodin(player, cm, extra) {
   state[comosArr].push(entry);
   saveState();
   closeRuleta();
-  if (phase === 'f1') renderFase1(); else renderFase2();
+  rerenderPhase(phase);
   showToast(cm.emoji, player.split(' ')[0] + ' — ' + cm.name, false);
 }
 
@@ -9297,6 +9326,8 @@ function applyRestoredBackup(payload) {
       if (data.ndj_comodines)  window._fbWrite('comodines', data.ndj_comodines);
       if (data.ndj_wall)       window._fbWrite('wall', data.ndj_wall);
       if (data.ndj_miis)       window._fbWrite('miis', data.ndj_miis);
+      // Apuestas de las fases nuevas: viven en un documento aparte; se republican desde el estado restaurado.
+      try { const st = data.ndj_state ? JSON.parse(data.ndj_state) : null; if (st && st.betsX) window._fbWrite('betsX', JSON.stringify(st.betsX)); } catch (e) {}
     }
   } catch (e) { console.warn('restore: fallo al sincronizar con Firebase', e); }
 
@@ -9370,6 +9401,8 @@ function resetEverything() {
       // Comodines de la ruleta (Impostor y Fase grupal)
       state.comodines = [];
       state.comodinesF2 = [];
+      Object.keys(state).forEach(k => { if (k.indexOf('comodines_') === 0) state[k] = []; });
+      state.betsX = {}; state.betWindowX = {};
       // Ajustes manuales de puntos
       state.bonusManual = {};
       state.vsJC = {};
@@ -9399,6 +9432,7 @@ function resetEverything() {
       if (window._fbReady && window._fbWrite) {
         window._fbWrite('bets', '{}');
         window._fbWrite('betsF2', '{}');
+        window._fbWrite('betsX', '{}');
       }
       closeModal();
       activateTab('reglas');
@@ -9419,6 +9453,7 @@ function resetBets() {
       state.betsOverride = {};
       state.betsF2 = {};
       state.betsOverrideF2 = {};
+      state.betsX = {}; state.betWindowX = {};
       state.betWindow = { open: false, round: 0 };
       state.betWindowF2 = { open: false, round: 0 };
       saveState();
@@ -9430,6 +9465,7 @@ function resetBets() {
       if (window._fbReady && window._fbWrite) {
         window._fbWrite('bets', '{}');
         window._fbWrite('betsF2', '{}');
+        window._fbWrite('betsX', '{}');
       }
       closeModal();
       renderReglas();
@@ -18467,6 +18503,31 @@ window._ndjWall = JSON.stringify(_wall);
         }
       } catch(e) {}
     }).catch(() => {});
+    // Apuestas de las fases nuevas: { idFase: { "r-a-b": { apostador: idxGanador } } }
+    window._fbRead('betsX').then(data => {
+      if (!data) return;
+      try {
+        const remote = JSON.parse(data);
+        if (!remote || typeof remote !== 'object') return;
+        state.betsX = state.betsX || {};
+        let changed = false;
+        Object.keys(remote).forEach(pid => {
+          state.betsX[pid] = state.betsX[pid] || {};
+          Object.keys(remote[pid] || {}).forEach(key => {
+            state.betsX[pid][key] = state.betsX[pid][key] || {};
+            Object.keys(remote[pid][key] || {}).forEach(who => {
+              if (state.betsX[pid][key][who] !== remote[pid][key][who]) { state.betsX[pid][key][who] = remote[pid][key][who]; changed = true; }
+            });
+          });
+        });
+        if (changed) {
+          try { localStorage.setItem('ndj_state', JSON.stringify(state)); } catch(e) {}
+          window._ndjState = JSON.stringify(state);
+          const tab = document.querySelector('.nav-tab.active');
+          if (tab && tab.dataset.tab && tab.dataset.tab.indexOf('fx-') === 0 && typeof FasesExtra !== 'undefined') FasesExtra.render(tab.dataset.tab.slice(3));
+        }
+      } catch(e) {}
+    }).catch(() => {});
     // Personalización de figuras (color / pose / accesorio)
     window._fbRead('miis').then(data => {
       if (!data) return;
@@ -19170,5 +19231,5 @@ document.addEventListener('keydown', function(e) {
   }
 })();
 </script>
-<script src="ensayo-guiado.js?v=20261005e"></script>
-<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-view.js?v=20261006fx2"></script><script src="fases-extra.js?v=20261006fx3"></script>
+<script src="ensayo-guiado.js?v=20261007fx3"></script>
+<script src="duplas-fotos.js?v=20261005d"></script><script src="fases-view.js?v=20261007fx3"></script><script src="fases-extra.js?v=20261007fx3"></script>

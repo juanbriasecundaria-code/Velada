@@ -134,7 +134,7 @@
         (l.marcador.a !== 0 || l.marcador.b !== 0));
       if (next.live) next.score = m.nameA + ' ' + l.marcador.a + ' – ' + l.marcador.b + ' ' + m.nameB;
       next.result = !!results.val();
-      next.applied = !!((m.phase === 'f1' ? state.f1 : state.f2)[m.key]);
+      next.applied = !!((state[m.phase] || state.f2)[m.key]);
     } catch (e) { next.error = e.code || e.message || 'error de lectura'; }
     scan = next; busy = false; render();
   }

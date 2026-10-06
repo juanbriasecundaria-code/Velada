@@ -7,23 +7,30 @@
   window.buzzerRoundButton=function(phase,round){
     return '<button class="fixture-edit-toggle" style="margin-left:10px" onclick="activateBuzzerRound(\''+phase+'\','+round+',this)">▶ Activar ronda '+(typeof commonRoundNumber==='function'?commonRoundNumber('duel:'+round):round)+'</button>';
   };
-  function ctx(phase){return {players:PLAYERS,teams:TEAMS,fullNames:FULL_NAMES,games:GAMES_F2};}
+  // Datos de cada fase con cruces: la Fase grupal (f2) y las fases nuevas (f3, f4…).
+  function phaseData(phase){
+    if(phase==='f2') return {fixture:F2_FIXTURE,ctx:{players:PLAYERS,teams:TEAMS,fullNames:FULL_NAMES,games:GAMES_F2},label:r=>commonRoundNumber('duel:'+r)};
+    const p=(typeof phaseById==='function')?phaseById(phase):null;
+    if(!p) return {fixture:[],ctx:{players:PLAYERS,teams:TEAMS,fullNames:FULL_NAMES,games:[]},label:r=>r};
+    return {fixture:p.fixture||[],ctx:{players:PLAYERS,teams:p.tipo==='individual'?PLAYERS:TEAMS,fullNames:FULL_NAMES,games:p.games||[]},label:r=>r};
+  }
+  window.buzzerPhaseData=phaseData;
   async function publish(phase,matches,button,wholeRound){
     if(busy) return;
     const db=window._rtdb;
     if(!db || !db.ref().update){showToast('⚠️','Todavía no hay conexión. Probá de nuevo en unos segundos.',false);return;}
-    const context=ctx(phase), filtered=matches.filter(m=>BuzzerRounds.gameId(context.games[m[3]]));
+    const pd=phaseData(phase), context=pd.ctx, filtered=matches.filter(m=>BuzzerRounds.gameId(context.games[m[3]]));
     if(!filtered.length){showToast('ℹ️','No hay juegos vinculados en esa ronda.',false);return;}
     const games=filtered.map(m=>BuzzerRounds.gameId(context.games[m[3]]));
     if(new Set(games).size!==games.length){showToast('⚠️','Hay dos cruces del mismo juego. Activá cada cruce por separado.',false);return;}
-    if(!confirm('¿Activar '+(wholeRound?'la ronda '+commonRoundNumber('duel:'+filtered[0][0]):'este cruce')+' en los celulares?\n\nSe cambia la selección de participantes y se reinicia el marcador de los juegos activados. Los resultados del fixture no se modifican.')) return;
+    if(!confirm('¿Activar '+(wholeRound?'la ronda '+pd.label(filtered[0][0]):'este cruce')+' en los celulares?\n\nSe cambia la selección de participantes y se reinicia el marcador de los juegos activados. Los resultados del fixture no se modifican.')) return;
     busy=true;
     if(button) button.disabled=true;
     try{
       const token=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10), updates={};
       filtered.forEach((m,i)=>{
         const match=BuzzerRounds.buildMatch(phase,m,context,token+'-'+i);
-        match.round=commonRoundNumber('duel:'+m[0]);
+        match.round=pd.label(m[0]);
         updates[BuzzerRounds.paths[match.game]]=BuzzerRounds.initial(match);
       });
       // A full round closes stations with no match. Other stations stay independent on single activation.
@@ -39,16 +46,16 @@
       state.activeCommonRound = null;
       state.activeMatches = filtered.map(m => ({ phase, key: m[0]+'-'+m[1]+'-'+m[2] }));
       saveState();
-      showToast('🔔','Ronda '+commonRoundNumber('duel:'+filtered[0][0])+' publicada. Los celulares ya pueden elegir su nombre.',false);
+      showToast('🔔','Ronda '+pd.label(filtered[0][0])+' publicada. Los celulares ya pueden elegir su nombre.',false);
     }catch(e){showToast('⚠️','No se pudo activar: '+e.message,false);}
     finally{busy=false;if(button)button.disabled=false;}
   }
   window.activateBuzzerRound=function(phase,round,button){
-    const fx=F2_FIXTURE;
+    const fx=phaseData(phase).fixture;
     return publish(phase,fx.filter(m=>m[0]===round),button,true);
   };
   window.activateBuzzerMatch=function(phase,index,button){
-    const fx=F2_FIXTURE;
+    const fx=phaseData(phase).fixture;
     if(fx[index]) return publish(phase,[fx[index]],button,false);
   };
 })();

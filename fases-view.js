@@ -5,14 +5,41 @@
   function extras(state) { return (state && Array.isArray(state.phases) ? state.phases : []).filter(function (p) { return p && p.id !== 'f1' && p.id !== 'f2'; }); }
   function names(p, PL, TM) { return (p.tipo === 'individual' ? PL : TM) || []; }
   function pts(p) { var d = p.pts || {}; return { win: d.win != null ? +d.win : 3, draw: d.draw != null ? +d.draw : 1 }; }
+  function ownerIdx(rows, who, indiv) {
+    var w = String(who || '').trim().toLowerCase(), f = w.split(' ')[0], i;
+    for (i = 0; i < rows.length; i++) {
+      var n = String(rows[i].n).toLowerCase();
+      if (indiv ? n === w : String(rows[i].n).split('/').some(function (x) { x = x.trim().toLowerCase(); return x === w || x === f; })) return i;
+    }
+    return -1;
+  }
   function rank(p, state, PL, TM) {
-    var P = pts(p), res = (state && state[p.id]) || {}, rows = names(p, PL, TM).map(function (n, i) { return { i: i, n: n, pj: 0, g: 0, e: 0, p: 0, pts: 0 }; });
+    var P = pts(p), res = (state && state[p.id]) || {}, rows = names(p, PL, TM).map(function (n, i) { return { i: i, n: n, pj: 0, g: 0, e: 0, p: 0, pts: 0, bets: 0, como: 0 }; });
     (p.fixture || []).forEach(function (m) {
       var r = res[key(m)], A = rows[m[1]], B = rows[m[2]]; if (!r || !A || !B) return;
       A.pj++; B.pj++;
       if (r.winner === 'empate') { A.e++; B.e++; A.pts += P.draw; B.pts += P.draw; }
       else if (r.winner === m[1]) { A.g++; B.p++; A.pts += P.win; }
       else if (r.winner === m[2]) { B.g++; A.p++; B.pts += P.win; }
+    });
+    // Apuestas: cada acierto suma 1 al equipo del apostador (o a él mismo en fases individuales).
+    // Si apuesta a un duelo propio y lo pierde, se le anulan todos los puntos de apuestas.
+    var bx = (state && state.betsX && state.betsX[p.id]) || {}, indiv = p.tipo === 'individual', bs = {};
+    Object.keys(bx).forEach(function (k) {
+      var r = res[k]; if (!r || r.winner === 'empate') return;
+      var m = (p.fixture || []).filter(function (f) { return key(f) === k; })[0]; if (!m) return;
+      Object.keys(bx[k] || {}).forEach(function (who) {
+        var pick = bx[k][who]; if (typeof pick !== 'number') return;
+        var idx = ownerIdx(rows, who, indiv); if (idx < 0) return;
+        var t = bs[who] = bs[who] || { idx: idx, won: 0, blown: false };
+        if (pick === r.winner) t.won++; else if (m[1] === idx || m[2] === idx) t.blown = true;
+      });
+    });
+    Object.keys(bs).forEach(function (who) { var t = bs[who], net = t.blown ? 0 : t.won; if (net) { rows[t.idx].pts += net; rows[t.idx].bets += net; } });
+    // Comodines de la ruleta (ya resueltos)
+    ((state && state['comodines_' + p.id]) || []).forEach(function (c) {
+      if (!c || c.status !== 'done' || !c.delta) return;
+      var r = rows.filter(function (x) { return x.n === c.player; })[0]; if (r) { r.pts += +c.delta; r.como += +c.delta; }
     });
     ((state && state.adjust && state.adjust[p.id]) || []).forEach(function (a) {
       var r = rows.find(function (x) { return x.n === a.name; }); if (r) r.pts += (+a.pts || 0);
@@ -41,5 +68,5 @@
     var ex = extras(state); if (!ex.length) return '';
     return ex.map(function (p) { return '<div class="gh-card" style="margin-top:1rem;padding:.9rem;border-radius:14px;background:var(--surface,rgba(255,255,255,.04));border:1px solid var(--border2,rgba(255,255,255,.12))">' + html(p, state, PL, TM, opt) + '</div>'; }).join('');
   }
-  root.FasesView = { extras: extras, rank: rank, progress: progress, html: html, cards: cards, pts: pts, names: names };
+  root.FasesView = { ownerIdx: ownerIdx, extras: extras, rank: rank, progress: progress, html: html, cards: cards, pts: pts, names: names };
 })(typeof window !== 'undefined' ? window : globalThis);

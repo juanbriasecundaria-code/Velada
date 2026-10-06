@@ -65,3 +65,13 @@ El index.html del buzzer también está actualizado. Las transacciones de los ce
 Subir todo el proyecto, incluidos qld-turns.js, qld-timer.js e index.html. Recargar con Ctrl+F5 el hub, los conductores y participantes, y recargar los celulares. Se conservan los dos Firebase existentes.
 
 Pruebas nuevas: `node tests/qld-roster-modales.cjs`, `node tests/qld-widget.cjs` y `node tests/buzzer-confirmado.cjs`. Las pruebas usan las funciones reales de las pantallas con conexiones simuladas: verifican 30/30/30 segundos, el reloj de conductor/TV, rechazo de turnos obsoletos, formularios, roster previo de 2–5 grupos y confirmación compartida del orden del buzzer. No constituyen una comprobación con celulares en la web publicada.
+
+## Fases nuevas conectadas a los juegos, apuestas y comodines
+
+**Juegos digitales.** El fixture de cada fase nueva tiene "▶ Activar ronda N" (en las rondas con algún juego digital) y "🔄 Cargar resultados automáticamente". Activar publica el cruce en la estación del juego con la fase correspondiente (f3, f4…) y cierra las otras estaciones, igual que en la Fase grupal. El fixture de las fases nuevas se publica en `velada/fixture/<idFase>` con el mismo formato que `f2`. La carga automática usa el mismo modal: respeta el orden de rondas (no muestra la 2 hasta cargar la 1), no duplica resultados ya aplicados y muestra el nombre de la fase. En las fases nuevas solo se registra ganador o empate; los puntos salen de la configuración de la fase (sin bonus por juego). Los juegos físicos quedan como carga manual.
+
+**Apuestas.** Cada fase nueva tiene su ventana de apuestas (abrir/cerrar la primera ronda pendiente). Los invitados apuestan desde su celular; las apuestas se guardan en el documento `ndj/betsX` (`{idFase: {"r-a-b": {apostador: idxGanador}}}`) y el conductor las importa como las de la Fase grupal. Cada acierto suma 1 punto al equipo del apostador (al apostador si la fase es individual); si apuesta a su propio duelo y lo pierde, se anulan sus puntos de apuestas de esa fase. Reiniciar apuestas, Reiniciar todo y Restaurar backup también cubren `betsX`.
+
+**Comodines (ruleta).** Cada fase nueva tiene su botón "🎰 Ruleta de comodines" y su lista (`state.comodines_<idFase>`). Un comodín pendiente se resuelve al cargar el resultado del cruce (a mano o automático). Los comodines resueltos y las apuestas suman a la clasificación de la fase (columnas 🃏 y 🎰), que también ven la TV y los celulares.
+
+**Pruebas.** `node tests/fases-juegos.cjs` (conexión simulada): botón de activar, publicación del fixture, resultados automáticos, apuestas y comodines. Falta comprobarlo con celulares conectados a Firebase en la web publicada. Subir todo el proyecto y recargar con Ctrl+F5 (los scripts cambiaron de versión).

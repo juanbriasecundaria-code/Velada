@@ -30,6 +30,35 @@
   }
 
   function ranking(p) { return FasesView.rank(p, state, PLAYERS, TEAMS); }
+  // Primera ronda con algún cruce sin resultado (la que se puede apostar).
+  function pendingRound(p) {
+    var res = phaseResults(p.id), rs = [];
+    (p.fixture || []).forEach(function (m) { if (rs.indexOf(m[0]) < 0) rs.push(m[0]); });
+    rs.sort(function (a, b) { return a - b; });
+    for (var i = 0; i < rs.length; i++) if ((p.fixture || []).some(function (m) { return m[0] === rs[i] && !res[key(m)]; })) return rs[i];
+    return 0;
+  }
+  function betWin(id) { return (state.betWindowX && state.betWindowX[id]) || { open: false, round: 0 }; }
+  function betsHtml(p) {
+    var bw = betWin(p.id), pend = pendingRound(p), open = !!bw.open, who = {};
+    if (open && bw.round) (p.fixture || []).forEach(function (m) { if (m[0] === bw.round) Object.keys(((state.betsX || {})[p.id] || {})[key(m)] || {}).forEach(function (n) { who[n] = 1; }); });
+    var n = Object.keys(who).length, h = '<div class="section-header" style="margin-top:1.25rem"><span class="section-title">🃏 Apuestas ' + (open ? '· ABIERTAS' : '· cerradas') + '</span></div><div class="card" style="padding:0.75rem;font-size:13px">';
+    if (!(p.fixture || []).length) return h + 'Generá el fixture para habilitar apuestas.</div>';
+    if (open) h += 'Los invitados pueden apostar los duelos de la <b>Ronda ' + bw.round + '</b>. Cerralas antes de jugar.' + (n ? ' <b>' + n + ' ya apostaron.</b>' : '') + '<div style="margin-top:0.5rem"><button class="btn" onclick="FasesExtra.closeBets(\'' + p.id + '\')">🔒 Cerrar apuestas</button></div>';
+    else if (pend) h += 'Apuestas cerradas. Al abrirlas corresponden a la <b>Ronda ' + pend + '</b>. Cada acierto suma 1 punto ' + (p.tipo === 'individual' ? 'al apostador' : 'al equipo del apostador') + '; si apuesta a su propio duelo y lo pierde, se le anulan sus puntos de apuestas.<div style="margin-top:0.5rem"><button class="btn btn-primary" onclick="FasesExtra.openBets(\'' + p.id + '\')">🔓 Abrir apuestas · Ronda ' + pend + '</button></div>';
+    else h += 'No quedan rondas pendientes para apostar.';
+    return h + '</div>';
+  }
+  function comodinesHtml(p) {
+    var list = state['comodines_' + p.id] || [];
+    var h = '<div class="section-header" style="margin-top:1.25rem"><span class="section-title">🎰 Comodines</span></div><div class="card" style="padding:0.75rem"><button class="btn btn-primary" onclick="openRuleta(\'' + p.id + '\')">🎰 Ruleta de comodines</button>';
+    h += list.slice().reverse().map(function (c) {
+      var cm = (typeof comodinByKey === 'function' && comodinByKey(c.key)) || { emoji: '🎲', name: c.key };
+      var st = c.status === 'pending' ? '⏳ pendiente' : ((c.delta || 0) > 0 ? '+' : '') + (c.delta || 0) + ' pt' + (c.note ? ' · ' + esc(c.note) : '');
+      return '<div style="display:flex;gap:0.5rem;align-items:center;font-size:13px;padding:0.25rem 0"><span style="flex:1">' + esc(cm.emoji) + ' ' + esc(cm.name) + ' — <b>' + esc(String(c.player).split(' ')[0]) + '</b> · ' + st + '</span><button class="btn" onclick="deleteComodin(\'' + c.id + '\',\'' + p.id + '\')">✕</button></div>';
+    }).join('');
+    return h + '</div>';
+  }
 
   function pageHtml(p) {
     var names = roster(p), games = (p.games || []), res = phaseResults(p.id), locked = hasResults(p);
@@ -49,15 +78,18 @@
       '</div><div style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;font-size:13px;margin-top:0.6rem"><b>Puntos</b><label>Victoria <input type="number" min="0" max="20" value="' + FasesView.pts(p).win + '" style="width:3.5rem" onchange="FasesExtra.setPts(\'' + p.id + '\',\'win\',this.value)"></label><label>Empate <input type="number" min="0" max="20" value="' + FasesView.pts(p).draw + '" style="width:3.5rem" onchange="FasesExtra.setPts(\'' + p.id + '\',\'draw\',this.value)"></label></div></div>';
     // Ranking
     var rk = ranking(p), q = +p.clasifican.cantidad || 0;
-    h += '<div class="section-header"><span class="section-title">Clasificación</span></div><div class="card" style="padding:0;overflow-x:auto"><table class="ranking"><thead><tr><th>#</th><th>' + (p.tipo === 'individual' ? 'Jugador' : 'Equipo') + '</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>Pts</th></tr></thead><tbody>' +
-      rk.map(function (r, k) { return '<tr' + (k < q ? ' class="classifica"' : '') + '><td>' + (k < 3 ? ['🥇', '🥈', '🥉'][k] : k + 1) + '</td><td>' + esc(r.n) + '</td><td>' + r.pj + '</td><td>' + r.g + '</td><td>' + r.e + '</td><td>' + r.p + '</td><td><b>' + r.pts + '</b></td></tr>'; }).join('') + '</tbody></table></div>';
+    h += '<div class="section-header"><span class="section-title">Clasificación</span></div><div class="card" style="padding:0;overflow-x:auto"><table class="ranking"><thead><tr><th>#</th><th>' + (p.tipo === 'individual' ? 'Jugador' : 'Equipo') + '</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th title="Puntos por apuestas">🃏</th><th title="Puntos por comodines">🎰</th><th>Pts</th></tr></thead><tbody>' +
+      rk.map(function (r, k) { return '<tr' + (k < q ? ' class="classifica"' : '') + '><td>' + (k < 3 ? ['🥇', '🥈', '🥉'][k] : k + 1) + '</td><td>' + esc(r.n) + '</td><td>' + r.pj + '</td><td>' + r.g + '</td><td>' + r.e + '</td><td>' + r.p + '</td><td>' + (r.bets || 0) + '</td><td>' + (r.como || 0) + '</td><td><b>' + r.pts + '</b></td></tr>'; }).join('') + '</tbody></table></div>';
     // Fixture
-    h += '<div class="section-header" style="margin-top:1.25rem"><span class="section-title">Fixture</span></div>';
+    var digital = function (m) { return typeof BuzzerRounds !== 'undefined' && !!BuzzerRounds.gameId(games[m[3]]); };
+    h += '<div class="section-header" style="margin-top:1.25rem"><span class="section-title">Fixture</span>' +
+      ((p.fixture || []).some(digital) ? '<button class="fixture-edit-toggle" onclick="openAutoResultadosModal()">🔄 Cargar resultados automáticamente</button>' : '') + '</div>';
     if (!(p.fixture || []).length) h += '<div class="card" style="padding:0.9rem;font-size:13px;color:var(--muted)">Elegí los juegos y tocá “Generar fixture”.</div>';
     var byRound = {};
     (p.fixture || []).forEach(function (m) { (byRound[m[0]] = byRound[m[0]] || []).push(m); });
     Object.keys(byRound).forEach(function (r) {
-      h += '<div class="card" style="padding:0.75rem;margin-bottom:0.6rem"><div style="font-weight:700;margin-bottom:0.4rem">Ronda ' + r + '</div>';
+      h += '<div class="card" style="padding:0.75rem;margin-bottom:0.6rem"><div style="font-weight:700;margin-bottom:0.4rem">Ronda ' + r +
+        (byRound[r].some(digital) ? '<button class="fixture-edit-toggle" style="margin-left:10px" onclick="activateBuzzerRound(\'' + p.id + '\',' + r + ',this)">▶ Activar ronda ' + r + '</button>' : '') + '</div>';
       byRound[r].forEach(function (m) {
         var cur = res[key(m)], A = esc(names[m[1]]), B = esc(names[m[2]]), id = p.id, k = key(m);
         var btn = function (w, label) { return '<button class="btn" style="' + (cur && cur.winner === w ? 'background:var(--accent-dim);font-weight:700' : '') + '" onclick="FasesExtra.setResult(\'' + id + '\',\'' + k + '\',' + (w === 'empate' ? "'empate'" : w) + ')">' + label + '</button>'; };
@@ -66,6 +98,7 @@
       });
       h += '</div>';
     });
+    h += betsHtml(p) + comodinesHtml(p);
     // Ajustes manuales de puntos
     var adj = phaseAdjust(p.id);
     h += '<div class="section-header" style="margin-top:1.25rem"><span class="section-title">Ajustes manuales de puntos</span></div><div class="card" style="padding:0.75rem"><div style="display:flex;gap:0.4rem;flex-wrap:wrap"><select id="fx-adj-n-' + p.id + '" class="rule-edit-input">' + names.map(function (n, i) { return '<option value="' + i + '">' + esc(n) + '</option>'; }).join('') + '</select><input id="fx-adj-p-' + p.id + '" type="number" value="1" style="width:4rem"><input id="fx-adj-l-' + p.id + '" class="rule-edit-input" placeholder="Motivo (opcional)"><button class="btn" onclick="FasesExtra.addAdjust(\'' + p.id + '\')">Agregar</button></div>' +
@@ -190,7 +223,13 @@
       }
       p.fixture = fx || buildFixture(roster(p).length, p.games); commit('Fixture generado');
     },
-    setResult: function (id, k, w) { var r = phaseResults(id); if (w === null) delete r[k]; else r[k] = { winner: w }; commit(); },
+    setResult: function (id, k, w) {
+      var r = phaseResults(id); if (w === null) delete r[k]; else r[k] = { winner: w };
+      if (w !== null && typeof resolvePendingComodines === 'function') { try { resolvePendingComodines(id, k, w, false); } catch (e) {} }
+      commit();
+    },
+    openBets: function (id) { var p = phaseById(id), r = p && pendingRound(p); if (!r) { showToast('🏁', 'No quedan rondas pendientes'); return; } state.betWindowX = state.betWindowX || {}; state.betWindowX[id] = { open: true, round: r, ts: Date.now() }; commit('Apuestas abiertas · Ronda ' + r); },
+    closeBets: function (id) { var w = betWin(id); state.betWindowX = state.betWindowX || {}; state.betWindowX[id] = { open: false, round: w.round || 0, ts: Date.now() }; commit('Apuestas cerradas'); },
     setModo: function (id, v) { var p = phaseById(id); if (!p || hasResults(p)) { render(); return; } p.modo = v === 'todos' ? 'todos' : 'cobertura'; p.fixture = []; commit(); },
     addAdjust: function (id) {
       var p = phaseById(id); if (!p) return; var i = +document.getElementById('fx-adj-n-' + id).value, pts = parseInt(document.getElementById('fx-adj-p-' + id).value, 10) || 0;
@@ -214,7 +253,7 @@
     rename: function (id) { var p = phaseById(id), n = p && prompt('Nombre de la fase', p.nombre); if (n && n.trim()) { p.nombre = n.trim(); saveState(); ensureDom(); render(); goTab('fx-' + id); } },
     remove: function (id) {
       var p = phaseById(id); if (!p || !confirm('¿Eliminar "' + p.nombre + '" con todos sus resultados?')) return;
-      state.phases = state.phases.filter(function (q) { return q.id !== id; }); delete state[id]; delete state.adjust[id]; delete state.cellPts[id];
+      state.phases = state.phases.filter(function (q) { return q.id !== id; }); delete state[id]; delete state.adjust[id]; delete state.cellPts[id]; delete state['comodines_' + id]; if (state.betsX) delete state.betsX[id]; if (state.betWindowX) delete state.betWindowX[id];
       saveState(); ensureDom(); render(); goTab('reglas');
     }
   };
