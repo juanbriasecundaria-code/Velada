@@ -239,7 +239,7 @@ body.polish-wartable #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a
 <!-- ───────── Celular de un equipo (rol 'phone') ───────── -->
 <div id="phoneScreen">
   <div id="phoneHeaderBar">
-    <button class="ghost small" onclick="location.reload()">← Salir</button>
+    <button class="ghost small" onclick="try{localStorage.removeItem('tegRole');localStorage.removeItem('tegMyTeam');}catch(e){}location.href=location.pathname">← Salir</button>
     <span id="phoneConnLabel" style="font-size:11px;color:var(--text-dim);">conectando…</span>
   </div>
   <div id="phoneTeamPicker"></div>
@@ -1123,6 +1123,23 @@ function fbListenActionsAsHost() {
 }
 
 /** PHONE y TV secundaria: se limitan a reflejar velada/teg/state. */
+// Firebase Realtime Database NO guarda objetos/arrays vacíos: al volver a leer el estado,
+// {} y [] desaparecen (undefined) y el render del celular/TV se rompía en silencio (pantalla en blanco).
+// Esta función los repone antes de usar el estado remoto.
+function normalizeRemoteState(st) {
+  if (!st || typeof st !== 'object') return st;
+  ['reinforceAmount','reinforceAlloc','reinforceConfirmed','offensivesUsed','regroupUsed','countries'].forEach((k) => { if (!st[k] || typeof st[k] !== 'object') st[k] = {}; });
+  ['teams','turnOrder','log','eventQueue'].forEach((k) => {
+    if (!st[k]) st[k] = [];
+    else if (!Array.isArray(st[k]) && typeof st[k] === 'object') st[k] = Object.keys(st[k]).sort((a, b) => a - b).map((i) => st[k][i]);
+  });
+  if (!st.stats || typeof st.stats !== 'object') st.stats = {};
+  ['conquests','diceLost'].forEach((k) => { if (!st.stats[k] || typeof st.stats[k] !== 'object') st.stats[k] = {}; });
+  if (!Array.isArray(st.stats.battles)) st.stats.battles = st.stats.battles ? Object.values(st.stats.battles) : [];
+  st.teams.forEach((t) => { if (t && t.alive === undefined) t.alive = true; });
+  return st;
+}
+
 function fbListenStateReadOnly() {
   const db = fbInit();
   if (!db) return;
@@ -1132,8 +1149,7 @@ function fbListenStateReadOnly() {
       if (STATE) { STATE = null; ANIM_LAST_SEQ = 0; render(); }
       return;
     }
-    STATE = remote;
-    if (!STATE.eventQueue) STATE.eventQueue = [];
+    STATE = normalizeRemoteState(remote);
     render();
     pumpAnimationQueue();
   });
@@ -2139,6 +2155,14 @@ function render() {
 // PANTALLA DE CELULAR (rol 'phone')
 // ============================================================
 function renderPhoneScreen() {
+  try { renderPhoneScreenInner(); }
+  catch (err) {
+    console.error('renderPhoneScreen', err);
+    const h = document.getElementById('phoneDeviceHost');
+    if (h) h.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:13px;">No se pudo dibujar la partida.<br><button class="ghost small" style="margin-top:10px" onclick="location.reload()">Reintentar</button><br><small style="opacity:.6">' + escapeHtml(String(err && err.message || err)) + '</small></div>';
+  }
+}
+function renderPhoneScreenInner() {
   const connLabel = document.getElementById('phoneConnLabel');
   const picker = document.getElementById('phoneTeamPicker');
   const host = document.getElementById('phoneDeviceHost');
@@ -2203,8 +2227,7 @@ window.applyRole = function (role) {
       db.ref(FB_PATH + '/state').once('value').then((snap) => {
         const remote = snap.val();
         if (remote) {
-          STATE = remote;
-          if (!STATE.eventQueue) STATE.eventQueue = [];
+          STATE = normalizeRemoteState(remote);
           STATE.teams.forEach((t) => resetDeviceUIForTurn(t.id));
           if (LIVE.activation && STATE.activationId !== LIVE.activation.id) STATE = null; // quedó de otra ronda
         }
