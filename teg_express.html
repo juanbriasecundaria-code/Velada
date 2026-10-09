@@ -140,6 +140,12 @@ body.polish-wartable #mapHost{background:
 .borderLine{stroke:#2e4f74; stroke-width:.6; opacity:.55;}
 .bridgeLine{stroke:#8a3030; stroke-width:1; stroke-dasharray:2.4,1.6; opacity:.8;}
 .countryHit{fill:transparent; cursor:pointer;}
+/* ---------- integración con la Velada ---------- */
+.rankTag{font-size:11px;color:var(--text-dim);margin-left:6px;font-weight:400;}
+#veladaBanner{display:none;margin:8px 12px 0;padding:8px 12px;border:1px solid var(--gold-dim);background:rgba(240,180,41,.08);border-radius:10px;font-size:12.5px;line-height:1.5;}
+#veladaBanner label{margin-left:10px;white-space:nowrap;cursor:pointer;}
+body.role-tv #testHeader > *:not(.brand):not(#globalClock),
+body.role-tv #driverSection,body.role-tv #devicesSection,body.role-tv #veladaBanner{display:none !important;}
 /* ---------- mapa antiguo ---------- */
 #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a2814, #1c1209 75%);}
 body.polish-wartable #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a2814, #1c1209 75%);}
@@ -218,6 +224,10 @@ body.polish-wartable #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a
       <span class="gi">📱</span>
       <span class="gt"><b>Soy un equipo</b><small>Elegí tu equipo desde el celular</small></span>
     </button>
+    <button class="gateBtn" onclick="chooseRole('tv')">
+      <span class="gi">🖥️</span>
+      <span class="gt"><b>TV (solo mirar)</b><small>Muestra el mapa en vivo; no maneja la partida</small></span>
+    </button>
     <button class="gateBtn ghostGate" onclick="chooseRole('test')">
       <span class="gi">🧪</span>
       <span class="gt"><b>Modo de prueba</b><small>Sin Firebase, simula los 6 equipos acá mismo</small></span>
@@ -242,6 +252,9 @@ body.polish-wartable #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a
     <div class="brand" id="dashBrand">🌍 TEG Express — modo de prueba</div>
     <label style="font-size:12px;color:var(--text-dim);">Equipos
       <select id="numTeamsSel">
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
         <option value="5">5</option>
         <option value="6" selected>6</option>
       </select>
@@ -251,6 +264,8 @@ body.polish-wartable #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a
     <button id="btnPause" class="ghost">⏸️ Pausar</button>
     <span id="globalClock" style="font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;"></span>
   </div>
+
+  <div id="veladaBanner"><span id="veladaBannerText"></span><label id="useVeladaLabel"><input type="checkbox" id="useVeladaTeams" checked onchange="refreshActivationUI()"> Usar los equipos del ranking</label></div>
 
   <div id="stage">
     <div>
@@ -272,7 +287,7 @@ body.polish-wartable #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a
       </div>
     </div>
 
-    <div>
+    <div id="driverSection">
       <div class="sectionTitle"><span>🎙️ Conductor</span><span class="line"></span></div>
       <div id="driverHost"></div>
     </div>
@@ -967,11 +982,20 @@ const FB_CFG = {
 const FB_PATH = 'velada/teg';
 
 var LIVE = {
-  role: null, // 'host' | 'phone' | 'test'
+  role: null, // 'host' | 'phone' | 'tv' | 'test'
   myTeamId: null,
   connected: false,
   db: null,
-  clientId: 'c' + Math.random().toString(36).slice(2, 10),
+  activation: null, // ronda activada desde velada.html (velada/teg/activation)
+  wantTeam: null, // equipo pedido por URL (?team=) desde participante.html
+  // el id se guarda para que recargar la pestaña no cuente como "otro conductor"
+  clientId: (function () {
+    try {
+      var v = localStorage.getItem('tegClientId');
+      if (!v) { v = 'c' + Math.random().toString(36).slice(2, 10); localStorage.setItem('tegClientId', v); }
+      return v;
+    } catch (e) { return 'c' + Math.random().toString(36).slice(2, 10); }
+  })(),
 };
 
 function fbInit() {
@@ -994,7 +1018,7 @@ function fbPushFullState(label) {
   const db = fbInit();
   if (!db) return;
   db.ref(FB_PATH + '/state').set(STATE).catch((e) => console.warn('No pude publicar el estado', e));
-  db.ref(FB_PATH + '/meta').update({ updatedAt: Date.now(), label: label || null, active: STATE.phase !== 'ended' }).catch(() => {});
+  db.ref(FB_PATH + '/meta').update({ updatedAt: Date.now(), label: label || null, active: STATE.phase !== 'ended', hostClient: LIVE.clientId }).catch(() => {});
 }
 
 /** PHONE: en vez de tocar el motor, deja un pedido para que el
@@ -1029,22 +1053,61 @@ function fbApplyAction(action) {
   fbPushFullState();
 }
 
+/** Puntos que la partida le suma a cada equipo en el ranking de la Velada:
+ * misma escala que Guess Movies — 3 al 1.º, 1 al 2.º (si hay más de 2
+ * equipos) y 0 al resto. */
+function veladaPointsFor(place, n) { return place === 1 ? 3 : (place === 2 && n > 2 ? 1 : 0); }
+
+/** Las claves de Firebase no admiten . # $ / [ ] — mismo codificado que team-maps.js. */
+function wireKey(name) { return encodeURIComponent(name).replace(/\./g, '%2E'); }
+
+/** Tabla final: primero quien ganó (por objetivo o por tiempo), después por
+ * países y por ejércitos. Si dos equipos empatan en todo comparten puesto. */
+function computeFinalStandings() {
+  const rows = STATE.teams.map((t) => {
+    const ids = ENGINE.teamCountryIds(STATE, t.id);
+    return {
+      teamId: t.id, name: t.name, veladaName: t.veladaName || null, color: t.color,
+      countries: ids.length, armies: ids.reduce((acc, cid) => acc + STATE.countries[cid].armies, 0),
+      isWinner: STATE.winner === t.id,
+    };
+  });
+  rows.sort((a, b) => (Number(b.isWinner) - Number(a.isWinner)) || (b.countries - a.countries) || (b.armies - a.armies));
+  let place = 0;
+  rows.forEach((r, i) => {
+    const prev = rows[i - 1];
+    const tie = prev && !r.isWinner && !prev.isWinner && prev.countries === r.countries && prev.armies === r.armies;
+    place = tie ? place : i + 1;
+    r.puesto = place;
+    r.puntos = veladaPointsFor(place, rows.length);
+  });
+  return rows;
+}
+
 /** HOST: cuando termina la partida, publica la tabla final en
- * velada/teg/resultado — por ahora velada.html NO la importa sola
- * a su ranking general (igual que pasa con otros resultados del
- * repo, según LEEME-RONDAS.md); queda ahí lista para engancharla. */
+ * velada/teg/resultado. Si los equipos vienen de la Velada, también
+ * publica `byTeam` (puntos por nombre de equipo, claves codificadas) y
+ * el `activationId`: es lo que teg-fixture.js lee para cargar el
+ * resultado en velada.html. */
 function fbPublishResultIfEnded() {
   if (LIVE.role !== 'host' || !STATE || STATE.phase !== 'ended' || STATE._resultPublished) return;
   STATE._resultPublished = true;
+  const standings = computeFinalStandings();
+  STATE.finalStandings = standings; // la TV muestra los puntos de la ronda
   const db = fbInit();
   if (!db) return;
-  const standings = STATE.teams
-    .map((t) => ({ teamId: t.id, name: t.name, color: t.color, countries: ENGINE.teamCountryIds(STATE, t.id).length }))
-    .sort((a, b) => b.countries - a.countries)
-    .map((row, i) => Object.assign(row, { puesto: i + 1, puntos: Math.max(0, 4 - i) }));
-  db.ref(FB_PATH + '/resultado').set({
-    winner: STATE.winner, winReason: STATE.winReason, standings, finishedAt: Date.now(),
-  }).catch((e) => console.warn('No pude publicar el resultado', e));
+  const payload = {
+    game: 'teg', winner: STATE.winner || null, winReason: STATE.winReason || null,
+    standings, finishedAt: Date.now(), ts: Date.now(), activationId: STATE.activationId || null,
+  };
+  if (standings.every((r) => r.veladaName)) {
+    const byTeam = {};
+    standings.forEach((r) => { byTeam[wireKey(r.veladaName)] = r.puntos; });
+    payload.byTeam = byTeam;
+    payload.teamMapEncoding = 'uri-v1';
+  }
+  db.ref(FB_PATH + '/resultado').set(payload)
+    .catch((e) => console.warn('No pude publicar el resultado', e));
 }
 
 /** HOST: escucha los pedidos de los celulares y los va aplicando en
@@ -1065,12 +1128,91 @@ function fbListenStateReadOnly() {
   if (!db) return;
   db.ref(FB_PATH + '/state').on('value', (snap) => {
     const remote = snap.val();
-    if (!remote) return;
+    if (!remote) { // la Velada reactivó la ronda y borró la partida anterior
+      if (STATE) { STATE = null; ANIM_LAST_SEQ = 0; render(); }
+      return;
+    }
     STATE = remote;
     if (!STATE.eventQueue) STATE.eventQueue = [];
     render();
     pumpAnimationQueue();
   });
+}
+
+// ============================================================
+// RONDA DE LA VELADA (velada/teg/activation)
+// "▶ Activar ronda" en velada.html escribe acá los equipos del
+// ranking. El conductor los usa al tocar "Nueva partida".
+// ============================================================
+function fbListenActivation() {
+  const db = fbInit();
+  if (!db) return;
+  db.ref(FB_PATH + '/activation').on('value', (snap) => {
+    const a = snap.val();
+    LIVE.activation = (a && a.active && Array.isArray(a.teams) && a.teams.length) ? a : null;
+    syncActivation();
+  });
+}
+
+function activationFits() {
+  const a = LIVE.activation;
+  return !!a && a.teams.length >= 2 && a.teams.length <= 6;
+}
+
+/** ¿Se arma la partida con los equipos de la Velada? */
+function useVeladaTeams() {
+  if (!activationFits()) return false;
+  const cb = document.getElementById('useVeladaTeams');
+  return !cb || cb.checked;
+}
+
+function rankTagHtml(t) {
+  if (!t || !t.rankPos) return '';
+  return '<span class="rankTag">#' + t.rankPos + (Number.isFinite(t.rankPts) ? ' · ' + t.rankPts + ' pts' : '') + '</span>';
+}
+
+function refreshActivationUI() {
+  const banner = document.getElementById('veladaBanner');
+  const sel = document.getElementById('numTeamsSel');
+  const inp = document.getElementById('teamNamesInput');
+  if (!banner || !sel || !inp) return;
+  const a = LIVE.activation;
+  if (LIVE.role !== 'host' || !a) {
+    banner.style.display = 'none';
+    sel.disabled = false; inp.readOnly = false;
+    if (inp.dataset.auto === '1') { inp.value = ''; inp.dataset.auto = ''; }
+    return;
+  }
+  const n = a.teams.length;
+  const info = Array.isArray(a.info) ? a.info.slice() : [];
+  const ordered = info.length === n ? info.slice().sort((x, y) => (x.pos || 99) - (y.pos || 99)) : a.teams.map((name) => ({ name }));
+  const label = document.getElementById('useVeladaLabel');
+  banner.style.display = 'block';
+  let txt = '🎙️ <b>Ronda de la Velada activada</b>' + (a.round ? ' (ronda ' + escapeHtml(String(a.round)) + ')' : '') + ' · ';
+  if (!activationFits()) {
+    txt += 'la Velada tiene ' + n + ' equipos y TEG Express admite de 2 a 6: armá la partida a mano.';
+    label.style.display = 'none';
+  } else {
+    txt += n + ' equipos del ranking: ' + ordered.map((r) => (r.pos ? '#' + r.pos + ' ' : '') + escapeHtml(String(r.name)) + (Number.isFinite(r.pts) ? ' (' + r.pts + ')' : '')).join(' · ');
+    label.style.display = '';
+  }
+  document.getElementById('veladaBannerText').innerHTML = txt;
+  if (useVeladaTeams()) {
+    sel.value = String(n); sel.disabled = true;
+    inp.value = a.teams.join(' · '); inp.readOnly = true; inp.dataset.auto = '1';
+  } else {
+    sel.disabled = false; inp.readOnly = false;
+    if (inp.dataset.auto === '1') { inp.value = ''; inp.dataset.auto = ''; }
+  }
+}
+
+function syncActivation() {
+  // si la Velada activó otra ronda, la partida anterior ya no corresponde
+  if (LIVE.role === 'host' && LIVE.activation && STATE && STATE.activationId !== LIVE.activation.id) {
+    STATE = null; ANIM_LAST_SEQ = 0; REACTIONS = [];
+  }
+  refreshActivationUI();
+  render();
 }
 
 /** Reacciones: cualquier dispositivo puede mandar una y todos las
@@ -1518,12 +1660,33 @@ window.handleMapClick = function (teamId, countryId) {
 };
 
 window.doNewGame = function (teamNames) {
-  const n = parseInt(document.getElementById('numTeamsSel').value, 10);
+  const act = useVeladaTeams() ? LIVE.activation : null;
+  const n = act ? act.teams.length : parseInt(document.getElementById('numTeamsSel').value, 10);
   ENGINE = TegEngine.createEngine(COUNTRIES, CONTINENTS, {});
-  STATE = ENGINE.setupGame(n, teamNames);
+  STATE = ENGINE.setupGame(n, act ? act.teams.slice() : teamNames);
+  if (act) {
+    // equipos y ranking de la Velada: nombre exacto para devolver los puntos, y posición/puntos para mostrar
+    STATE.activationId = act.id;
+    STATE.teams.forEach((t, i) => {
+      t.veladaName = String(act.teams[i]);
+      const inf = act.info && act.info[i];
+      if (inf) {
+        if (Number.isFinite(inf.pos)) t.rankPos = inf.pos;
+        if (Number.isFinite(inf.pts)) t.rankPts = inf.pts;
+        if (Array.isArray(inf.members) && inf.members.length) t.members = inf.members.map(String);
+      }
+    });
+  }
   STATE.teams.forEach((t) => resetDeviceUIForTurn(t.id));
   ANIM_LAST_SEQ = 0;
   REACTIONS = [];
+  if (LIVE.role === 'host') { // sin restos de la partida anterior
+    const db = fbInit();
+    if (db) {
+      db.ref(FB_PATH + '/resultado').remove().catch(() => {});
+      db.ref(FB_PATH + '/actions').remove().catch(() => {});
+    }
+  }
   render();
   fbPushFullState('Nueva partida (' + n + ' equipos)');
 };
@@ -1696,7 +1859,7 @@ function renderTV() {
   const tvHistory = document.getElementById('tvHistory');
 
   if (!STATE) {
-    mapHost.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-dim);">Tocá "Nueva partida" para empezar.</div>';
+    mapHost.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-dim);">' + (LIVE.role === 'tv' ? 'Esperando a que empiece la partida…' : 'Tocá "Nueva partida" para empezar.') + '</div>';
     tvRoundLabel.textContent = 'Ronda —';
     tvClock.textContent = '00:00';
     tvTeams.innerHTML = '';
@@ -1724,6 +1887,7 @@ function renderTV() {
     mapHost.innerHTML += '<div id="tvFinal"><div style="font-size:14px;color:var(--text-dim);">🏆 FIN DE LA PARTIDA</div>' +
       '<div style="font-size:26px;font-weight:800;color:' + (w ? w.color : 'var(--gold)') + ';">' + (w ? w.name : '—') + '</div>' +
       '<div style="font-size:13px;color:var(--text-dim);max-width:320px;">' + (STATE.winReason || '') + '</div>' +
+      (STATE.finalStandings ? '<div style="margin:8px 0;font-size:13px;text-align:left;">' + STATE.finalStandings.map((r) => '<div>' + r.puesto + '° ' + escapeHtml(r.name) + ' <b style="color:var(--gold);">+' + r.puntos + ' pts</b></div>').join('') + '</div>' : '') +
       (POLISH.closingSummary ? renderClosingSummary() : '') +
       '</div>';
   }
@@ -1742,7 +1906,7 @@ function renderTV() {
     const isTurn = onTurnTeam === t.id;
     return '<div class="teamChipRow' + (isTurn ? ' onturn' : '') + '" style="' + (!t.alive ? 'opacity:.35;' : '') + '">' +
       '<span class="dot" style="background:' + t.color + ';"></span>' +
-      '<span style="flex:1;">' + t.name + '</span><b>' + cnt + '</b></div>';
+      '<span style="flex:1;">' + escapeHtml(t.name) + rankTagHtml(t) + '</span><b>' + cnt + '</b></div>';
   }).join('');
 
   tvHistory.innerHTML = STATE.log.slice(-40).map((l) => '<div>' + escapeHtml(l.text) + '</div>').join('');
@@ -1956,6 +2120,13 @@ function renderDeviceCard(team) {
 // ============================================================
 function render() {
   if (LIVE.role === 'phone') { renderPhoneScreen(); return; }
+  if (LIVE.role === 'tv') { // pantalla secundaria: solo el mapa
+    if (!document.getElementById('tvRoundLabel')) return;
+    renderTV();
+    const tvc = document.getElementById('globalClock');
+    if (tvc) tvc.textContent = STATE ? fmtClock(STATE.phaseTimer) : '';
+    return;
+  }
   if (!document.getElementById('tvRoundLabel')) return; // todavía no se eligió rol
   renderTV();
   renderDriver();
@@ -1979,6 +2150,11 @@ function renderPhoneScreen() {
     host.innerHTML = '';
     return;
   }
+  if (LIVE.wantTeam) { // viene de participante.html con ?team=
+    const mine = STATE.teams.find((t) => t.veladaName === LIVE.wantTeam || t.name === LIVE.wantTeam);
+    if (mine) { LIVE.myTeamId = mine.id; try { localStorage.setItem('tegMyTeam', mine.id); } catch (e) {} }
+    LIVE.wantTeam = null;
+  }
   connLabel.textContent = '🟢 en vivo';
 
   if (!LIVE.myTeamId || !teamById(LIVE.myTeamId)) {
@@ -1986,7 +2162,7 @@ function renderPhoneScreen() {
     host.innerHTML = '';
     picker.innerHTML = '<div style="font-size:13px;color:var(--text-dim);margin-bottom:6px;">¿Cuál es tu equipo?</div>' +
       STATE.teams.map((t) => '<button class="teamPickBtn" style="border-color:' + t.color + ';" onclick="pickTeam(\'' + t.id + '\')">' +
-        '<span class="dot" style="background:' + t.color + ';width:16px;height:16px;"></span><b>' + escapeHtml(t.name) + '</b></button>').join('');
+        '<span class="dot" style="background:' + t.color + ';width:16px;height:16px;"></span><b>' + escapeHtml(t.name) + '</b>' + rankTagHtml(t) + '</button>').join('');
     return;
   }
   picker.style.display = 'none';
@@ -2003,9 +2179,9 @@ window.pickTeam = function (teamId) {
 // ============================================================
 // PANTALLA DE ENTRADA — elegir rol
 // ============================================================
-window.chooseRole = function (role) {
+window.applyRole = function (role) {
   LIVE.role = role;
-  try { localStorage.setItem('tegRole', role); } catch (e) {}
+  if (role !== 'tv') { try { localStorage.setItem('tegRole', role); } catch (e) {} } // la TV no pisa el rol guardado
   document.getElementById('gateScreen').classList.remove('show');
 
   if (role === 'test') {
@@ -2022,6 +2198,7 @@ window.chooseRole = function (role) {
     const db = fbInit();
     fbListenReactions();
     fbListenActionsAsHost();
+    fbListenActivation();
     if (db) {
       db.ref(FB_PATH + '/state').once('value').then((snap) => {
         const remote = snap.val();
@@ -2029,12 +2206,22 @@ window.chooseRole = function (role) {
           STATE = remote;
           if (!STATE.eventQueue) STATE.eventQueue = [];
           STATE.teams.forEach((t) => resetDeviceUIForTurn(t.id));
+          if (LIVE.activation && STATE.activationId !== LIVE.activation.id) STATE = null; // quedó de otra ronda
         }
         render();
       }).catch(() => render());
     } else {
       render();
     }
+  } else if (role === 'tv') {
+    ENGINE = TegEngine.createEngine(COUNTRIES, CONTINENTS, {});
+    document.body.classList.add('role-tv');
+    document.getElementById('dashboardView').classList.add('show');
+    document.getElementById('dashBrand').textContent = '🌍 TEG Express';
+    fbInit();
+    fbListenReactions();
+    fbListenStateReadOnly();
+    render();
   } else if (role === 'phone') {
     ENGINE = TegEngine.createEngine(COUNTRIES, CONTINENTS, {});
     document.getElementById('phoneScreen').classList.add('show');
@@ -2047,8 +2234,22 @@ window.chooseRole = function (role) {
   }
 };
 
+/** Elegir rol. Para 'host' avisa si ya hay otro conductor trabajando
+ * (dos conductores a la vez se pisan el estado). */
+window.chooseRole = function (role) {
+  if (role !== 'host') { window.applyRole(role); return; }
+  const db = fbInit();
+  if (!db) { window.applyRole(role); return; }
+  db.ref(FB_PATH + '/meta').once('value').then((snap) => {
+    const m = snap.val();
+    const other = m && m.hostClient && m.hostClient !== LIVE.clientId && m.active && (Date.now() - (m.updatedAt || 0)) < 15000;
+    if (other && !confirm('Ya hay otra pantalla conductora con una partida en marcha. Si abrís esta también, se van a pisar. ¿Tomar el control igual?')) return;
+    window.applyRole(role);
+  }).catch(() => window.applyRole(role));
+};
+
 setInterval(() => {
-  if (LIVE.role === 'phone') return; // el reloj lo maneja solo el conductor
+  if (LIVE.role === 'phone' || LIVE.role === 'tv') return; // el reloj lo maneja solo el conductor
   if (STATE && STATE.gameStarted && !STATE.paused && STATE.phase !== 'ended') {
     ENGINE.tick(STATE, 1);
     render();
@@ -2068,8 +2269,12 @@ document.getElementById('btnPause').addEventListener('click', window.doTogglePau
 if (POLISH.chipVolume) document.body.classList.add('polish-chips');
 if (POLISH.warTable) document.body.classList.add('polish-wartable');
 
-// ---- arranque: ¿veníamos de un rol elegido antes (refresh)? si no, mostramos la entrada ----
+// ---- arranque: ?role=host|phone|tv (y ?team= para el celular) o el rol guardado; si no, la entrada ----
 (function boot() {
+  let urlRole = null, urlTeam = null;
+  try { const q = new URLSearchParams(location.search); urlRole = q.get('role'); urlTeam = q.get('team'); } catch (e) {}
+  if (urlTeam) LIVE.wantTeam = urlTeam;
+  if (urlRole === 'host' || urlRole === 'phone' || urlRole === 'tv') { window.chooseRole(urlRole); return; }
   let savedRole = null;
   try { savedRole = localStorage.getItem('tegRole'); } catch (e) {}
   if (savedRole === 'host' || savedRole === 'phone') {
