@@ -60,6 +60,68 @@ button.small{padding:5px 9px; font-size:12px; border-radius:7px;}
 .teamPickBtn[disabled]{opacity:.35;}
 #phoneScreen .device{width:100%; flex:none; min-height:0;}
 
+
+/* ---------- celular v2: mapa grande + panel de acciones ---------- */
+body.role-phone{overflow:hidden; overscroll-behavior:none; padding-top:0; padding-bottom:0;}
+#phoneScreen{max-width:none; padding:0;}
+#phoneScreen.show{display:flex; flex-direction:column; height:100vh; height:100dvh;}
+#phoneHeaderBar{padding:calc(6px + env(safe-area-inset-top,0px)) 10px 6px; flex:none;}
+#phoneTeamPicker{padding:10px; overflow-y:auto; flex:1;}
+#phoneGame{display:none; flex:1; flex-direction:column; min-height:0;}
+#pHud{flex:none; display:flex; align-items:center; gap:8px; padding:6px 12px; background:#0a1a2c; border-bottom:1px solid var(--border);}
+#pHud b{font-size:15px;}
+#pHud .pHudMid{flex:1; font-size:12px; color:var(--text-dim); text-align:right;}
+#pHud .pClock{font-weight:800; font-size:20px; color:var(--gold); font-variant-numeric:tabular-nums;}
+#pMapVp{flex:1; min-height:260px; position:relative; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+  background:radial-gradient(ellipse at 50% 40%, #3a2814, #1c1209 75%);}
+#pMapInner{position:absolute; left:0; top:0; transform-origin:0 0;}
+#pMapInner svg{width:100%; height:auto; display:block;}
+#pMapInner svg *{pointer-events:none;}
+#pMapInner svg .countryHit{pointer-events:all;}
+#pMapInner:not(.showLbl) .countryLabel{display:none;}
+.pZoomBtns{position:absolute; right:8px; top:8px; display:flex; flex-direction:column; gap:6px; z-index:5;}
+.pZoomBtns button{width:42px; height:42px; padding:0; font-size:20px; border-radius:12px; background:rgba(8,16,30,.82); border:1px solid var(--border);}
+#pSheet{flex:none; max-height:34vh; overflow-y:auto; background:#0c1d30; border-top:2px solid var(--gold-dim);
+  padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; gap:6px;}
+#pSheet.collapsed{max-height:60px;}
+#pSheetHandle{flex:none; display:flex; justify-content:center; padding:3px 0 1px; cursor:pointer;}
+#pSheetHandle .bar{width:38px; height:4px; border-radius:3px; background:var(--border);}
+.pInfo{font-size:12px; color:var(--text-dim); display:flex; align-items:center; gap:6px;}
+.pInfo b{color:var(--text);}
+.pTop{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
+.pBig{font-size:24px; font-weight:800; color:var(--gold);}
+.pBig small{font-size:12px; color:var(--text-dim); font-weight:600;}
+.pSmall{font-size:11px; color:var(--text-dim); text-align:right;}
+.pHint{font-size:13px; color:var(--text-dim); text-align:center; padding:6px 4px;}
+.pDone{font-size:14px; text-align:center; color:var(--ok); padding:8px;}
+.pCtl{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--panel); border-radius:14px; padding:8px 12px;}
+.pCtlName{font-weight:700; font-size:15px; display:flex; flex-direction:column;}
+.pCtlName small{font-weight:500; font-size:11px; color:var(--text-dim);}
+.pStep{display:flex; align-items:center; gap:10px;}
+.pStep .pNum{font-size:22px; font-weight:800; min-width:28px; text-align:center; font-variant-numeric:tabular-nums;}
+.pRound{width:42px; height:42px; border-radius:50%; padding:0; font-size:22px; line-height:1; background:var(--panel2); border:1px solid var(--border);}
+.pQuick{display:flex; gap:8px;}
+.pQuick button{flex:1; padding:9px 6px; font-size:13px;}
+.pMain{width:100%; padding:12px; font-size:15px; border-radius:14px; background:var(--gold); color:#1a1200; font-weight:800;}
+.pMain.sec{background:var(--panel2); color:var(--text); font-weight:600; border:1px solid var(--border);}
+.pTabs{display:flex; gap:8px;}
+.pTabs button{flex:1; padding:12px 6px; font-size:14px;}
+.pTabs button.on{background:var(--gold); color:#1a1200; font-weight:800;}
+.pObj{font-size:12px; color:var(--text-dim);}
+.pObj summary{cursor:pointer; padding:4px 0;}
+.pBox{background:#241406; border:1px solid var(--gold-dim); border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:10px; font-size:14px;}
+#pSheet .msg{min-height:0; font-size:12px; text-align:center;}
+#pSheet .msg:empty{display:none;}
+#pSheet .reactionBtns button{font-size:20px; padding:8px 0;}
+.pCountryList{display:flex; flex-direction:column; gap:5px; max-height:22vh; overflow-y:auto; padding-right:2px;}
+.pCRow{display:flex; align-items:center; gap:8px; background:var(--panel); border-radius:10px; padding:5px 8px; border:1px solid transparent;}
+.pCRow.foc{border-color:var(--gold);}
+.pCRow .pCName{flex:1; font-size:12.5px; display:flex; flex-direction:column; min-width:0;}
+.pCRow .pCName b{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.pCRow .pCName small{color:var(--text-dim); font-size:10.5px;}
+.pCRow .pMiniRound{width:30px; height:30px; border-radius:50%; padding:0; font-size:16px; line-height:1; background:var(--panel2); border:1px solid var(--border); flex:none;}
+.pCRow .pMiniNum{min-width:18px; text-align:center; font-weight:800; font-size:14px; flex:none;}
+
 /* ---------- layout general del modo de prueba ---------- */
 #testHeader{
   position:sticky; top:0; z-index:50; background:rgba(8,16,30,.96); backdrop-filter:blur(6px);
@@ -243,7 +305,20 @@ body.polish-wartable #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a
     <span id="phoneConnLabel" style="font-size:11px;color:var(--text-dim);">conectando…</span>
   </div>
   <div id="phoneTeamPicker"></div>
-  <div id="phoneDeviceHost"></div>
+  <div id="phoneGame">
+    <div id="pHud"></div>
+    <div id="pMapVp">
+      <div id="pMapInner"></div>
+      <div class="pZoomBtns">
+        <button onclick="phoneZoomBtn(1.5)" aria-label="Acercar">＋</button>
+        <button onclick="phoneZoomBtn(1/1.5)" aria-label="Alejar">－</button>
+        <button onclick="phoneFitBtn()" aria-label="Ver todo">⤢</button>
+        <button onclick="phoneFocusBtn()" aria-label="Mis países">🎯</button>
+      </div>
+    </div>
+    <div id="pSheet"></div>
+  </div>
+  <div id="phoneDeviceHost" style="display:none"></div>
 </div>
 
 <!-- ───────── Pantalla + conductor (roles 'host' y 'test') ───────── -->
@@ -1027,8 +1102,23 @@ function fbSendAction(action) {
   const db = fbInit();
   if (!db) { deviceUI(action.teamId).msg = 'Sin conexión — no se pudo enviar.'; render(); return; }
   action.from = LIVE.clientId;
-  action.ts = Date.now();
+  action.ts = Math.max(Date.now(), (LIVE.lastTs || 0) + 1);
+  LIVE.lastTs = action.ts;
   db.ref(FB_PATH + '/actions').push(action).catch((e) => console.warn('No pude enviar la acción', e));
+  return action;
+}
+
+/** PHONE: tras recibir un estado nuevo, vuelve a aplicar encima las acciones propias que el
+ * conductor todavía no confirmó (así lo que tocaste no "parpadea" hacia atrás). */
+function reapplyPendingActions() {
+  if (!STATE || !ENGINE || !LIVE.pending || !LIVE.pending.length) return;
+  const ack = (STATE._acks && STATE._acks[LIVE.clientId]) || 0;
+  const now = Date.now();
+  LIVE.pending = LIVE.pending.filter((a) => a.ts > ack && now - a.ts < 12000);
+  LIVE.pending.forEach((a) => {
+    if (a.type === 'allocDelta') ENGINE.allocateReinforcement(STATE, a.teamId, a.countryId, a.delta);
+    else if (a.type === 'confirmReinforce' && STATE.phase === 'reinforce') STATE.reinforceConfirmed[a.teamId] = true;
+  });
 }
 
 /** HOST: aplica un pedido llegado de un celular, usando el MISMO
@@ -1037,6 +1127,10 @@ function fbSendAction(action) {
 function fbApplyAction(action) {
   if (!STATE || !ENGINE) return;
   const t = action.teamId;
+  if (action.from && action.ts) { // le avisa al celular que su acción ya fue procesada
+    STATE._acks = STATE._acks || {};
+    STATE._acks[action.from] = Math.max(STATE._acks[action.from] || 0, action.ts);
+  }
   switch (action.type) {
     case 'allocDelta': ENGINE.allocateReinforcement(STATE, t, action.countryId, action.delta); break;
     case 'confirmReinforce': ENGINE.confirmReinforcement(STATE, t); break;
@@ -1136,7 +1230,11 @@ function normalizeRemoteState(st) {
   if (!st.stats || typeof st.stats !== 'object') st.stats = {};
   ['conquests','diceLost'].forEach((k) => { if (!st.stats[k] || typeof st.stats[k] !== 'object') st.stats[k] = {}; });
   if (!Array.isArray(st.stats.battles)) st.stats.battles = st.stats.battles ? Object.values(st.stats.battles) : [];
-  st.teams.forEach((t) => { if (t && t.alive === undefined) t.alive = true; });
+  st.teams.forEach((t) => {
+    if (!t) return;
+    if (t.alive === undefined) t.alive = true;
+    if (!st.reinforceAlloc[t.id]) st.reinforceAlloc[t.id] = {}; // Firebase borra los {} vacíos
+  });
   return st;
 }
 
@@ -1150,6 +1248,7 @@ function fbListenStateReadOnly() {
       return;
     }
     STATE = normalizeRemoteState(remote);
+    if (LIVE.role === 'phone') reapplyPendingActions();
     render();
     pumpAnimationQueue();
   });
@@ -1400,7 +1499,7 @@ function renderMapSVG(opts) {
     if (opts.reinforceFocus === c.id) glow = ' countryGlow';
 
     let clickAttr = '';
-    if (opts.clickTeamId) {
+    if (opts.clickTeamId && !opts.phoneHit) {
       clickAttr = ' onclick="handleMapClick(\'' + opts.clickTeamId + '\',\'' + c.id + '\')"';
     }
 
@@ -1415,14 +1514,19 @@ function renderMapSVG(opts) {
     nodes += '<circle class="chipDisc" cx="' + c.x + '" cy="' + c.y + '" r="' + R + '"/>';
     nodes += shapeBadgeMarkup(team.shape, c.x + R * 0.66, c.y - R * 0.66, Math.max(2.6, R * 0.3), team.color);
     nodes += chipsMarkup(c.x, c.y, R, cs.armies, '#fff4d6');
+    const allocN = opts.allocMap && opts.allocMap[c.id] ? opts.allocMap[c.id] : 0;
     if (opts.showNumbers) {
-      nodes += '<text class="chipNum" x="' + c.x + '" y="' + (c.y + R + 6) + '" style="fill:#ffd966;stroke:#07131f;font-size:6.5px;">' + cs.armies + '</text>';
+      if (opts.phone) {
+        nodes += '<text class="chipNum" x="' + c.x + '" y="' + (c.y + R + 10) + '" style="fill:' + (allocN ? '#7dff9b' : '#ffd966') + ';stroke:#07131f;stroke-width:2.2px;font-size:11px;">' + cs.armies + (allocN ? ' +' + allocN : '') + '</text>';
+      } else {
+        nodes += '<text class="chipNum" x="' + c.x + '" y="' + (c.y + R + 6) + '" style="fill:#ffd966;stroke:#07131f;font-size:6.5px;">' + cs.armies + '</text>';
+      }
     }
     if (!opts.small || opts.showNumbers) {
-      nodes += '<text class="countryLabel" x="' + c.x + '" y="' + (c.y - R - 3) + '" style="font-size:' + (opts.small ? 6 : 7) + 'px;">' + c.name + '</text>';
+      nodes += '<text class="countryLabel" x="' + c.x + '" y="' + (c.y - R - 3) + '" style="font-size:' + (opts.phone ? 10.5 : (opts.small ? 6 : 7)) + 'px;">' + c.name + '</text>';
     }
-    if (clickAttr) {
-      nodes += '<g transform="' + ART_T + '"><use href="#cp-' + c.id + '" class="countryHit"' + clickAttr + '/></g>';
+    if (clickAttr || opts.phoneHit) {
+      nodes += '<g transform="' + ART_T + '"><use href="#cp-' + c.id + '" class="countryHit" data-hit="' + c.id + '"' + clickAttr + '/></g>';
     }
     nodes += '</g>';
   });
@@ -1718,7 +1822,11 @@ window.doTogglePause = function () {
 // conductor; en 'host'/'test' se aplica acá mismo con el motor.
 function dispatchOrSend(teamId, action, applyLocally) {
   if (LIVE.role === 'phone') {
+    const ui = deviceUI(teamId);
+    ui.msg = 'Enviando…';
     fbSendAction(Object.assign({ teamId }, action));
+    setTimeout(() => { if (ui.msg === 'Enviando…') { ui.msg = 'No hubo respuesta del conductor, probá de nuevo.'; render(); } }, 6000);
+    render();
     return;
   }
   applyLocally();
@@ -1726,6 +1834,17 @@ function dispatchOrSend(teamId, action, applyLocally) {
 }
 
 window.doAllocDelta = function (teamId, countryId, delta) {
+  if (LIVE.role === 'phone') { // optimista: se ve al instante, el conductor lo confirma después
+    const ui = deviceUI(teamId);
+    const r = ENGINE.allocateReinforcement(STATE, teamId, countryId, delta);
+    if (!r.ok) { ui.msg = r.error; render(); return; }
+    ui.msg = '';
+    const a = fbSendAction({ type: 'allocDelta', teamId, countryId, delta });
+    if (a) { (LIVE.pending = LIVE.pending || []).push(a); }
+    else { ENGINE.allocateReinforcement(STATE, teamId, countryId, -delta); }
+    render();
+    return;
+  }
   dispatchOrSend(teamId, { type: 'allocDelta', countryId, delta }, () => {
     const r = ENGINE.allocateReinforcement(STATE, teamId, countryId, delta);
     deviceUI(teamId).msg = r.ok ? '' : r.error;
@@ -1734,6 +1853,12 @@ window.doAllocDelta = function (teamId, countryId, delta) {
 };
 
 window.doConfirmReinforce = function (teamId) {
+  if (LIVE.role === 'phone') {
+    const a = fbSendAction({ type: 'confirmReinforce', teamId });
+    if (a) { STATE.reinforceConfirmed[teamId] = true; (LIVE.pending = LIVE.pending || []).push(a); }
+    render();
+    return;
+  }
   dispatchOrSend(teamId, { type: 'confirmReinforce' }, () => {
     ENGINE.confirmReinforcement(STATE, teamId);
     afterAction();
@@ -2154,24 +2279,35 @@ function render() {
 // ============================================================
 // PANTALLA DE CELULAR (rol 'phone')
 // ============================================================
+// ============================================================
+// CELULAR v2: mapa grande (zoom/pan con gestos) + panel de acciones abajo.
+// Se redibuja SOLO cuando cambia algo que importa (no por el reloj),
+// así los toques no se pierden.
+// ============================================================
+var PH = { sig: '', stSig: '', gest: false, pend: false, init: false, s: 1, tx: 0, ty: 0, raf: 0 };
+
+function phEl(id) { return document.getElementById(id); }
+
 function renderPhoneScreen() {
   try { renderPhoneScreenInner(); }
   catch (err) {
     console.error('renderPhoneScreen', err);
-    const h = document.getElementById('phoneDeviceHost');
-    if (h) h.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-dim);font-size:13px;">No se pudo dibujar la partida.<br><button class="ghost small" style="margin-top:10px" onclick="location.reload()">Reintentar</button><br><small style="opacity:.6">' + escapeHtml(String(err && err.message || err)) + '</small></div>';
+    const h = phEl('pSheet');
+    if (h) h.innerHTML = '<div class="pHint">No se pudo dibujar la partida.<br><button class="ghost small" style="margin-top:10px" onclick="location.reload()">Reintentar</button><br><small style="opacity:.6">' + escapeHtml(String(err && err.message || err)) + '</small></div>';
+    const g = phEl('phoneGame'); if (g) g.style.display = 'flex';
   }
 }
+
 function renderPhoneScreenInner() {
-  const connLabel = document.getElementById('phoneConnLabel');
-  const picker = document.getElementById('phoneTeamPicker');
-  const host = document.getElementById('phoneDeviceHost');
-  if (!connLabel || !picker || !host) return;
+  const connLabel = phEl('phoneConnLabel');
+  const picker = phEl('phoneTeamPicker');
+  const game = phEl('phoneGame');
+  if (!connLabel || !picker || !game) return;
 
   if (!STATE) {
     connLabel.textContent = LIVE.connected ? 'esperando a que el conductor inicie la partida…' : 'conectando…';
-    picker.innerHTML = '';
-    host.innerHTML = '';
+    picker.innerHTML = ''; LIVE.pickHtml = '';
+    game.style.display = 'none'; PH.sig = '';
     return;
   }
   if (LIVE.wantTeam) { // viene de participante.html con ?team=
@@ -2183,16 +2319,316 @@ function renderPhoneScreenInner() {
 
   if (!LIVE.myTeamId || !teamById(LIVE.myTeamId)) {
     picker.style.display = '';
-    host.innerHTML = '';
-    picker.innerHTML = '<div style="font-size:13px;color:var(--text-dim);margin-bottom:6px;">¿Cuál es tu equipo?</div>' +
+    game.style.display = 'none'; PH.sig = '';
+    const html = '<div style="font-size:14px;color:var(--text-dim);margin-bottom:8px;">¿Cuál es tu equipo?</div>' +
       STATE.teams.map((t) => '<button class="teamPickBtn" style="border-color:' + t.color + ';" onclick="pickTeam(\'' + t.id + '\')">' +
         '<span class="dot" style="background:' + t.color + ';width:16px;height:16px;"></span><b>' + escapeHtml(t.name) + '</b>' + rankTagHtml(t) + '</button>').join('');
+    if (LIVE.pickHtml !== html) { LIVE.pickHtml = html; picker.innerHTML = html; }
     return;
   }
   picker.style.display = 'none';
-  const team = teamById(LIVE.myTeamId);
-  host.innerHTML = renderDeviceCard(team);
+  game.style.display = 'flex';
+  renderPhoneGame(teamById(LIVE.myTeamId));
 }
+
+function phPhaseLabel(team) {
+  if (STATE.phase === 'reinforce') return 'Refuerzos';
+  if (STATE.phase === 'attack') {
+    const cur = teamById(ENGINE.currentTeamId(STATE));
+    return cur && cur.id === team.id ? '⚔️ ¡Tu turno!' : 'Turno de ' + (cur ? cur.name : '…');
+  }
+  if (STATE.phase === 'ended') return 'Fin de la partida';
+  return '';
+}
+
+function renderPhoneGame(team) {
+  const ui = deviceUI(team.id);
+  const stSig = JSON.stringify([STATE.phase, STATE.round, STATE.currentTeamIndex, STATE.turnOrder, STATE.countries, STATE.teams,
+    STATE.reinforceAmount, STATE.reinforceAlloc, STATE.reinforceConfirmed, STATE.offensivesUsed, STATE.regroupUsed,
+    STATE.currentOffensive, STATE.pendingConquest, STATE.paused, STATE.winner, STATE.timeUp]);
+  if (PH.stSig !== stSig) { PH.stSig = stSig; if (ui.msg === 'Enviando…') ui.msg = ''; }
+  const sig = team.id + '|' + stSig + '|' + JSON.stringify(ui);
+
+  const clk = phEl('pClock');
+  if (clk) clk.textContent = (STATE.paused ? '⏸ ' : '') + fmtClock(STATE.phaseTimer);
+  if (sig === PH.sig) return;           // nada cambió: no tocar el DOM
+  if (PH.gest) { PH.pend = true; return; } // hay un dedo en el mapa: esperar
+  PH.sig = sig;
+
+  const myCount = ENGINE.teamCountryIds(STATE, team.id).length;
+  phEl('pHud').innerHTML = '<span class="dot" style="background:' + team.color + ';width:14px;height:14px;"></span><b>' + escapeHtml(team.name) + '</b>' +
+    '<span style="font-size:11px;color:var(--text-dim);">' + myCount + ' países</span>' +
+    '<span class="pHudMid">' + escapeHtml(phPhaseLabel(team)) + '</span>' +
+    '<span class="pClock" id="pClock">' + (STATE.paused ? '⏸ ' : '') + fmtClock(STATE.phaseTimer) + '</span>';
+
+  // ---- mapa ----
+  // Ojo: NO pasamos clickTeamId/phoneHit acá — el tap en el celular se
+  // resuelve con matemática de coordenadas en phoneTap() (más abajo),
+  // no con onclick/elementFromPoint sobre el contorno real del país
+  // (eso era frágil en navegadores de celular: el <use> referencía un
+  // path con huecos/concavidades definido en OTRO <svg>, y según el
+  // navegador el hit-test fallaba justo en los países chicos).
+  const o = { showNumbers: true, small: true, phone: true };
+  if (STATE.phase === 'reinforce') {
+    o.dimToTeamId = team.id; o.reinforceFocus = ui.reinforceFocus; o.allocMap = STATE.reinforceAlloc[team.id] || {};
+  } else if (STATE.phase === 'attack') {
+    const mineTurn = ENGINE.currentTeamId(STATE) === team.id;
+    if (mineTurn && STATE.pendingConquest && STATE.pendingConquest.teamId === team.id) {
+      o.destIds = [STATE.pendingConquest.destId]; o.originId = STATE.pendingConquest.originId;
+    } else if (mineTurn) {
+      const destIds = ui.mode === 'attack' && ui.originId ? ENGINE.neighborsOf(ui.originId).filter((nb) => STATE.countries[nb].owner !== team.id) : [];
+      o.originId = ui.mode === 'attack' ? ui.originId : null;
+      o.destIds = ui.mode === 'attack' ? (ui.destId ? [ui.destId] : destIds) : [];
+      o.regroupFrom = ui.regroupFrom; o.regroupTo = ui.regroupTo;
+    }
+  }
+  phEl('pMapInner').innerHTML = renderMapSVG(o);
+  phEl('pSheet').innerHTML = phoneSheetHtml(team);
+  if (!PH.init) { PH.init = true; phoneFocusMine(true); } else phoneApplyView();
+}
+
+window.togglePSheet = function () {
+  const s = phEl('pSheet'); if (!s) return;
+  s.classList.toggle('collapsed');
+};
+
+function phoneSheetHtml(team) {
+  const ui = deviceUI(team.id);
+  const tid = team.id;
+  let h = '<div id="pSheetHandle" onclick="togglePSheet()"><span class="bar"></span></div>';
+  if (ui.inspect && STATE.countries[ui.inspect]) {
+    const cs = STATE.countries[ui.inspect], ow = teamById(cs.owner);
+    if (ow) h += '<div class="pInfo"><span class="dot" style="background:' + ow.color + '"></span><b>' + BY_ID[ui.inspect].name + '</b> · ' + escapeHtml(ow.name) + ' · ' + cs.armies + ' ej.</div>';
+  }
+  const msg = '<div class="msg">' + escapeHtml(ui.msg || '') + '</div>';
+
+  if (!team.alive) {
+    h += '<div class="pHint">Tu equipo fue eliminado.</div>';
+  } else if (STATE.phase === 'reinforce') {
+    const total = STATE.reinforceAmount[tid] || 0;
+    const alloc = STATE.reinforceAlloc[tid] || {};
+    const used = Object.values(alloc).reduce((a, b) => a + b, 0);
+    const left = total - used;
+    const confirmed = !!STATE.reinforceConfirmed[tid];
+    const r = ENGINE.computeReinforcement(STATE, tid);
+    h += '<div class="pTop"><div class="pBig">🪖 ' + left + ' <small>por repartir</small></div><div class="pSmall">' + escapeHtml(r.reason || '') + '</div></div>';
+    if (confirmed) {
+      h += '<div class="pDone">✅ Refuerzos confirmados · esperando al resto</div>';
+    } else {
+      const f = ui.reinforceFocus;
+      if (f && STATE.countries[f] && STATE.countries[f].owner === tid) {
+        const here = alloc[f] || 0;
+        h += '<div class="pCtl"><div class="pCtlName">' + BY_ID[f].name + '<small>' + STATE.countries[f].armies + ' ej.' + (here ? ' · +' + here + ' nuevos' : '') + '</small></div>' +
+          '<div class="pStep"><button class="pRound" onclick="doAllocDelta(\'' + tid + '\',\'' + f + '\',-1)" ' + (here ? '' : 'disabled') + '>−</button>' +
+          '<span class="pNum">' + here + '</span>' +
+          '<button class="pRound" onclick="doAllocDelta(\'' + tid + '\',\'' + f + '\',1)" ' + (left > 0 ? '' : 'disabled') + '>+</button></div></div>';
+        h += '<div class="pQuick">' +
+          '<button onclick="doAllocDelta(\'' + tid + '\',\'' + f + '\',' + Math.min(5, left) + ')" ' + (left > 0 ? '' : 'disabled') + '>+5</button>' +
+          '<button onclick="doAllocDelta(\'' + tid + '\',\'' + f + '\',' + left + ')" ' + (left > 0 ? '' : 'disabled') + '>Todo acá</button>' +
+          '<button onclick="doAllocDelta(\'' + tid + '\',\'' + f + '\',' + (-here) + ')" ' + (here ? '' : 'disabled') + '>Quitar</button></div>';
+      } else {
+        h += '<div class="pHint">👆 Tocá uno de <b>tus países</b> en el mapa, o elegilo de la lista de abajo.</div>';
+      }
+      // Lista de respaldo: siempre visible, no depende de acertarle al
+      // país en el mapa. Mismo resultado que tocar el mapa (doAllocDelta).
+      h += '<div class="pCountryList">' + ENGINE.teamCountryIds(STATE, tid).sort((a, b) => BY_ID[a].name.localeCompare(BY_ID[b].name)).map((cid) => {
+        const here2 = alloc[cid] || 0;
+        return '<div class="pCRow' + (cid === f ? ' foc' : '') + '" onclick="handleMapClick(\'' + tid + '\',\'' + cid + '\')">' +
+          '<div class="pCName"><b>' + BY_ID[cid].name + '</b><small>' + STATE.countries[cid].armies + ' ej.' + (here2 ? ' · +' + here2 : '') + '</small></div>' +
+          '<button class="pMiniRound" onclick="event.stopPropagation();doAllocDelta(\'' + tid + '\',\'' + cid + '\',-1)" ' + (here2 ? '' : 'disabled') + '>−</button>' +
+          '<span class="pMiniNum">' + here2 + '</span>' +
+          '<button class="pMiniRound" onclick="event.stopPropagation();doAllocDelta(\'' + tid + '\',\'' + cid + '\',1)" ' + (left > 0 ? '' : 'disabled') + '>+</button>' +
+          '</div>';
+      }).join('') + '</div>';
+      h += msg;
+      h += '<button class="pMain" onclick="doConfirmReinforce(\'' + tid + '\')">' + (left > 0 ? 'Confirmar (' + left + ' sin repartir)' : '✅ Confirmar refuerzos') + '</button>';
+    }
+  } else if (STATE.phase === 'attack') {
+    const mineTurn = ENGINE.currentTeamId(STATE) === tid;
+    if (!mineTurn) {
+      const onTurn = teamById(ENGINE.currentTeamId(STATE));
+      h += '<div class="pHint">Esperando el turno de <b style="color:' + onTurn.color + ';">' + escapeHtml(onTurn.name) + '</b>…<br><small>Pellizcá el mapa para hacer zoom y tocá un país para ver sus datos.</small></div>';
+    } else if (STATE.pendingConquest && STATE.pendingConquest.teamId === tid) {
+      const pc = STATE.pendingConquest;
+      const n = ui.conquestAmount == null ? pc.maxMove : ui.conquestAmount;
+      h += '<div class="pBox">🏳️ ¡Conquistaste <b>' + BY_ID[pc.destId].name + '</b>! ¿Cuántos ejércitos pasás?' +
+        '<div class="pStep" style="justify-content:center;"><button class="pRound" onclick="doConquestAmount(\'' + tid + '\',-1)">−</button>' +
+        '<span class="pNum">' + n + '</span><button class="pRound" onclick="doConquestAmount(\'' + tid + '\',1)">+</button></div>' +
+        '<button class="pMain" onclick="doConfirmConquest(\'' + tid + '\')">Confirmar</button></div>';
+      h += msg;
+    } else {
+      const offLeft = ENGINE.CONFIG.ofensivasMaximasPorTurno - (STATE.offensivesUsed[tid] || 0);
+      h += '<div class="pTabs">' +
+        '<button class="' + (ui.mode === 'attack' ? 'on' : '') + '" onclick="doSetMode(\'' + tid + '\',\'attack\')">⚔️ Atacar (' + Math.max(0, offLeft) + ')</button>' +
+        '<button class="' + (ui.mode === 'regroup' ? 'on' : '') + '" ' + (STATE.regroupUsed[tid] ? 'disabled' : '') + ' onclick="doSetMode(\'' + tid + '\',\'regroup\')">🔁 Reagrupar</button></div>';
+      if (ui.mode === 'attack') {
+        if (!ui.originId) {
+          h += '<div class="pHint">👆 Tocá un país <b>tuyo</b> con más de 1 ejército para atacar desde ahí.</div>';
+        } else if (!ui.destId) {
+          h += '<div class="pHint">Atacás desde <b>' + BY_ID[ui.originId].name + '</b> (' + STATE.countries[ui.originId].armies + '). Tocá un país enemigo resaltado.</div>';
+        } else {
+          h += '<div class="pCtl" style="justify-content:center;font-size:15px;"><b>' + BY_ID[ui.originId].name + '</b> (' + STATE.countries[ui.originId].armies + ') ⚔️ <b>' + BY_ID[ui.destId].name + '</b> (' + STATE.countries[ui.destId].armies + ')</div>';
+          h += '<div class="pQuick"><button onclick="doSingleRoll(\'' + tid + '\')">🎲 Una tirada</button><button class="primary" onclick="doAttackUntilEnd(\'' + tid + '\')">⚡ Hasta el final</button></div>';
+        }
+      } else if (!ui.regroupFrom) {
+        h += '<div class="pHint">👆 Tocá el país de <b>origen</b> (con más de 1 ejército).</div>';
+      } else if (!ui.regroupTo) {
+        h += '<div class="pHint">Origen: <b>' + BY_ID[ui.regroupFrom].name + '</b>. Tocá el destino (tuyo y limítrofe).</div>';
+      } else {
+        h += '<div class="pCtl" style="justify-content:center;"><div class="pStep"><button class="pRound" onclick="doRegroupAmount(\'' + tid + '\',-1)">−</button>' +
+          '<span class="pNum">' + ui.regroupAmount + '</span><button class="pRound" onclick="doRegroupAmount(\'' + tid + '\',1)">+</button></div></div>' +
+          '<button class="pMain" onclick="doConfirmRegroup(\'' + tid + '\')">Confirmar reagrupe</button>';
+      }
+      h += msg;
+      h += '<button class="pMain sec" onclick="doEndTurn(\'' + tid + '\')">Terminar turno ✅</button>';
+    }
+  } else if (STATE.phase === 'ended') {
+    const win = STATE.winner === tid;
+    h += '<div class="pHint" style="font-size:18px;">' + (win ? '🏆 ¡Ganaron!' : 'Partida terminada') + '<br><small>' + escapeHtml(STATE.winReason || '') + '</small></div>';
+  }
+
+  if (team.objective && team.alive) h += '<details class="pObj"><summary>🎯 Mi objetivo</summary>' + escapeHtml(team.objective.text) + '</details>';
+  if (POLISH.reactions && team.alive) {
+    h += '<div class="reactionBtns">' + REACTION_EMOJIS.map((e) => '<button class="small" onclick="doSendReaction(\'' + tid + '\',\'' + e + '\')">' + e + '</button>').join('') + '</div>';
+  }
+  return h;
+}
+
+// ---------- zoom / pan del mapa ----------
+function phoneApplyView() {
+  const v = phEl('pMapVp'), inner = phEl('pMapInner');
+  if (!v || !inner) return;
+  const W = v.clientWidth, H = v.clientHeight;
+  if (!W || !H) return;
+  const sMin = Math.min(1, (H / W) * (MAP_W / MAP_H));
+  PH.s = Math.min(6, Math.max(sMin, PH.s));
+  const mw = W * PH.s, mh = mw * MAP_H / MAP_W;
+  PH.tx = mw <= W ? (W - mw) / 2 : Math.min(0, Math.max(W - mw, PH.tx));
+  PH.ty = mh <= H ? (H - mh) / 2 : Math.min(0, Math.max(H - mh, PH.ty));
+  inner.style.width = mw + 'px';
+  inner.style.transform = 'translate(' + PH.tx.toFixed(1) + 'px,' + PH.ty.toFixed(1) + 'px)';
+  inner.classList.toggle('showLbl', PH.s >= 1.45);
+}
+function phoneScheduleView() {
+  if (PH.raf) return;
+  PH.raf = requestAnimationFrame(() => { PH.raf = 0; phoneApplyView(); });
+}
+function phoneZoomAt(cx, cy, f) {
+  const v = phEl('pMapVp'); if (!v) return;
+  const r = v.getBoundingClientRect();
+  const px = cx - r.left, py = cy - r.top;
+  const W = v.clientWidth, H = v.clientHeight;
+  const sMin = Math.min(1, (H / W) * (MAP_W / MAP_H));
+  const ns = Math.min(6, Math.max(sMin, PH.s * f));
+  const k = ns / PH.s;
+  PH.tx = px - (px - PH.tx) * k;
+  PH.ty = py - (py - PH.ty) * k;
+  PH.s = ns;
+  phoneScheduleView();
+}
+function phoneFocusMine(first) {
+  const v = phEl('pMapVp'); if (!v || !STATE || !LIVE.myTeamId) return;
+  const ids = ENGINE.teamCountryIds(STATE, LIVE.myTeamId);
+  const W = v.clientWidth, H = v.clientHeight;
+  if (!ids.length || !W) { PH.s = 1; PH.tx = 0; PH.ty = 0; phoneApplyView(); return; }
+  let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+  ids.forEach((id) => { const c = BY_ID[id]; minX = Math.min(minX, c.x); maxX = Math.max(maxX, c.x); minY = Math.min(minY, c.y); maxY = Math.max(maxY, c.y); });
+  const bw = Math.max(120, maxX - minX + 100), bh = Math.max(80, maxY - minY + 80);
+  let s = Math.min((MAP_W / bw), (H / W) * (MAP_W / bh));
+  s = Math.min(3.6, Math.max(1.3, s, (H / W) * (MAP_W / MAP_H))); // que el mapa llene todo el alto disponible
+  const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+  const mw = W * s, mh = mw * MAP_H / MAP_W;
+  PH.s = s;
+  PH.tx = W / 2 - cx / MAP_W * mw;
+  PH.ty = H / 2 - cy / MAP_H * mh;
+  phoneApplyView();
+}
+window.phoneZoomBtn = function (f) { const v = phEl('pMapVp'); if (!v) return; const r = v.getBoundingClientRect(); phoneZoomAt(r.left + r.width / 2, r.top + r.height / 2, f); };
+window.phoneFitBtn = function () { PH.s = 0.01; PH.tx = 0; PH.ty = 0; phoneApplyView(); };
+window.phoneFocusBtn = function () { phoneFocusMine(false); };
+
+/** Convierte un toque (coordenadas de pantalla) en el país más cercano,
+ * usando directamente la transformación que ya tenemos en PH (zoom/pan),
+ * en vez de pedirle al navegador "qué elemento hay en este pixel". Es
+ * más confiable: no depende de que el navegador acierte el hit-test
+ * sobre el contorno real (con huecos y formas finitas) de cada país. */
+function phoneTapToCountry(x, y) {
+  const v = phEl('pMapVp'); if (!v) return null;
+  const r = v.getBoundingClientRect();
+  if (!r.width || !r.height) return null;
+  // (x,y) en pantalla -> coordenadas locales del viewport -> coordenadas
+  // del mapa (PH.tx/ty/s es exactamente la transformación que aplicamos
+  // al pintar #pMapInner, ver phoneApplyView).
+  const localX = x - r.left - PH.tx;
+  const localY = y - r.top - PH.ty;
+  const mw = r.width * PH.s;
+  const mx = localX / mw * MAP_W;
+  const my = localY / (mw * MAP_H / MAP_W) * MAP_H;
+  let best = null, bd = 1e9;
+  COUNTRIES.forEach((c) => {
+    const d = Math.hypot(c.x - mx, c.y - my);
+    const R = Math.max(8, Math.min(RADIUS[c.size], (c.r || 99) * 0.95));
+    const tol = Math.max(28, R + 16); // tolerancia generosa, pensada para el dedo
+    if (d <= tol && d < bd) { bd = d; best = c.id; }
+  });
+  return best;
+}
+
+function phoneTap(x, y) {
+  if (!STATE || !LIVE.myTeamId) return;
+  const cid = phoneTapToCountry(x, y);
+  if (!cid) return;
+  deviceUI(LIVE.myTeamId).inspect = cid;
+  handleMapClick(LIVE.myTeamId, cid);
+  vibrate(8);
+  render();
+}
+
+(function phoneGestures() {
+  const root = document.getElementById('phoneScreen');
+  if (!root) return;
+  const pts = new Map();
+  let moved = false, t0 = 0, start = null, pinch = null;
+  function pinchInfo() {
+    const a = Array.from(pts.values());
+    return { d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1, mx: (a[0].x + a[1].x) / 2, my: (a[0].y + a[1].y) / 2 };
+  }
+  root.addEventListener('pointerdown', (e) => {
+    const v = phEl('pMapVp');
+    if (!v || !v.contains(e.target) || (e.target.closest && e.target.closest('.pZoomBtns'))) return;
+    try { v.setPointerCapture(e.pointerId); } catch (_) {}
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    PH.gest = true;
+    if (pts.size === 1) { moved = false; t0 = Date.now(); start = { x: e.clientX, y: e.clientY }; }
+    if (pts.size === 2) { moved = true; pinch = pinchInfo(); }
+  });
+  root.addEventListener('pointermove', (e) => {
+    if (!pts.has(e.pointerId)) return;
+    const prev = pts.get(e.pointerId);
+    if (pts.size === 1) {
+      if (!moved && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 8) moved = true;
+      if (moved) { PH.tx += e.clientX - prev.x; PH.ty += e.clientY - prev.y; phoneScheduleView(); }
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    } else if (pts.size === 2 && pinch) {
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      const now = pinchInfo();
+      PH.tx += now.mx - pinch.mx; PH.ty += now.my - pinch.my;
+      phoneZoomAt(now.mx, now.my, now.d / pinch.d);
+      pinch = now;
+    }
+  });
+  function end(e) {
+    if (!pts.has(e.pointerId)) return;
+    const wasOne = pts.size === 1;
+    pts.delete(e.pointerId);
+    if (wasOne && !moved && e.type === 'pointerup' && Date.now() - t0 < 700) phoneTap(e.clientX, e.clientY);
+    if (pts.size === 1) { pinch = null; moved = true; }
+    if (pts.size === 0) { PH.gest = false; pinch = null; if (PH.pend) { PH.pend = false; render(); } }
+  }
+  root.addEventListener('pointerup', end);
+  root.addEventListener('pointercancel', end);
+  window.addEventListener('resize', phoneApplyView);
+})();
 
 window.pickTeam = function (teamId) {
   LIVE.myTeamId = teamId;
@@ -2247,6 +2683,7 @@ window.applyRole = function (role) {
     render();
   } else if (role === 'phone') {
     ENGINE = TegEngine.createEngine(COUNTRIES, CONTINENTS, {});
+    document.body.classList.add('role-phone');
     document.getElementById('phoneScreen').classList.add('show');
     try { const saved = localStorage.getItem('tegMyTeam'); if (saved) LIVE.myTeamId = saved; } catch (e) {}
     const db = fbInit();
