@@ -872,24 +872,26 @@ function guestRoundDone(id){
   return !!Object.keys(latestState[id+'Round']?.byTeam||{}).length;
 }
 
+// Datos de una fase (Impostor 'f1' o Fase grupal 'f2'): fixture, resultados, plantel y nombre del juego.
+function phaseDataG(type) {
+  const f1 = type === 'f1';
+  return { fixture: f1 ? F1_FIXTURE : F2_FIXTURE, store: (f1 ? latestState.f1 : latestState.f2) || {}, entities: f1 ? PLAYERS : TEAMS, gameName: f1 ? gameNameF1 : gameNameF2 };
+}
+
 function findNextMatch(type, idx) {
-  const fixture = type === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-  const store = type === 'f1' ? (latestState.f1 || {}) : (latestState.f2 || {});
-  const entities = type === 'f1' ? PLAYERS : TEAMS;
+  const { fixture, store, entities, gameName } = phaseDataG(type);
   const mine = fixture.filter(([r, a, b]) => a === idx || b === idx);
   const pending = mine.filter(([r, a, b]) => !store[r + '-' + a + '-' + b]).sort((x, y) => x[0] - y[0]);
   if (!pending.length) return null;
   const [r, a, b, g] = pending[0];
   const oppIdx = a === idx ? b : a;
   const oppName = entities[oppIdx];
-  const game = type === 'f1' ? gameNameF1(g) : gameNameF2(g);
+  const game = gameName(g);
   return { round: type==='f2'?guestRoundNumber(r):r, rawRound:r, oppName, game, key: r + '-' + a + '-' + b, phase: type };
 }
 
 function findLastMatch(type, idx) {
-  const fixture = type === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-  const store = type === 'f1' ? (latestState.f1 || {}) : (latestState.f2 || {});
-  const entities = type === 'f1' ? PLAYERS : TEAMS;
+  const { fixture, store, entities, gameName } = phaseDataG(type);
   const mine = fixture.filter(([r, a, b]) => a === idx || b === idx);
   const done = mine.filter(([r, a, b]) => store[r + '-' + a + '-' + b]).sort((x, y) => y[0] - x[0]);
   if (!done.length) return null;
@@ -897,7 +899,7 @@ function findLastMatch(type, idx) {
   const res = store[r + '-' + a + '-' + b];
   const oppIdx = a === idx ? b : a;
   const oppName = entities[oppIdx];
-  const game = type === 'f1' ? gameNameF1(g) : gameNameF2(g);
+  const game = gameName(g);
   if (res.winner === 'empate') return { result: 'empate', oppName, game };
   const won = res.winner === idx;
   return { result: won ? 'gano' : 'perdio', oppName, game, bonus: !!res.bonus };
@@ -1416,8 +1418,7 @@ function renderSelection() {
 // Cuántas rondas faltan para tu próximo duelo. Sirve para saber si podés ir a
 // comer tranquilo o si tenés que estar yendo a la mesa.
 function roundsAway(type, nextRound) {
-  const fx = type === 'f1' ? F1_FIXTURE : F2_FIXTURE;
-  const store = (type === 'f1' ? latestState.f1 : latestState.f2) || {};
+  const { fixture: fx, store } = phaseDataG(type);
   const pend = new Set();
   fx.forEach(m => { if (!store[m[0] + '-' + m[1] + '-' + m[2]]) pend.add(m[0]); });
   // Rondas pendientes anteriores a la tuya

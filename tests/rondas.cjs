@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('p
 const root=path.resolve(__dirname,'..'),read=f=>fs.readFileSync(path.join(root,f),'utf8');
 for(const f of fs.readdirSync(root)){
  if(f.endsWith('.js'))new Function(read(f));
- if(f.endsWith('.html'))for(const m of read(f).matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi))if(!/type=['"]module/.test(m[1]))new Function(m[2]);
+ if(f.endsWith('.html'))for(const m of read(f).matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi))if(!/type=['"](module|application\/json|importmap)/.test(m[1]))new Function(m[2]);
 }
 const s=read('velada.html'),ctx={console,confirm:()=>true,setTimeout:()=>{},clearTimeout:()=>{},Math,Date,JSON};ctx.window=ctx;
 vm.createContext(ctx);for(const f of ['puntos.js','buzzer-rounds.js','common-rounds.js'])vm.runInContext(read(f),ctx);

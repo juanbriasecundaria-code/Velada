@@ -92,3 +92,8 @@ Pruebas: `node tests/fases-juegos.cjs` cubre bonus automático, ranking con bonu
 - Las celdas de ronda de la tabla se corrigen a mano tocándolas (mismo `state.cellPts` que la Fase grupal); la corrección reemplaza los puntos calculados de esa ronda y cuenta en el total, en la TV y en los celulares. Vacío vuelve al valor calculado.
 - "✏️ Editar enfrentamientos" permite cambiar quién juega y a qué juego mientras no haya resultados cargados; no deja repetir un cruce dentro de la ronda.
 - Cada fase nueva tiene su **Podio en vivo** (el mismo de la Fase grupal, con figuras, corona y confeti a partir de 6 pts). Guarda su último top 3 por fase, así que anima solo cuando cambia, y el sonido/confeti solo se dispara en la fase que está a la vista. Prueba: `node tests/podio-fases.cjs`.
+
+## Limpieza parcial de f1/f2 y tests
+- `participante.html`: `findNextMatch`, `findLastMatch` y `roundsAway` usan un solo helper (`phaseDataG`) para elegir fixture, resultados, plantel y nombre de juego de Impostor o Fase grupal. Prueba: `node tests/participante-fases.cjs`.
+- `tests/integracion.cjs`, `tests/rondas.cjs` y `tests/teg.cjs` se actualizaron a los cambios recientes (`renderF1RosterAdmin` en Reglas, bloques JSON de `teg_express.html`, enlace del inicio a `teg_express.html`). No cambian la app.
+- Quedan referencias a `f1`/`f2` que distinguen de verdad Impostor de Fase grupal (rankings, gráfico de evolución, etiquetas, apuestas): unificarlas cambia la pantalla.
