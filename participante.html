@@ -1499,6 +1499,17 @@ function chequearTurno(myName, myIdx, teamIdx) {
                 rival: n2.oppName, juego: n2.game, color: 'var(--info)' };
     }
   }
+  if (!aviso && typeof FasesView !== 'undefined') {
+    // Fases creadas por el organizador (f3, f4…)
+    for (const p of FasesView.extras(latestState)) {
+      const nx = findNextMatchX(p, myIdx, teamIdx);
+      if (matchIsActive(nx)) {
+        aviso = { key: p.id + '-' + nx.key, fase: nx.phaseName,
+                  rival: nx.oppName, juego: nx.game, color: 'var(--accent)' };
+        break;
+      }
+    }
+  }
   if (!aviso) { _turnoAvisado = null; return; }
   if (_turnoAvisado === aviso.key) return;   // ya avisamos este duelo
   _turnoAvisado = aviso.key;
@@ -1695,6 +1706,18 @@ function renderTurnAlert(myName, myIdx, teamIdx) {
         <div class="gt-lbl">👉 Le toca a tu equipo</div>
         <div class="gt-vs">vs <b>${escapeHtml(n2.oppName)}</b></div>
         <div class="gt-game">${escapeHtml(n2.game)}</div>
+      </div>`;
+    }
+  }
+  // Fases creadas por el organizador (f3, f4…)
+  const fasesX = typeof FasesView !== 'undefined' ? FasesView.extras(latestState) : [];
+  for (const p of fasesX) {
+    const nx = findNextMatchX(p, myIdx, teamIdx);
+    if (matchIsActive(nx)) {
+      return `<div class="gh-turn ${nx.indiv ? 'f1' : 'f2'}">
+        <div class="gt-lbl">👉 ${nx.indiv ? 'Te toca ahora' : 'Le toca a tu equipo'} · ${escapeHtml(nx.phaseName)}</div>
+        <div class="gt-vs">vs <b>${escapeHtml(nx.oppName)}</b></div>
+        <div class="gt-game">${escapeHtml(nx.game)}</div>
       </div>`;
     }
   }
