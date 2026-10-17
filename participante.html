@@ -905,6 +905,23 @@ function findLastMatch(type, idx) {
   return { result: won ? 'gano' : 'perdio', oppName, game, bonus: !!res.bonus };
 }
 
+// Próximo cruce pendiente de una fase creada por el organizador (f3, f4…).
+// Fase individual → cruzan jugadores (myIdx); fase por equipos → cruzan equipos (teamIdx).
+function findNextMatchX(p, myIdx, teamIdx) {
+  const indiv = p.tipo === 'individual';
+  const idx = indiv ? myIdx : teamIdx;
+  if (idx == null || idx < 0) return null;
+  const store = latestState[p.id] || {};
+  const pending = (p.fixture || [])
+    .filter(([r, a, b]) => (a === idx || b === idx) && !store[r + '-' + a + '-' + b])
+    .sort((x, y) => x[0] - y[0]);
+  if (!pending.length) return null;
+  const [r, a, b, g] = pending[0];
+  const entities = FasesView.names(p, PLAYERS, TEAMS);
+  return { round: r, rawRound: r, oppName: entities[a === idx ? b : a] || '?', game: (p.games || [])[g] || '?',
+           key: r + '-' + a + '-' + b, phase: p.id, phaseName: p.nombre || p.id, indiv };
+}
+
 function ordinal(n) { return n + '°'; }
 
 // ── CERTIFICADO INDIVIDUAL ───────────────────────────────────────────
@@ -1446,16 +1463,18 @@ function renderNextHero(myIdx, teamIdx) {
   }
   const solo = null;
   const team = teamIdx >= 0 ? findNextMatch('f2', teamIdx) : null;
-  const active = [solo, team].find(matchIsActive);
-  const next = active || solo || team;
-  if (!F1_FIXTURE.length && !F2_FIXTURE.length)
+  const fasesX = typeof FasesView !== 'undefined' ? FasesView.extras(latestState) : [];
+  const nextX = fasesX.map(p => findNextMatchX(p, myIdx, teamIdx)).filter(Boolean);
+  const active = [solo, team, ...nextX].find(matchIsActive);
+  const next = active || solo || team || nextX[0];
+  if (!F1_FIXTURE.length && !F2_FIXTURE.length && !fasesX.some(p => (p.fixture || []).length))
     return `<div class="gh-next-hero"><div class="gh-next-kicker">Tus duelos</div>
       <div class="gh-next-main">Esperando el fixture del organizador</div></div>`;
   if (!next) return `<div class="gh-next-hero"><div class="gh-next-kicker">Tus duelos</div>
     <div class="gh-next-main">No te quedan duelos pendientes en el fixture</div></div>`;
   return `<div class="gh-next-hero${active ? ' active' : ''}">
-    <div class="gh-next-kicker">${active ? '👉 Cruce activado por el conductor' : 'Tu próximo duelo · ' + (next.phase === 'f1' ? 'Impostor' : 'Fase grupal')}</div>
-    <div class="gh-next-main">${next.phase === 'f2' ? 'Tu equipo vs. ' : 'Vos vs. '}${escapeHtml(next.oppName)}</div>
+    <div class="gh-next-kicker">${active ? '👉 Cruce activado por el conductor' : 'Tu próximo duelo · ' + (next.phaseName || (next.phase === 'f1' ? 'Impostor' : 'Fase grupal'))}</div>
+    <div class="gh-next-main">${(next.phase === 'f2' || (next.phaseName && !next.indiv)) ? 'Tu equipo vs. ' : 'Vos vs. '}${escapeHtml(next.oppName)}</div>
     <div class="gh-next-meta">Ronda ${next.round} · ${escapeHtml(next.game)}${active ? ' · Acercate a jugar' : ' · Esperá la activación del conductor'}</div>
   </div>`;
 }
