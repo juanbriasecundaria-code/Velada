@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<defs>
+ <radialGradient id="ball" cx="38%" cy="32%" r="70%">
+  <stop offset="0" stop-color="#ff9db2"/><stop offset="0.45" stop-color="#ff5c80"/><stop offset="1" stop-color="#e03a64"/>
+ </radialGradient>
+ <linearGradient id="dome" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#5a4682"/><stop offset="1" stop-color="#3a2b58"/>
+ </linearGradient>
+ <linearGradient id="stick" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#e9d3ee"/><stop offset="1" stop-color="#bfa6cf"/>
+ </linearGradient>
+</defs>
+<rect width="512" height="512" fill="#0a0a0e"/>
+<!-- base: left face, right face, top face -->
+<polygon points="126,271 126,326 241,406 251,344" fill="#4a3b7a"/>
+<polygon points="251,344 241,406 386,316 386,274" fill="#7658b0"/>
+<polygon points="126,271 256,228 386,274 251,344" fill="#6c6ea6"/>
+<!-- rim highlights -->
+<polyline points="126,271 251,344 386,274" fill="none" stroke="#9a8de0" stroke-width="5" stroke-linejoin="round"/>
+<polyline points="126,271 256,228 386,274" fill="none" stroke="#8a86c4" stroke-width="3" stroke-linejoin="round"/>
+<!-- buttons -->
+<ellipse cx="158" cy="283" rx="13" ry="7" fill="#3b6fd0"/>
+<ellipse cx="170" cy="287" rx="12" ry="6.5" fill="#ff4d79"/>
+<!-- dome / socket -->
+<path d="M208,276 Q208,246 256,246 Q304,246 304,276 Q304,302 256,304 Q208,302 208,276 Z" fill="url(#dome)"/>
+<ellipse cx="256" cy="250" rx="30" ry="12" fill="#6a5594"/>
+<!-- stick -->
+<rect x="246" y="190" width="20" height="62" rx="6" fill="url(#stick)"/>
+<!-- ball -->
+<circle cx="256" cy="156" r="50" fill="url(#ball)"/>
+<ellipse cx="238" cy="136" rx="14" ry="9" fill="#ffd0da" opacity="0.7" transform="rotate(-30 238 136)"/>
+</svg>
