@@ -1,6 +1,6 @@
 // Service worker mínimo: red primero, caché como respaldo si no hay conexión.
 // Solo maneja recursos del mismo origen (Firebase y CDNs pasan directo) y evita audio/video.
-const CACHE = 'velada-hub-v1';
+const CACHE = 'velada-hub-v2';
 const PRECACHE = ['./manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {

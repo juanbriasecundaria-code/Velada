@@ -10,7 +10,7 @@
   <stop offset="0" stop-color="#e9d3ee"/><stop offset="1" stop-color="#bfa6cf"/>
  </linearGradient>
 </defs>
-<rect width="512" height="512" fill="#0a0a0e"/>
+<rect width="512" height="512" fill="#0a0a0e"/><g transform="translate(256 256) scale(1.4) translate(-256 -256)">
 <!-- base: left face, right face, top face -->
 <polygon points="126,271 126,326 241,406 251,344" fill="#4a3b7a"/>
 <polygon points="251,344 241,406 386,316 386,274" fill="#7658b0"/>
@@ -29,4 +29,4 @@
 <!-- ball -->
 <circle cx="256" cy="156" r="50" fill="url(#ball)"/>
 <ellipse cx="238" cy="136" rx="14" ry="9" fill="#ffd0da" opacity="0.7" transform="rotate(-30 238 136)"/>
-</svg>
+</g></svg>
