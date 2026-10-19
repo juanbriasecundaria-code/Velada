@@ -95,5 +95,10 @@ Pruebas: `node tests/fases-juegos.cjs` cubre bonus automático, ranking con bonu
 
 ## Limpieza parcial de f1/f2 y tests
 - `participante.html`: `findNextMatch`, `findLastMatch` y `roundsAway` usan un solo helper (`phaseDataG`) para elegir fixture, resultados, plantel y nombre de juego de Impostor o Fase grupal. Prueba: `node tests/participante-fases.cjs`.
-- `tests/integracion.cjs`, `tests/rondas.cjs` y `tests/teg.cjs` se actualizaron a los cambios recientes (`renderF1RosterAdmin` en Reglas, bloques JSON de `teg_express.html`, enlace del inicio a `teg_express.html`). No cambian la app.
+- `tests/integracion.cjs` y `tests/rondas.cjs` se actualizaron a los cambios recientes (`renderF1RosterAdmin` en Reglas). No cambian la app.
 - Quedan referencias a `f1`/`f2` que distinguen de verdad Impostor de Fase grupal (rankings, gráfico de evolución, etiquetas, apuestas): unificarlas cambia la pantalla.
+
+## Eliminación de TEG Express
+- Se quitó TEG Express por completo: la página, su motor, mapa, estilos, servidor (`teg-server/`), documentación y pruebas, además del botón del inicio, la ronda común, el enlace del celular y el puente de la TV.
+- El catálogo de reglas pasa de 11 a 10 juegos (`catalogVersion` 4). Las reglas guardadas en el navegador o en Firebase se limpian solas al cargar y se vuelven a publicar sin TEG.
+- Los datos viejos de TEG en el estado guardado (`tegRound`, ronda activa) se descartan al cargar.

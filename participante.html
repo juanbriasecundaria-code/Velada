@@ -7,7 +7,7 @@
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Estadísticas — La Velada del Año</title>
-<script src="puntos.js?v=20261005teg1"></script>
+<script src="puntos.js?v=20261019"></script>
 <script src="fases-view.js?v=20261007fx7"></script>
 <meta name="theme-color" content="#c8f060">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1458,8 +1458,8 @@ function renderNextHero(myIdx, teamIdx) {
   const order=RoundPlan.order(latestState,F2_FIXTURE,(latestRules?.f2||[]).map(g=>g.name));
   const id=order.find(id=>!guestRoundDone(id));
   if(id&&!id.startsWith('duel:')){
-    const name={guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?',teg:'🌍 TEG Express'}[id];
-    return `<div class="gh-next-hero"><div class="gh-next-kicker">Tu próxima ronda</div><div class="gh-next-main">${name}${id==='teg'?'<br><a href="teg_express.html?role=phone&amp;team='+encodeURIComponent(TEAMS[teamIdx]||'')+'" style="font-size:13px;color:var(--accent)">Entrar a TEG Express →</a>':''}</div><div class="gh-next-meta">Ronda ${order.indexOf(id)+1} · ${id==='impostor'?'Individual · solo puntúa en Impostor':'Todos los equipos juntos'}</div></div>`;
+    const name={guess:'Guess Movies/Songs',argentinos:'100 Argentinos Dicen',impostor:'Impostor',qld:'¿Quién lo dijo?'}[id];
+    return `<div class="gh-next-hero"><div class="gh-next-kicker">Tu próxima ronda</div><div class="gh-next-main">${name}</div><div class="gh-next-meta">Ronda ${order.indexOf(id)+1} · ${id==='impostor'?'Individual · solo puntúa en Impostor':'Todos los equipos juntos'}</div></div>`;
   }
   const solo = null;
   const team = teamIdx >= 0 ? findNextMatch('f2', teamIdx) : null;
