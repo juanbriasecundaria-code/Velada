@@ -48,6 +48,18 @@ button.small{padding:5px 9px; font-size:12px; border-radius:7px;}
 .gateBtn .gt small{font-size:11px; color:var(--text-dim);}
 .gateBtn.ghostGate{background:transparent; opacity:.8;}
 .gateMsg{font-size:12px; color:var(--text-dim); text-align:center; min-height:16px;}
+.gateHelpLink{background:transparent; border:none; color:var(--text-dim); font-size:12.5px; text-decoration:underline; padding:6px;}
+
+/* ---------- modal de ayuda (compartido) ---------- */
+.modalBg{display:none; position:fixed; inset:0; z-index:200; background:rgba(4,9,18,.72); align-items:center; justify-content:center; padding:16px;}
+.modalBg.show{display:flex;}
+.modalCard{width:100%; max-width:480px; max-height:84vh; overflow-y:auto; background:#0e2036; border:1px solid var(--border); border-radius:16px; box-shadow:0 20px 50px rgba(0,0,0,.5);}
+.modalHead{position:sticky; top:0; display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:#0e2036; border-bottom:1px solid var(--border); font-size:15px;}
+.modalBody{padding:12px 16px 18px; font-size:13.5px; line-height:1.55; color:var(--text);}
+.modalBody p{margin:0 0 10px;}
+.modalBody ul{margin:0 0 10px; padding-left:20px;}
+.modalBody li{margin-bottom:6px;}
+.modalBody b{color:var(--gold);}
 
 /* ---------- pantalla de celular (rol 'phone') ---------- */
 #phoneScreen{max-width:460px; margin:0 auto; padding:10px;}
@@ -84,6 +96,7 @@ body.role-phone{overflow:hidden; overscroll-behavior:none; padding-top:0; paddin
 #pSheet{flex:none; max-height:34vh; overflow-y:auto; background:#0c1d30; border-top:2px solid var(--gold-dim);
   padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px)); display:flex; flex-direction:column; gap:6px;}
 #pSheet.collapsed{max-height:60px;}
+#pSheet > *{flex-shrink:0;} /* nada se achica por flexbox: si no entra, el panel scrollea entero */
 #pSheetHandle{flex:none; display:flex; justify-content:center; padding:3px 0 1px; cursor:pointer;}
 #pSheetHandle .bar{width:38px; height:4px; border-radius:3px; background:var(--border);}
 .pInfo{font-size:12px; color:var(--text-dim); display:flex; align-items:center; gap:6px;}
@@ -113,7 +126,7 @@ body.role-phone{overflow:hidden; overscroll-behavior:none; padding-top:0; paddin
 #pSheet .msg{min-height:0; font-size:12px; text-align:center;}
 #pSheet .msg:empty{display:none;}
 #pSheet .reactionBtns button{font-size:20px; padding:8px 0;}
-.pCountryList{display:flex; flex-direction:column; gap:5px; max-height:22vh; overflow-y:auto; padding-right:2px;}
+.pCountryList{display:flex; flex-direction:column; gap:5px; flex-shrink:0; padding-right:2px;}
 .pCRow{display:flex; align-items:center; gap:8px; background:var(--panel); border-radius:10px; padding:5px 8px; border:1px solid transparent;}
 .pCRow.foc{border-color:var(--gold);}
 .pCRow .pCName{flex:1; font-size:12.5px; display:flex; flex-direction:column; min-width:0;}
@@ -150,7 +163,18 @@ body.role-phone{overflow:hidden; overscroll-behavior:none; padding-top:0; paddin
 .dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
 #tvHistory{flex:1; overflow-y:auto; font-size:11px; color:var(--text-dim); display:flex; flex-direction:column-reverse; gap:3px;}
 #tvHistory div{opacity:.9;}
-#tvFinal{position:absolute; inset:0; background:rgba(5,10,20,.92); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; padding:20px;}
+#tvFinal{position:absolute; inset:0; background:radial-gradient(ellipse at 50% 30%, rgba(30,20,5,.95), rgba(5,8,16,.97) 70%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; text-align:center; padding:20px; overflow:hidden;}
+.confettiPiece{position:absolute; top:-5%; width:8px; height:14px; opacity:.9; animation:confettiFall linear forwards;}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg); opacity:1;}100%{transform:translateY(115vh) rotate(540deg); opacity:.3;}}
+.winTrophy{font-size:40px; animation:popIn .4s ease;}
+.winTeamName{font-size:34px; font-weight:900; text-shadow:0 2px 12px rgba(0,0,0,.6); animation:popIn .45s ease;}
+.winShapeBadge{margin:2px auto 0;}
+.winMission{background:rgba(6,14,26,.75); border:1px solid var(--gold-dim); border-radius:12px; padding:8px 16px; font-size:13px; max-width:380px; color:#f3e3bd;}
+.winStandings{display:flex; flex-direction:column; gap:4px; max-width:320px; width:100%; margin-top:4px;}
+.winStandRow{display:flex; align-items:center; gap:8px; background:rgba(255,255,255,.04); border-radius:9px; padding:5px 10px; font-size:12.5px;}
+.winStandRow .pos{font-weight:800; color:var(--gold); width:18px;}
+.winStandRow .nm{flex:1; text-align:left;}
+.winStandRow .pts{font-weight:700; color:var(--text-dim);}
 
 /* ---------- fichas / mapa svg ---------- */
 .countryLabel{fill:#dbe8f5; font-size:7px; font-weight:600; text-anchor:middle; pointer-events:none; paint-order:stroke; stroke:#06101c; stroke-width:2px;}
@@ -294,7 +318,26 @@ body.polish-wartable #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a
       <span class="gi">🧪</span>
       <span class="gt"><b>Modo de prueba</b><small>Sin Firebase, simula los 6 equipos acá mismo</small></span>
     </button>
+    <button class="gateHelpLink" onclick="openHelp()">❓ ¿Cómo se juega?</button>
     <div id="gateMsg" class="gateMsg"></div>
+  </div>
+</div>
+
+<!-- ───────── Ayuda rápida (modal, compartido por todas las pantallas) ───────── -->
+<div id="helpModal" class="modalBg" onclick="if(event.target===this)closeHelp()">
+  <div class="modalCard">
+    <div class="modalHead"><b>❓ Cómo se juega TEG Express</b><button class="ghost small" onclick="closeHelp()">✕</button></div>
+    <div class="modalBody">
+      <p><b>El objetivo</b> es ocupar países. Gana el primer equipo que llegue a <b>14 territorios</b> (objetivo común) o que cumpla su <b>misión secreta</b> (solo la ve su propio celular). Si se acaba el tiempo, gana quien tenga más países.</p>
+      <p><b>Cada ronda tiene dos fases:</b></p>
+      <ul>
+        <li>🪖 <b>Refuerzos</b> (simultáneo, todos a la vez): repartís tropas nuevas en tus países. La cantidad depende de cuántos países tenés y de si completaste algún continente entero (da bonus).</li>
+        <li>⚔️ <b>Ataque</b> (por turnos): el equipo en turno puede atacar países vecinos enemigos (o conectados por un <b>puente</b> punteado en el mapa, como Alaska–Kamchatka), las veces que quiera hasta el límite de ofensivas del turno. Después puede hacer <b>un</b> reagrupe (mover tropas entre países propios) y listo.</li>
+      </ul>
+      <p><b>Para atacar:</b> tocá tu país de origen (necesita más de 1 ejército), después el país enemigo destino. "Una tirada" tira los dados una vez; "Atacar hasta el final" repite automático hasta conquistar o quedarte con 1 ejército en el origen. Gana cada dado el que saca más alto; en empate gana el que defiende.</p>
+      <p><b>Si conquistás</b> un país, elegís cuántos ejércitos pasar (entre 1 y 3, según lo que te sobre en el origen).</p>
+      <p style="color:var(--text-dim);">Sin tarjetas de país, sin canjes, sin pactos — versión corta para jugar en ~20 minutos.</p>
+    </div>
   </div>
 </div>
 
@@ -302,6 +345,7 @@ body.polish-wartable #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a
 <div id="phoneScreen">
   <div id="phoneHeaderBar">
     <button class="ghost small" onclick="try{localStorage.removeItem('tegRole');localStorage.removeItem('tegMyTeam');}catch(e){}location.href=location.pathname">← Salir</button>
+    <button class="ghost small" onclick="openHelp()">❓</button>
     <span id="phoneConnLabel" style="font-size:11px;color:var(--text-dim);">conectando…</span>
   </div>
   <div id="phoneTeamPicker"></div>
@@ -337,6 +381,7 @@ body.polish-wartable #mapHost{background:radial-gradient(ellipse at 50% 40%, #3a
     <input id="teamNamesInput" type="text" placeholder="Nombres de equipos (opcional, separados por coma)" style="background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 8px;min-width:200px;flex:1;"/>
     <button id="btnNewGame" class="primary">▶️ Nueva partida</button>
     <button id="btnPause" class="ghost">⏸️ Pausar</button>
+    <button class="ghost" onclick="openHelp()">❓</button>
     <span id="globalClock" style="font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums;"></span>
   </div>
 
@@ -947,7 +992,7 @@ const CONTINENTS = JSON.parse(document.getElementById('data-continents').textCon
           return;
         }
         if (team.objective && teamMeetsObjective(state, team.id, team.objective)) {
-          finishGame(state, team.id, equipoNombre(state, team.id) + ' cumplió su objetivo secreto.');
+          finishGame(state, team.id, equipoNombre(state, team.id) + ' cumplió su misión secreta: "' + team.objective.text + '".');
           return;
         }
       }
@@ -970,6 +1015,8 @@ const CONTINENTS = JSON.parse(document.getElementById('data-continents').textCon
       }
       state.winner = winnerTeamId;
       state.winReason = reason;
+      const wTeam = state.teams.find((t) => t.id === winnerTeamId);
+      state.winnerObjectiveText = (wTeam && wTeam.objective) ? wTeam.objective.text : null;
       pushEvent(state, { type: 'game-over', winnerTeamId, reason });
       log(state, '🏆 ' + (winnerTeamId ? equipoNombre(state, winnerTeamId) + ' gana. ' : '') + reason);
     }
@@ -1361,7 +1408,11 @@ const POLISH = {
   reactions: true, // emojis rápidos desde el celular, flotando en la TV
   dramaticAlerts: true, // aviso "contra las cuerdas"
   closingSummary: true, // pantalla de cierre con datos divertidos
+  ambientDrum: true, // tambor de fondo durante los ataques, se acelera en el último minuto
 };
+
+window.openHelp = function () { const m = document.getElementById('helpModal'); if (m) m.classList.add('show'); };
+window.closeHelp = function () { const m = document.getElementById('helpModal'); if (m) m.classList.remove('show'); };
 const REACTION_EMOJIS = ['😈', '👏', '😱', '🔥'];
 const REACTION_COOLDOWN_MS = 2200;
 var REACTIONS = []; // {id, emoji, x, createdAt} — puramente cosmético, no es parte de STATE
@@ -1562,20 +1613,26 @@ function renderMapSVG(opts) {
 var AUDIO_CTX = null;
 var AUDIO_VOLUME = 0.5;
 var AUDIO_MUTED = false;
+var NOISE_BUFFER = null;
 
 function initAudio() {
   if (AUDIO_CTX || !POLISH.sound) return;
   try {
     AUDIO_CTX = new (window.AudioContext || window.webkitAudioContext)();
+    const n = AUDIO_CTX.sampleRate * 1.5;
+    NOISE_BUFFER = AUDIO_CTX.createBuffer(1, n, AUDIO_CTX.sampleRate);
+    const d = NOISE_BUFFER.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
   } catch (e) { /* sin soporte: seguimos sin sonido */ }
 }
-function tone(freq, dur, type, gainMul) {
+function tone(freq, dur, type, gainMul, detune) {
   if (!AUDIO_CTX || AUDIO_MUTED || !POLISH.sound) return;
   const t0 = AUDIO_CTX.currentTime;
   const osc = AUDIO_CTX.createOscillator();
   const gain = AUDIO_CTX.createGain();
   osc.type = type || 'sine';
   osc.frequency.setValueAtTime(freq, t0);
+  if (detune) osc.detune.setValueAtTime(detune, t0);
   const g = AUDIO_VOLUME * (gainMul == null ? 1 : gainMul);
   gain.gain.setValueAtTime(0.0001, t0);
   gain.gain.exponentialRampToValueAtTime(Math.max(g, 0.0005), t0 + 0.02);
@@ -1584,12 +1641,72 @@ function tone(freq, dur, type, gainMul) {
   osc.start(t0);
   osc.stop(t0 + dur + 0.02);
 }
-function sfxDice() { tone(320, 0.09, 'square', 0.35); setTimeout(() => tone(260, 0.08, 'square', 0.3), 70); }
-function sfxHit() { tone(110, 0.18, 'sawtooth', 0.5); }
-function sfxConquest() { [440, 554, 659, 880].forEach((f, i) => setTimeout(() => tone(f, 0.22, 'triangle', 0.4), i * 90)); }
-function sfxContinent() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.3, 'sine', 0.45), i * 110)); }
-function sfxRegroup() { tone(220, 0.12, 'sine', 0.3); }
-function sfxAlert() { [660, 0, 660].forEach((f, i) => setTimeout(() => { if (f) tone(f, 0.16, 'square', 0.4); }, i * 180)); }
+/** Ráfaga de ruido blanco filtrado — para dados, golpes, percusión.
+ * Mucho más orgánico que un oscilador puro para este tipo de SFX. */
+function noiseBurst(dur, gainMul, filterType, filterFreq, q) {
+  if (!AUDIO_CTX || AUDIO_MUTED || !POLISH.sound || !NOISE_BUFFER) return;
+  const t0 = AUDIO_CTX.currentTime;
+  const src = AUDIO_CTX.createBufferSource();
+  src.buffer = NOISE_BUFFER;
+  const filt = AUDIO_CTX.createBiquadFilter();
+  filt.type = filterType || 'bandpass';
+  filt.frequency.setValueAtTime(filterFreq || 1200, t0);
+  if (q) filt.Q.setValueAtTime(q, t0);
+  const gain = AUDIO_CTX.createGain();
+  const g = AUDIO_VOLUME * (gainMul == null ? 1 : gainMul);
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.exponentialRampToValueAtTime(Math.max(g, 0.0005), t0 + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  src.connect(filt).connect(gain).connect(AUDIO_CTX.destination);
+  src.start(t0);
+  src.stop(t0 + dur + 0.02);
+}
+function sfxDice() {
+  // tres "clics" de ruido alto (como dados chocando) + dos tonos cortos
+  [0, 55, 115].forEach((t, i) => setTimeout(() => noiseBurst(0.045, 0.5, 'bandpass', 2200 + i * 500, 3), t));
+  setTimeout(() => tone(320, 0.08, 'square', 0.28), 10);
+  setTimeout(() => tone(240, 0.07, 'square', 0.24), 90);
+}
+function sfxHit() {
+  // golpe: sub-bass + ruido grave, como un impacto sordo
+  tone(100, 0.2, 'sine', 0.55);
+  noiseBurst(0.12, 0.4, 'lowpass', 400, 1.2);
+}
+function sfxConquest() {
+  noiseBurst(0.3, 0.25, 'highpass', 3000, 0.7); // un "whoosh" breve
+  [440, 554, 659, 880].forEach((f, i) => setTimeout(() => {
+    tone(f, 0.24, 'triangle', 0.38);
+    tone(f, 0.24, 'sine', 0.16, 6); // un segundo oscilador desafinado 6 cents: más cuerpo
+  }, i * 90));
+  setTimeout(() => tone(220, 0.5, 'sine', 0.22), 90); // nota grave de fondo
+}
+function sfxContinent() {
+  tone(130, 0.7, 'sine', 0.2);
+  [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.3, 'sine', 0.42), i * 110));
+}
+function sfxRegroup() { tone(220, 0.12, 'sine', 0.3); noiseBurst(0.06, 0.15, 'highpass', 2500); }
+function sfxAlert() { [660, 0, 660].forEach((f, i) => setTimeout(() => { if (f) { tone(f, 0.16, 'square', 0.4); noiseBurst(0.08, 0.25, 'bandpass', 1800, 4); } }, i * 180)); }
+function sfxUIClick() { noiseBurst(0.03, 0.12, 'bandpass', 3500, 2); }
+
+// ---- tambor de fondo: un pulso grave y disperso durante el ataque,
+// que se acelera en el último minuto de partida (pedido explícito
+// del enunciado original). Volumen bajo a propósito: es ambiente,
+// no protagonista. ----
+var AMBIENT_NEXT_BEAT = 0;
+function tickAmbientDrum() {
+  if (!AUDIO_CTX || AUDIO_MUTED || !POLISH.sound || !POLISH.ambientDrum || !STATE) return;
+  if (STATE.phase !== 'attack' || STATE.paused) return;
+  const totalSec = ENGINE.CONFIG.duracionPartidaMinutos * 60;
+  const remaining = totalSec - STATE.elapsedGameSeconds;
+  const lastMinute = remaining > 0 && remaining <= 60;
+  const period = lastMinute ? 0.55 : 1.4; // segundos entre golpes
+  const now = AUDIO_CTX.currentTime;
+  if (now >= AMBIENT_NEXT_BEAT) {
+    tone(lastMinute ? 95 : 75, lastMinute ? 0.14 : 0.22, 'sine', lastMinute ? 0.22 : 0.14);
+    noiseBurst(0.05, lastMinute ? 0.14 : 0.08, 'lowpass', 300, 1);
+    AMBIENT_NEXT_BEAT = now + period;
+  }
+}
 
 function vibrate(pattern) {
   if (!POLISH.vibration) return;
@@ -2025,10 +2142,16 @@ function renderTV() {
 
   if (STATE.phase === 'ended') {
     const w = STATE.winner ? teamById(STATE.winner) : null;
-    mapHost.innerHTML += '<div id="tvFinal"><div style="font-size:14px;color:var(--text-dim);">🏆 FIN DE LA PARTIDA</div>' +
-      '<div style="font-size:26px;font-weight:800;color:' + (w ? w.color : 'var(--gold)') + ';">' + (w ? w.name : '—') + '</div>' +
-      '<div style="font-size:13px;color:var(--text-dim);max-width:320px;">' + (STATE.winReason || '') + '</div>' +
-      (STATE.finalStandings ? '<div style="margin:8px 0;font-size:13px;text-align:left;">' + STATE.finalStandings.map((r) => '<div>' + r.puesto + '° ' + escapeHtml(r.name) + ' <b style="color:var(--gold);">+' + r.puntos + ' pts</b></div>').join('') + '</div>' : '') +
+    mapHost.innerHTML += '<div id="tvFinal">' +
+      (POLISH.closingSummary ? confettiMarkup(w) : '') +
+      '<div style="font-size:13px;color:var(--text-dim);letter-spacing:1px;">🏆 FIN DE LA PARTIDA</div>' +
+      '<div class="winTrophy">🏆</div>' +
+      '<div class="winTeamName" style="color:' + (w ? w.color : 'var(--gold)') + ';">' + (w ? escapeHtml(w.name) : '—') + '</div>' +
+      (w ? '<svg class="winShapeBadge" width="34" height="34">' + shapeBadgeMarkup(w.shape, 17, 17, 11, w.color) + '</svg>' : '') +
+      '<div style="font-size:13px;color:var(--text-dim);max-width:360px;">' + escapeHtml(STATE.winReason || '') + '</div>' +
+      (STATE.winnerObjectiveText && (STATE.winReason || '').indexOf(STATE.winnerObjectiveText) === -1
+        ? '<div class="winMission">🤫 Su misión secreta era: <b>' + escapeHtml(STATE.winnerObjectiveText) + '</b></div>' : '') +
+      (STATE.finalStandings ? '<div class="winStandings">' + STATE.finalStandings.map((r) => '<div class="winStandRow"><span class="pos">' + r.puesto + '°</span><span class="nm">' + escapeHtml(r.name) + '</span><span class="pts">+' + r.puntos + ' pts</span></div>').join('') + '</div>' : '') +
       (POLISH.closingSummary ? renderClosingSummary() : '') +
       '</div>';
   }
@@ -2059,6 +2182,24 @@ function topTeamBy(dict) {
   let bestId = null, bestVal = -1;
   Object.keys(dict || {}).forEach((tid) => { if (dict[tid] > bestVal) { bestVal = dict[tid]; bestId = tid; } });
   return bestId ? { team: teamById(bestId), value: bestVal } : null;
+}
+
+/** Confetti de CSS puro para la pantalla de cierre — mezcla los
+ * colores de todos los equipos. Puramente decorativo (no se
+ * recalcula en cada render: sólo se llama una vez al armar #tvFinal,
+ * ver nota en renderTV). */
+function confettiMarkup(winnerTeam) {
+  const palette = (STATE.teams || []).map((t) => t.color).concat(['#f0b429']);
+  let out = '';
+  for (let i = 0; i < 28; i++) {
+    const color = palette[i % palette.length];
+    const left = (Math.random() * 100).toFixed(1);
+    const dur = (2.2 + Math.random() * 1.8).toFixed(2);
+    const delay = (Math.random() * 1.4).toFixed(2);
+    const wide = Math.random() < 0.5;
+    out += '<div class="confettiPiece" style="left:' + left + '%; background:' + color + '; animation-duration:' + dur + 's; animation-delay:' + delay + 's;' + (wide ? 'width:12px;height:8px;' : '') + '"></div>';
+  }
+  return out;
 }
 
 function renderClosingSummary() {
@@ -2271,7 +2412,12 @@ function render() {
   if (!document.getElementById('tvRoundLabel')) return; // todavía no se eligió rol
   renderTV();
   renderDriver();
-  renderDevices();
+  // Ojo de rendimiento: en vivo (role 'host'), la fila de celulares
+  // simulados está oculta (devicesSection:none) — generar sus 6 mapas
+  // en cada acción es puro desperdicio (cada mapa es un SVG pesado).
+  // Sólo la pintamos en modo de prueba local, que es la única vista
+  // donde de verdad se usa.
+  if (LIVE.role === 'test') renderDevices();
   const gc = document.getElementById('globalClock');
   if (gc) gc.textContent = STATE ? fmtClock(STATE.phaseTimer) : '';
 }
@@ -2484,7 +2630,12 @@ function phoneSheetHtml(team) {
     }
   } else if (STATE.phase === 'ended') {
     const win = STATE.winner === tid;
-    h += '<div class="pHint" style="font-size:18px;">' + (win ? '🏆 ¡Ganaron!' : 'Partida terminada') + '<br><small>' + escapeHtml(STATE.winReason || '') + '</small></div>';
+    const wTeam = teamById(STATE.winner);
+    h += '<div class="pHint" style="font-size:19px;">' + (win ? '🏆 ¡Ganaron!' : (wTeam ? '🏆 Ganó ' + escapeHtml(wTeam.name) : 'Partida terminada')) +
+      '<br><small style="font-size:12px;">' + escapeHtml(STATE.winReason || '') + '</small></div>';
+    if (STATE.winnerObjectiveText && (STATE.winReason || '').indexOf(STATE.winnerObjectiveText) === -1) {
+      h += '<div class="winMission" style="margin-top:8px;">🤫 Su misión secreta era: <b>' + escapeHtml(STATE.winnerObjectiveText) + '</b></div>';
+    }
   }
 
   if (team.objective && team.alive) h += '<details class="pObj"><summary>🎯 Mi objetivo</summary>' + escapeHtml(team.objective.text) + '</details>';
@@ -2718,6 +2869,10 @@ setInterval(() => {
     if (LIVE.role === 'host') fbPushFullState();
   }
 }, 1000);
+
+// el tambor de fondo necesita más resolución que el reloj de 1s para
+// poder acelerarse de verdad en el último minuto
+setInterval(tickAmbientDrum, 150);
 
 document.getElementById('btnNewGame').addEventListener('click', () => {
   const raw = (document.getElementById('teamNamesInput').value || '').trim();
