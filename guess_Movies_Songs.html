@@ -323,14 +323,16 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-
 /* Frame (landscape) sizing — más grande que el póster */
 .part-poster.is-frame{height:auto;width:min(92vw,1000px);max-width:92vw;aspect-ratio:16/9;object-fit:cover;max-height:100%}
 /* Crop reveal mode: zoomed random crop hasta revelar */
-.part-poster.crop-mode{object-fit:cover;height:100%;max-height:100%;width:min(78vw,640px);transform:scale(1.55);transition:transform .55s linear}
+.part-poster-inner.crop-window{overflow:hidden;box-shadow:0 16px 100px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08)}
+.part-poster.crop-mode{object-fit:contain;height:100%;max-height:100%;width:auto;box-shadow:none;transition:transform .75s linear}
 /* Blur reveal mode: arranca borrosa y se va enfocando sola */
 .part-poster.blur-mode{filter:blur(22px);transition:filter .55s linear}
 /* Para frames (ya son 16:9): si la ventana de recorte también fuera 16:9 no recortaría nada,
    por eso usamos una ventana más angosta y SIN aspect-ratio fijo para que sí corte la escena */
-.part-poster.crop-mode.is-frame{height:65%;max-height:65%;width:min(58vw,460px);aspect-ratio:auto;transform:scale(1.35)}
+.part-poster.crop-mode.is-frame{height:auto;width:min(92vw,1000px);max-height:100%;aspect-ratio:16/9;object-fit:contain}
 .part-poster.crop-mode.crop-revealed{object-fit:contain;transform:scale(1);width:auto;height:100%;max-height:100%}
 .part-poster.crop-mode.is-frame.crop-revealed{height:auto;width:min(92vw,1000px);max-height:100%;aspect-ratio:16/9;transform:scale(1)}
+.part-poster.crop-mode.crop-revealed{box-shadow:0 16px 100px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08);transition:none}
 /* Grid reveal mode: 3x3 cuadros que se destapan de a uno */
 .grid-overlay{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);border-radius:14px;overflow:hidden;z-index:4}
 .grid-tile{background:linear-gradient(150deg,var(--surface2),var(--surface));border:1px solid rgba(0,0,0,.45);opacity:1;transition:opacity .55s cubic-bezier(.22,1,.36,1)}
@@ -1621,6 +1623,11 @@ let GROUP=false,gTeams=[],gScores={},gQueue=[],gTurn=-1,gLastCorrect=null,gFixtu
 let MODE=null,nextId=200,_imgSrc='url',_fileData=null,_audioSrc='yt',_audioData=null;
 let _imgKind='poster',_revealMode='full',_frameFiles=[];
 let gridRevealed=[],_lastGridCardId=null,_cropSeeds={};
+// RECORTE: arranca mostrando 1/CROP_START_ZOOM del ancho y del alto de la imagen, cerca de un
+// punto al azar, y se va alejando (zoom exponencial = velocidad de destape pareja) hasta verla entera.
+const CROP_START_ZOOM=4;
+function cropZoom(p){return Math.pow(CROP_START_ZOOM,1-Math.max(0,Math.min(1,+p||0)));}
+function cropSeedFor(src){const k=src||'';if(!_cropSeeds[k])_cropSeeds[k]={x:Math.round(15+Math.random()*70),y:Math.round(15+Math.random()*70)};return _cropSeeds[k];}
 let _songMode='audio',lyricLine=0,_lastLyricCardId=null;
 let _karaokeTimer=null;
 let frameIdx=0,revealProgress=0,_movieAutoTimer=null,_autoStep=0,_blurStep=0,_lastFrameCardId=null;
@@ -1668,6 +1675,8 @@ function sendState(){
     frameIdx:frameIdx,frameCount:imgInfo.frameCount,
     revealMode:cur?.type==='movie'?(cur.revealMode||'full'):'full',
     revealProgress:revealProgress,
+    cropX:(cur?.type==='movie'&&cur.revealMode==='crop'&&imgInfo.src)?cropSeedFor(imgInfo.src).x:null,
+    cropY:(cur?.type==='movie'&&cur.revealMode==='crop'&&imgInfo.src)?cropSeedFor(imgInfo.src).y:null,
     gridRevealed:gridRevealed,
     songMode:cur?.type==='song'?(cur.songMode||'audio'):null,
     lyrics:cur?.type==='song'?(cur.lyrics||''):'',
@@ -2020,7 +2029,7 @@ function renderCondCard(){
         _emojiBadge=prog?`<span class="num-badge" style="margin-left:.4rem">1️⃣ De a uno · ${shown}/${list.length}</span>`:'<span class="num-badge" style="margin-left:.4rem">😀 Emojis</span>';
       }
     } else {
-    inner=src?`<div class="cond-poster-wrap" style="position:relative"><img class="cond-poster" src="${esc(src)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="">${modeTag}<div class="cond-poster-ph" style="display:none">🎬</div></div>`:'<div class="cond-poster-wrap"><div class="cond-poster-ph">🎬</div></div>';
+    inner=src?`<div class="cond-poster-wrap" style="position:relative"><span class="cond-poster-clip" style="display:inline-block;overflow:hidden;border-radius:8px;line-height:0"><img class="cond-poster" src="${esc(src)}" onerror="var w=this.parentNode;w.style.display='none';var ph=w.parentNode.querySelector('.cond-poster-ph');if(ph)ph.style.display='flex'" alt=""></span>${modeTag}<div class="cond-poster-ph" style="display:none">🎬</div></div>`:'<div class="cond-poster-wrap"><div class="cond-poster-ph">🎬</div></div>';
     }
   } else {
     const hy=!!c.youtubeId;
@@ -2692,8 +2701,8 @@ function updateCondProgress(){
   const img=document.querySelector('#cond-card .cond-poster');if(!img)return;
   const c=currentCard();const m=c&&c.type==='movie'?(c.revealMode||'full'):'full';
   if(revealed&&m==='blur'){img.style.filter=`blur(${(22*(1-revealProgress)).toFixed(1)}px)`;img.style.transform='';}
-  else if(revealed&&m==='crop'){img.style.transform=`scale(${(1.7-0.7*revealProgress).toFixed(3)})`;img.style.filter='';}
-  else{img.style.filter='';img.style.transform='';}
+  else if(revealed&&m==='crop'){const sd=cropSeedFor(img.getAttribute('src'));img.style.transformOrigin=sd.x+'% '+sd.y+'%';img.style.transform=`scale(${cropZoom(revealProgress).toFixed(3)})`;img.style.filter='';}
+  else{img.style.filter='';img.style.transform='';img.style.transformOrigin='';}
 }
 function movieAutoActive(){
   const c=currentCard();
@@ -2799,7 +2808,7 @@ function revealRandomTile(){
 }
 function toggleReveal(){
   revealed=!revealed;
-  if(revealed){const c0=currentCard();if(c0){if(c0.type==='song')lyricLine=0;if(c0.type==='movie'){revealProgress=0;frameIdx=0;emojiStep=1;if(c0.revealMode==='grid')gridRevealed=Array(9).fill(false);}}}
+  if(revealed){const c0=currentCard();if(c0){if(c0.type==='song')lyricLine=0;if(c0.type==='movie'){_cropSeeds={};revealProgress=0;frameIdx=0;emojiStep=1;if(c0.revealMode==='grid')gridRevealed=Array(9).fill(false);}}}
   syncRevealUI();
   syncGridHintUI();
   syncEmojiHintUI();
@@ -2905,7 +2914,10 @@ function updateMovieProgress(d){
   const img=document.querySelector('.part-poster');if(!img)return;
   const p=d.revealProgress||0;
   if(d.revealMode==='blur')img.style.filter=`blur(${(22*(1-p)).toFixed(1)}px)`;
-  else if(d.revealMode==='crop')img.style.transform=`scale(${(1.7-0.7*p).toFixed(3)})`;
+  else if(d.revealMode==='crop'){
+    if(typeof d.cropX==='number'&&typeof d.cropY==='number')img.style.transformOrigin=d.cropX+'% '+d.cropY+'%';
+    img.style.transform=`scale(${cropZoom(p).toFixed(3)})`;
+  }
 }
 function updateFrameImg(d){
   const img=document.querySelector('.part-poster');
@@ -2998,7 +3010,7 @@ function renderParticipant(d){
   else if(d.cardType==='movie'&&d.phase!=='reveal'){
     if((d.emojis||'').trim()&&d.emojiStep!==_pLastEmojiStep){buildPartCard(d);_pLastEmojiStep=d.emojiStep;}
     if(d.imgUrl!==_pLastImg){updateFrameImg(d);_pLastImg=d.imgUrl;}
-    if((d.revealMode==='blur'||d.revealMode==='crop')&&d.revealProgress!==_pLastProg){updateMovieProgress(d);_pLastProg=d.revealProgress;}
+    if((d.revealMode==='blur'||d.revealMode==='crop')&&(d.revealProgress!==_pLastProg||d.revealMode==='crop')){updateMovieProgress(d);_pLastProg=d.revealProgress;}
     if(d.revealMode==='grid'&&JSON.stringify(d.gridRevealed)!==JSON.stringify(_pLastGrid)){updateGridTiles(d);_pLastGrid=d.gridRevealed?[...d.gridRevealed]:null;}
   }
   else if(d.songMode==='karaoke'){updateLyricLines(d);_pLastLyricLine=d.lyricLine;}
@@ -3174,10 +3186,9 @@ function buildPartCard(d){
     const mode=d.revealMode||'full';
     const frameCls=d.isFrame?' is-frame':'';
     if(src&&mode==='crop'&&!isRev){
-      if(!_cropSeeds[src])_cropSeeds[src]={x:12+Math.random()*76,y:12+Math.random()*76};
-      const seed=_cropSeeds[src];
-      const p=d.revealProgress||0;const sc=(1.7-0.7*p).toFixed(3);
-      cHtml=`<div class="part-poster-wrap"><div class="part-poster-inner"><img class="part-poster crop-mode${frameCls}" style="object-position:${seed.x}% ${seed.y}%;transform:scale(${sc})" src="${esc(src)}" onerror="this.style.opacity='.15'" alt="poster"></div></div>`;
+      const seed=(typeof d.cropX==='number'&&typeof d.cropY==='number')?{x:d.cropX,y:d.cropY}:cropSeedFor(src);
+      const p=d.revealProgress||0;const sc=cropZoom(p).toFixed(3);
+      cHtml=`<div class="part-poster-wrap"><div class="part-poster-inner crop-window"><img class="part-poster crop-mode${frameCls}" style="transform-origin:${seed.x}% ${seed.y}%;transform:scale(${sc})" src="${esc(src)}" onerror="this.style.opacity='.15'" alt="poster"></div></div>`;
     } else if(src&&mode==='blur'&&!isRev){
       const p=d.revealProgress||0;const px=(22*(1-p)).toFixed(1);
       cHtml=`<div class="part-poster-wrap"><div class="part-poster-inner"><img class="part-poster blur-mode${frameCls}" style="filter:blur(${px}px)" src="${esc(src)}" onerror="this.style.opacity='.15'" alt="poster"></div></div>`;
