@@ -1631,6 +1631,11 @@ function cropSeedFor(src){const k=src||'';if(!_cropSeeds[k])_cropSeeds[k]={x:Mat
 let _songMode='audio',lyricLine=0,_lastLyricCardId=null;
 let _karaokeTimer=null;
 let frameIdx=0,revealProgress=0,_movieAutoTimer=null,_autoStep=0,_blurStep=0,_lastFrameCardId=null;
+// Se pone en true cuando TODOS los equipos (o, en grupal, toda la cola) erraron la carta
+// actual y el conductor cerró el buzzer a propósito. Mientras esté en true, blur/recorte/grid
+// dejan de auto-revelar solos (si no, la imagen seguía destapándose sin que nadie pudiera
+// buzzear). Se limpia al mostrar una carta nueva o al reabrir el buzzer a mano (frame/emoji/cuadro).
+let autoRevealFrozen=false;
 let emojiStep=1,_lastEmojiCardId=null,_emojiProg=false;
 // Separa una cadena en emojis reales (respeta banderas, tonos de piel y combinaciones ZWJ)
 function splitEmojis(str){
@@ -2284,6 +2289,11 @@ function gAdvance(timeout){
     gMaybeStartTurn();
   }else{
     const faltan=gTeams.length-gQueue.length;
+    // Ya pasaron todos los equipos y ninguno acertó: igual que cuando erran los
+    // dos equipos en modo 2 equipos, se congela el auto-revelado (blur/recorte/
+    // grid) para que la imagen no se siga destapando sola sin que nadie pueda
+    // buzzear. Se reabre al mostrar otro frame/emoji/cuadro o al pasar de carta.
+    if(faltan<=0)autoRevealFrozen=true;
     syncPhaseUI();gRenderBoard();sendState();
     showToast(faltan>0
       ?((timeout?'⏱ Se acabó el tiempo':'✗ Incorrecto')+' — esperando que buzzee otro equipo (faltan '+faltan+')')
@@ -2706,7 +2716,7 @@ function updateCondProgress(){
 }
 function movieAutoActive(){
   const c=currentCard();
-  if(!c||c.type!=='movie'||!revealed||phase!=='idle')return false;
+  if(!c||c.type!=='movie'||!revealed||phase!=='idle'||autoRevealFrozen)return false;
   const m=c.revealMode||'full';
   // blur/crop siempre auto (es la naturaleza del modo); grid solo si está activado; frames NUNCA (manual).
   return m==='blur'||m==='crop'||(m==='grid'&&gridAutoReveal);
@@ -2757,10 +2767,12 @@ function nextFrame(){
   syncFrameHintUI();
   sendState();
   showToast('🎞 Frame '+(frameIdx+1)+'/'+c.frames.length);
-  // Ronda grupal: si nadie está respondiendo, el frame nuevo reabre el buzzer
-  // para todos los equipos (3-2-1, cola reiniciada y 15 s para cada uno).
-  if(GROUP&&revealed&&phase==='idle')fbOpenBuzzer();
-  else reopenBuzzerForNewTile(); // 2 equipos: reinicia el buzzer si estaba cerrado o con un equipo bloqueado
+  // Un frame nuevo es una pista nueva: siempre reabre el buzzer para todos
+  // (3-2-1, cola/bloqueo reiniciados), sea grupal o 2 equipos. Antes, en 2
+  // equipos, esto solo pasaba si el buzzer ya estaba "sucio" (bloqueado/con
+  // cola) — si ya estaba abierto y limpio no hacía nada, a diferencia de
+  // grupal, que SIEMPRE lo reabría.
+  if(revealed&&phase==='idle'){autoRevealFrozen=false;fbOpenBuzzer();}
 }
 // Destapa el próximo emoji (botón 😀 o tecla F en cartas de emojis)
 function nextEmoji(){
@@ -2771,7 +2783,9 @@ function nextEmoji(){
   emojiStep++;
   renderCondCard();          // vuelve a dibujar la tira del conductor (y hace sendState)
   showToast('😀 Emoji '+emojiStep+'/'+total);
-  reopenBuzzerForNewTile(); // nuevo emoji = nueva chance para buzzear
+  // Nuevo emoji = nueva chance para buzzear: igual que nextFrame(), reabre
+  // siempre el buzzer (antes no se reabría en ningún modo).
+  if(revealed&&phase==='idle'){autoRevealFrozen=false;fbOpenBuzzer();}
 }
 function syncEmojiHintUI(){
   const c=currentCard();
@@ -2804,11 +2818,12 @@ function revealRandomTile(){
   syncGridHintUI();
   sendState();
   showToast('💡 Cuadro destapado ('+gridRevealed.filter(Boolean).length+'/9)');
+  autoRevealFrozen=false;
   reopenBuzzerForNewTile();
 }
 function toggleReveal(){
   revealed=!revealed;
-  if(revealed){const c0=currentCard();if(c0){if(c0.type==='song')lyricLine=0;if(c0.type==='movie'){_cropSeeds={};revealProgress=0;frameIdx=0;emojiStep=1;if(c0.revealMode==='grid')gridRevealed=Array(9).fill(false);}}}
+  if(revealed){autoRevealFrozen=false;const c0=currentCard();if(c0){if(c0.type==='song')lyricLine=0;if(c0.type==='movie'){_cropSeeds={};revealProgress=0;frameIdx=0;emojiStep=1;if(c0.revealMode==='grid')gridRevealed=Array(9).fill(false);}}}
   syncRevealUI();
   syncGridHintUI();
   syncEmojiHintUI();

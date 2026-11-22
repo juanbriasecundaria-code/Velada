@@ -1061,13 +1061,17 @@ const SK = {
   MODE: 'qld_mode'
 };
 const WIN_TARGET = 10; // puntos para ganar la ronda especial
-// Roster por defecto (offline / antes de que velada.html publique los equipos reales vía Firebase)
+// Roster por defecto (offline / antes de que velada.html publique los equipos reales vía Firebase).
+// Genérico a propósito: antes tenía nombres reales de invitados de una edición
+// anterior, que podían verse un instante (parpadeo) al cargar mientras llegaba
+// el roster real — confuso incluso siendo temporal. Con nombres de placeholder
+// ("Equipo N") no pasa nada si se ve un instante.
 const DEFAULT_TEAMS = [
-  { index: 0, label: 'Martín H. / Valentín A.', members: ['Martin','Valentín'] },
-  { index: 1, label: 'Lázaro G. / Tomás P.',    members: ['Laza','Tomás'] },
-  { index: 2, label: 'Thiago C. / Lara M.',     members: ['Thiago','Lara'] },
-  { index: 3, label: 'Totti / Risu',            members: ['Totti','Risu'] },
-  { index: 4, label: 'Coral O. / Florencia L.', members: ['Cori','Flor'] }
+  { index: 0, label: 'Equipo 1', members: ['Equipo 1'] },
+  { index: 1, label: 'Equipo 2', members: ['Equipo 2'] },
+  { index: 2, label: 'Equipo 3', members: ['Equipo 3'] },
+  { index: 3, label: 'Equipo 4', members: ['Equipo 4'] },
+  { index: 4, label: 'Equipo 5', members: ['Equipo 5'] }
 ];
 
 const CATEGORIES = [

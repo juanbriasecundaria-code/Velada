@@ -5822,6 +5822,36 @@ function saveF2TeamName(idx) {
   renderFase2();
 }
 
+// Los puntos de ¿Quién lo dijo? (state.qldTeamPoints / window._qldTeamPoints y el
+// override manual state.qldOverride) se guardan por ÍNDICE de TEAMS[], no por
+// nombre. Mientras solo se agregan equipos al final (addF2Team) o se renombran
+// (saveF2TeamName) los índices no se mueven y no hace falta tocar nada. Pero
+// borrar un equipo (deleteF2Team) corre el índice de todos los que venían
+// después, y esos puntos quedaban pegados al equipo que pasa a ocupar ese
+// índice (o huérfanos). Esto reconstruye ambos mapas por NOMBRE: al equipo
+// borrado se le descarta el puntaje, y al resto se lo reubica en su índice
+// nuevo, sea cual sea.
+function remapQldPointsForTeamsChange(oldTeams) {
+  const remap = (map) => {
+    if (!map) return map;
+    const next = {};
+    oldTeams.forEach((name, oldIdx) => {
+      const val = map[oldIdx];
+      if (val === undefined || val === null) return;
+      const newIdx = TEAMS.indexOf(name);
+      if (newIdx >= 0) next[newIdx] = val;
+    });
+    return next;
+  };
+  if (state.qldTeamPoints && Object.keys(state.qldTeamPoints).length) {
+    state.qldTeamPoints = remap(state.qldTeamPoints);
+    window._qldTeamPoints = state.qldTeamPoints;
+  }
+  if (state.qldOverride && Object.keys(state.qldOverride).length) {
+    state.qldOverride = remap(state.qldOverride);
+  }
+}
+
 // Eliminar un equipo (mínimo 2 equipos para que haya partido)
 function deleteF2Team(idx) {
   if (!canEditF2()) return;
@@ -5832,7 +5862,9 @@ function deleteF2Team(idx) {
       `¿Eliminar el equipo "${TEAMS[idx]}"?`,
       'Esta acción rehace el fixture.',
       () => {
+        const oldTeams = TEAMS.slice();
         TEAMS.splice(idx, 1);
+        remapQldPointsForTeamsChange(oldTeams);
         // Run fixture regeneration async so the modal closes first (avoids UI freeze)
         setTimeout(() => {
           regenerateF2Fixture();

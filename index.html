@@ -814,7 +814,10 @@ function startIndividualPlayerListener(){
     finish(offlineQldRoster());
   });
 }
-const DEFAULT_QLD_PLAYERS = ['Martin','Valentín','Laza','Tomás','Thiago','Lara','Totti','Risu','Cori','Flor'];
+// Genérico a propósito (ver DEFAULT_TEAMS en quien_lo_dijo.html): antes eran
+// nombres reales de invitados de una edición anterior, visibles un instante
+// mientras llega el roster real de Firebase.
+const DEFAULT_QLD_PLAYERS = ['Jugador 1','Jugador 2','Jugador 3','Jugador 4','Jugador 5','Jugador 6','Jugador 7','Jugador 8','Jugador 9','Jugador 10'];
 // Sin conexión: primero el último roster real que mandó velada; los nombres de ejemplo son el último recurso.
 function offlineQldRoster(){
   try{ const c = JSON.parse(localStorage.getItem('qld_last_roster') || 'null'); if(Array.isArray(c) && c.length) return c; }catch(e){}
