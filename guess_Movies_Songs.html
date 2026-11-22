@@ -1623,7 +1623,7 @@ let _imgKind='poster',_revealMode='full',_frameFiles=[];
 let gridRevealed=[],_lastGridCardId=null,_cropSeeds={};
 let _songMode='audio',lyricLine=0,_lastLyricCardId=null;
 let _karaokeTimer=null;
-let frameIdx=0,revealProgress=0,_movieAutoTimer=null,_autoStep=0,_lastFrameCardId=null;
+let frameIdx=0,revealProgress=0,_movieAutoTimer=null,_autoStep=0,_blurStep=0,_lastFrameCardId=null;
 let emojiStep=1,_lastEmojiCardId=null,_emojiProg=false;
 // Separa una cadena en emojis reales (respeta banderas, tonos de piel y combinaciones ZWJ)
 function splitEmojis(str){
@@ -2724,13 +2724,19 @@ function movieAutoTick(){
   const m=c.revealMode||'full';
   _autoStep++;
   let changed=false;
-  if(m==='blur'||m==='crop'){revealProgress=Math.min(1,revealProgress+1/20);changed=true;} // ~14s a 700ms
+  if(m==='blur'||m==='crop'){
+    revealProgress=Math.min(1,revealProgress+1/20);changed=true; // ~14s a 700ms
+    // Sin cuadros ni frames, la 'nueva pista' es cada 25 % de imagen destapada:
+    // si el buzzer quedó cerrado o con un equipo bloqueado, se reinicia solo.
+    const st=Math.floor(revealProgress*4);
+    if(st>_blurStep){_blurStep=st;reopenBuzzerForNewTile();}
+  }
   if(m==='grid'&&gridAutoReveal&&_autoStep%3===0){autoRevealTileSilent();changed=true;reopenBuzzerForNewTile();}
   // Frames: se pasan manualmente (tecla F / botón), no automáticamente.
   updateCondProgress();
   if(changed)sendState();
 }
-function startMovieAuto(){stopMovieAuto();_autoStep=0;if(movieAutoActive())_movieAutoTimer=setInterval(movieAutoTick,700);}
+function startMovieAuto(){stopMovieAuto();_autoStep=0;_blurStep=0;if(movieAutoActive())_movieAutoTimer=setInterval(movieAutoTick,700);}
 function stopMovieAuto(){if(_movieAutoTimer){clearInterval(_movieAutoTimer);_movieAutoTimer=null;}}
 function maybeStartMovieAuto(){if(movieAutoActive())startMovieAuto();}
 // Avance manual de frame (tecla F / botón)
@@ -2745,6 +2751,7 @@ function nextFrame(){
   // Ronda grupal: si nadie está respondiendo, el frame nuevo reabre el buzzer
   // para todos los equipos (3-2-1, cola reiniciada y 15 s para cada uno).
   if(GROUP&&revealed&&phase==='idle')fbOpenBuzzer();
+  else reopenBuzzerForNewTile(); // 2 equipos: reinicia el buzzer si estaba cerrado o con un equipo bloqueado
 }
 // Destapa el próximo emoji (botón 😀 o tecla F en cartas de emojis)
 function nextEmoji(){
@@ -2755,6 +2762,7 @@ function nextEmoji(){
   emojiStep++;
   renderCondCard();          // vuelve a dibujar la tira del conductor (y hace sendState)
   showToast('😀 Emoji '+emojiStep+'/'+total);
+  reopenBuzzerForNewTile(); // nuevo emoji = nueva chance para buzzear
 }
 function syncEmojiHintUI(){
   const c=currentCard();

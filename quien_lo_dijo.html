@@ -1056,6 +1056,8 @@ const SK = {
   DECK: 'qld_deck',
   IDX: 'qld_idx',
   TEAM_SCORES: 'qld_team_scores',
+  TEAM_LABELS: 'qld_team_labels', // { teamIndex: nombre del equipo } al guardar los puntajes
+  TEAMS_CACHE: 'qld_teams_cache', // último roster real recibido de Velada
   MODE: 'qld_mode'
 };
 const WIN_TARGET = 10; // puntos para ganar la ronda especial
@@ -1364,7 +1366,12 @@ let MODE = null;
 let deck = [];
 let deckMeta = { updated: 0 };
 let cardIdx = 0;
-let teams = DEFAULT_TEAMS.map(t => ({ ...t })); // se sobreescribe en vivo desde velada.html (Firebase)
+// Arranca con el último roster real que mandó Velada (cache local). Los nombres de ejemplo
+// (DEFAULT_TEAMS) solo se usan si pasan unos segundos sin respuesta y no hay nada guardado.
+let teams = (function(){
+  try{ const c = JSON.parse(localStorage.getItem(SK.TEAMS_CACHE) || 'null'); if(Array.isArray(c) && c.length) return c; }catch(e){}
+  return [];
+})();
 let teamScores = {};       // { teamIndex: totalPoints }
 let teamScoresRecent = {}; // { teamIndex: msTimestamp } — para efecto "+1"
 let nickToTeamIndex = {};  // { apodo: teamIndex } — se reconstruye cada vez que llegan equipos nuevos
@@ -1540,15 +1547,63 @@ function rebuildNickMap(){
   teams.forEach(t => { (t.members||[]).forEach(m => { nickToTeamIndex[m] = t.index; }); });
 }
 let teamsPublishedEmpty = false; // Velada confirmó que no tiene equipos cargados
+function saveTeamsCache(){
+  try{
+    localStorage.setItem(SK.TEAMS_CACHE, JSON.stringify(teams));
+    const l = {}; teams.forEach(t => { l[t.index] = t.label; });
+    localStorage.setItem(SK.TEAM_LABELS, JSON.stringify(l));
+  }catch(e){}
+}
+// Los puntajes se guardan por número de equipo. Si en Velada cambia la lista (se borra,
+// agrega o reordena un equipo), el número ya no apunta al mismo equipo: se reasignan por nombre.
+function remapTeamScores(newTeams){
+  if(!newTeams.length) return;
+  let oldLabels = {};
+  try{ oldLabels = JSON.parse(localStorage.getItem(SK.TEAM_LABELS) || '{}') || {}; }catch(e){}
+  if(!Object.keys(oldLabels).length) return;   // todavía no sabemos a qué equipo era cada número
+  const idxByLabel = {}, idxSet = new Set();
+  newTeams.forEach(t => { idxByLabel[t.label] = t.index; idxSet.add(String(t.index)); });
+  const out = {}, claimed = new Set(), pending = [];
+  let changed = false;
+  Object.keys(teamScores).forEach(k => {
+    const pts = teamScores[k] || 0, lbl = oldLabels[k];
+    if(lbl !== undefined && idxByLabel[lbl] !== undefined){
+      const ni = String(idxByLabel[lbl]);
+      out[ni] = (out[ni] || 0) + pts; claimed.add(ni);
+      if(ni !== String(k)) changed = true;
+    } else pending.push(k);
+  });
+  // Sin coincidencia por nombre: si ese número sigue libre se asume que el equipo se renombró.
+  pending.forEach(k => {
+    const pts = teamScores[k] || 0;
+    if(idxSet.has(String(k)) && !claimed.has(String(k))){ out[String(k)] = (out[String(k)] || 0) + pts; claimed.add(String(k)); }
+    else if(pts) changed = true;               // equipo que ya no existe: se descarta su puntaje
+  });
+  if(changed){
+    teamScores = out;
+    saveTeamScores();
+    try{ fbPushLive(); }catch(e){}
+    toast('⚠️ Cambiaron los equipos en Velada: puntajes reasignados por nombre de equipo');
+  }
+}
 function applyTeams(newTeams, allowEmpty){
   if(!Array.isArray(newTeams) || (!newTeams.length && !allowEmpty)) return;
   teamsPublishedEmpty = !newTeams.length;
+  if(MODE === 'conductor') remapTeamScores(newTeams);
   teams = newTeams.map(t => ({ index: t.index, label: t.label, members: t.members || [], membersFull: t.membersFull || [] }));
+  if(teams.length) saveTeamsCache();
   rebuildNickMap();
   renderScores();
   if(MODE === 'participant') renderPartScores();
   if(document.getElementById('pl-overlay') && document.getElementById('pl-overlay').classList.contains('open')) openPlayers();
 }
+
+setTimeout(function(){
+  if(teams.length || teamsPublishedEmpty) return;
+  teams = DEFAULT_TEAMS.map(t => ({ ...t }));   // offline y sin roster guardado: nombres de ejemplo
+  rebuildNickMap(); renderScores();
+  if(MODE === 'participant') renderPartScores();
+}, 4000);
 
 // ── FOTOS: llegan por Firestore (ver <script type="module"> al final del
 // archivo, mismo documento 'ndj/photos' que escribe velada.html). En vivo,

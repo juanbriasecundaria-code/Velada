@@ -734,7 +734,7 @@ function selectGame(gameId){
     const txt = document.getElementById('connecting-text');
     if(txt && txt.style.display !== 'none'){
       console.warn('[HUB] Timeout global — Firebase no respondió, uso modo offline.');
-      if(isIndividual) renderIndividualPlayers(DEFAULT_QLD_PLAYERS);
+      if(isIndividual) renderIndividualPlayers(offlineQldRoster());
       document.getElementById('connecting-dot').style.display = 'none';
       txt.style.display = 'none';
     }
@@ -783,7 +783,7 @@ function startIndividualPlayerListener(){
   indivFallbackTimer = setTimeout(() => {
     if(resolved) return;
     console.warn('[QLD] Timeout esperando el roster de equipos — uso lista por defecto.');
-    finish(DEFAULT_QLD_PLAYERS);
+    finish(offlineQldRoster());
   }, 4000);
   indivListener = ref.on('value', snap => {
     const d = snap.val() || {};
@@ -804,15 +804,22 @@ function startIndividualPlayerListener(){
     list = list.filter((n, i) => n && list.indexOf(n) === i);
     // Si todavía no se publicó el roster (velada.html no se abrió en esta sesión), usamos un default
     if(!list.length && !publishedByVelada) list = DEFAULT_QLD_PLAYERS;
+    // Se guarda el último roster real (o se borra si velada quedó vacía) para usarlo sin conexión.
+    try{ if(publishedByVelada){ if(list.length) localStorage.setItem('qld_last_roster', JSON.stringify(list)); else localStorage.removeItem('qld_last_roster'); } }catch(e){}
     finish(list);
   }, err => {
     // Permiso denegado, reglas de Firebase, etc.: antes esto se perdía en
     // silencio y la pantalla se quedaba en "Conectando…" para siempre.
     console.warn('[QLD] No se pudo leer el roster de equipos:', err);
-    finish(DEFAULT_QLD_PLAYERS);
+    finish(offlineQldRoster());
   });
 }
 const DEFAULT_QLD_PLAYERS = ['Martin','Valentín','Laza','Tomás','Thiago','Lara','Totti','Risu','Cori','Flor'];
+// Sin conexión: primero el último roster real que mandó velada; los nombres de ejemplo son el último recurso.
+function offlineQldRoster(){
+  try{ const c = JSON.parse(localStorage.getItem('qld_last_roster') || 'null'); if(Array.isArray(c) && c.length) return c; }catch(e){}
+  return DEFAULT_QLD_PLAYERS;
+}
 function renderIndividualPlayers(list){
   lastIndivList = list;
   const wrap = document.getElementById('team-list-individual');
