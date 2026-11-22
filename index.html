@@ -787,6 +787,10 @@ function startIndividualPlayerListener(){
   }, 4000);
   indivListener = ref.on('value', snap => {
     const d = snap.val() || {};
+    // Si velada ya publicó (hay `updated`), su lista manda aunque esté vacía
+    // (Firebase no guarda arrays vacíos). Los nombres de ejemplo solo se usan
+    // si velada nunca publicó nada.
+    const publishedByVelada = !!d.updated;
     let list = [];
     // El roster completo manda: incluye a los que todavía no están en un equipo.
     // Antes se armaba juntando integrantes y esos jugadores quedaban afuera.
@@ -799,7 +803,7 @@ function startIndividualPlayerListener(){
     // Sin duplicados, por si alguien figura en dos lados
     list = list.filter((n, i) => n && list.indexOf(n) === i);
     // Si todavía no se publicó el roster (velada.html no se abrió en esta sesión), usamos un default
-    if(!list.length) list = DEFAULT_QLD_PLAYERS;
+    if(!list.length && !publishedByVelada) list = DEFAULT_QLD_PLAYERS;
     finish(list);
   }, err => {
     // Permiso denegado, reglas de Firebase, etc.: antes esto se perdía en
@@ -813,6 +817,10 @@ function renderIndividualPlayers(list){
   lastIndivList = list;
   const wrap = document.getElementById('team-list-individual');
   if(!wrap) return;
+  if(!list.length){
+    wrap.innerHTML = '<div style="padding:1rem;text-align:center;opacity:.7;font-size:14px">No hay participantes cargados en Velada.</div>';
+    return;
+  }
   wrap.innerHTML = list.map(p => `<button class="team-btn team-indiv" onclick="selectTeam('${p.replace(/'/g,"\\'")}')">${indivAvatarHtml(p)}<span class="indiv-name">${p}</span></button>`).join('');
 }
 // Avatar circular con la foto del participante (cargada desde

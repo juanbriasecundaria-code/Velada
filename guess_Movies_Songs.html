@@ -1224,6 +1224,20 @@ function setFbStatus(state, msg){
 let _buzzBlocked = null;
 const BUZZ_COUNTDOWN_MS = 3000;
 let _buzzCountdownTimer = null;
+// Último estado del buzzer recibido por Firebase (lo usa el modo grid).
+let _fbLastData = null;
+// GRID: al destapar un cuadro nuevo, el buzzer se reinicia solo (sin volver al
+// primer cuadro). Solo actúa si nadie está respondiendo y el buzzer NO está ya
+// limpio y abierto, así no se repite el 3-2-1 sin necesidad.
+function reopenBuzzerForNewTile(){
+  if(!revealed || phase!=='idle') return;
+  const d=_fbLastData||{};
+  const st=d.state||'locked';
+  const hasQueue=Array.isArray(d.queue)&&d.queue.filter(Boolean).length>0;
+  const fresh=(st==='open'||st==='countdown') && !d.blocked && !hasQueue && !d.winner;
+  if(fresh) return;
+  fbOpenBuzzer();
+}
 async function fbOpenBuzzer(blocked){
   if(typeof GROUP!=='undefined' && GROUP) gResetQueue();
   _buzzBlocked = blocked || null;
@@ -1257,6 +1271,7 @@ function startCondListener(){
   let _lastReset = null; // el primer snapshot solo se registra, no se aplica
   fbRef.on('value', snap=>{
     const d = snap.val() || {};
+    _fbLastData = d;
     if(d.fixture && d.fixture.active)d.names=d.fixture.names;
     // ── Orden de reset mandada desde velada.html ──
     const rTs = d.reset || 0;
@@ -2710,7 +2725,7 @@ function movieAutoTick(){
   _autoStep++;
   let changed=false;
   if(m==='blur'||m==='crop'){revealProgress=Math.min(1,revealProgress+1/20);changed=true;} // ~14s a 700ms
-  if(m==='grid'&&gridAutoReveal&&_autoStep%3===0){autoRevealTileSilent();changed=true;}
+  if(m==='grid'&&gridAutoReveal&&_autoStep%3===0){autoRevealTileSilent();changed=true;reopenBuzzerForNewTile();}
   // Frames: se pasan manualmente (tecla F / botón), no automáticamente.
   updateCondProgress();
   if(changed)sendState();
@@ -2772,6 +2787,7 @@ function revealRandomTile(){
   syncGridHintUI();
   sendState();
   showToast('💡 Cuadro destapado ('+gridRevealed.filter(Boolean).length+'/9)');
+  reopenBuzzerForNewTile();
 }
 function toggleReveal(){
   revealed=!revealed;

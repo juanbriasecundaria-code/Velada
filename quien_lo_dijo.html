@@ -1142,6 +1142,10 @@ function initFirebase(){
     fbTeamsRef.on('value', snap => {
       const d = snap.val();
       if(d && Array.isArray(d.teams)) applyTeams(d.teams);
+      // Velada publicó el roster pero sin equipos (se borraron): Firebase no guarda
+      // arrays vacíos, así que acá llega solo `updated`. Se vacía la lista en vez
+      // de quedarse con los equipos viejos o los de ejemplo.
+      else if(d && d.updated) applyTeams([], true);
     });
     if(MODE==='participant'){
       fbStateRef.on('value', snap => { const d = snap.val(); if(d) applyLive(d); });
@@ -1535,12 +1539,15 @@ function rebuildNickMap(){
   nickToTeamIndex = {};
   teams.forEach(t => { (t.members||[]).forEach(m => { nickToTeamIndex[m] = t.index; }); });
 }
-function applyTeams(newTeams){
-  if(!Array.isArray(newTeams) || !newTeams.length) return;
+let teamsPublishedEmpty = false; // Velada confirmó que no tiene equipos cargados
+function applyTeams(newTeams, allowEmpty){
+  if(!Array.isArray(newTeams) || (!newTeams.length && !allowEmpty)) return;
+  teamsPublishedEmpty = !newTeams.length;
   teams = newTeams.map(t => ({ index: t.index, label: t.label, members: t.members || [], membersFull: t.membersFull || [] }));
   rebuildNickMap();
   renderScores();
   if(MODE === 'participant') renderPartScores();
+  if(document.getElementById('pl-overlay') && document.getElementById('pl-overlay').classList.contains('open')) openPlayers();
 }
 
 // ── FOTOS: llegan por Firestore (ver <script type="module"> al final del
@@ -3227,7 +3234,9 @@ function openPlayers(){
   const wrap = document.getElementById('pl-list-view');
   if(wrap){
     if(!teams.length){
-      wrap.innerHTML = `<div class="ed-empty">Todavía no llegaron los equipos desde Velada.<br>Abrí <b>velada.html</b> al menos una vez para publicarlos.</div>`;
+      wrap.innerHTML = teamsPublishedEmpty
+        ? `<div class="ed-empty">Velada no tiene equipos cargados en este momento.</div>`
+        : `<div class="ed-empty">Todavía no llegaron los equipos desde Velada.<br>Abrí <b>velada.html</b> al menos una vez para publicarlos.</div>`;
     } else {
       wrap.innerHTML = teams.map(t => `
         <div class="ed-item">
